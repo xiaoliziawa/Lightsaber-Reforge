@@ -1,3 +1,6 @@
 {
-  "parent": "lightsabers:block/disassembly_station_base"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "lightsabers:item/disassembly_station"
+  }
 }

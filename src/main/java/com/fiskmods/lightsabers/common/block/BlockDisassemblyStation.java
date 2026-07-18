@@ -33,6 +33,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
@@ -40,46 +41,25 @@ import org.jetbrains.annotations.Nullable;
 public class BlockDisassemblyStation extends BaseEntityBlock {
     public static final EnumProperty<Part> PART = EnumProperty.create("part", Part.class);
 
-    private static final VoxelShape BASE_SHAPE = Block.box(
+    private static final VoxelShape LOWER_SHAPE = Block.box(
             0.0D, 0.0D, 0.0D,
-            16.0D, 14.0D, 16.0D
-    );
-    private static final VoxelShape SIDE_SHAPE = Block.box(
-            0.0D, 0.0D, 0.0D,
-            16.0D, 17.0D, 16.0D
-    );
-    private static final double TOP_WIDTH = 12.4D;
-    private static final VoxelShape SOUTH_TOP_BASE_SHAPE = Block.box(
-            0.0D, -2.0D, 16.0D - TOP_WIDTH,
             16.0D, 13.0D, 16.0D
     );
-    private static final VoxelShape SOUTH_TOP_SIDE_SHAPE = Block.box(
-            0.0D, 1.0D, 16.0D - TOP_WIDTH,
-            16.0D, 13.0D, 16.0D
+    private static final VoxelShape SOUTH_TOP_SHAPE = Shapes.or(
+            Block.box(0.0D, -3.0D, 8.0D, 16.0D, 9.0D, 16.0D),
+            Block.box(0.0D, 9.0D, 2.0D, 16.0D, 15.0D, 16.0D)
     );
-    private static final VoxelShape WEST_TOP_BASE_SHAPE = Block.box(
-            0.0D, -2.0D, 0.0D,
-            TOP_WIDTH, 13.0D, 16.0D
+    private static final VoxelShape WEST_TOP_SHAPE = Shapes.or(
+            Block.box(0.0D, -3.0D, 0.0D, 8.0D, 9.0D, 16.0D),
+            Block.box(0.0D, 9.0D, 0.0D, 14.0D, 15.0D, 16.0D)
     );
-    private static final VoxelShape WEST_TOP_SIDE_SHAPE = Block.box(
-            0.0D, 1.0D, 0.0D,
-            TOP_WIDTH, 13.0D, 16.0D
+    private static final VoxelShape NORTH_TOP_SHAPE = Shapes.or(
+            Block.box(0.0D, -3.0D, 0.0D, 16.0D, 9.0D, 8.0D),
+            Block.box(0.0D, 9.0D, 0.0D, 16.0D, 15.0D, 14.0D)
     );
-    private static final VoxelShape NORTH_TOP_BASE_SHAPE = Block.box(
-            0.0D, -2.0D, 0.0D,
-            16.0D, 13.0D, TOP_WIDTH
-    );
-    private static final VoxelShape NORTH_TOP_SIDE_SHAPE = Block.box(
-            0.0D, 1.0D, 0.0D,
-            16.0D, 13.0D, TOP_WIDTH
-    );
-    private static final VoxelShape EAST_TOP_BASE_SHAPE = Block.box(
-            16.0D - TOP_WIDTH, -2.0D, 0.0D,
-            16.0D, 13.0D, 16.0D
-    );
-    private static final VoxelShape EAST_TOP_SIDE_SHAPE = Block.box(
-            16.0D - TOP_WIDTH, 1.0D, 0.0D,
-            16.0D, 13.0D, 16.0D
+    private static final VoxelShape EAST_TOP_SHAPE = Shapes.or(
+            Block.box(8.0D, -3.0D, 0.0D, 16.0D, 9.0D, 16.0D),
+            Block.box(2.0D, 9.0D, 0.0D, 16.0D, 15.0D, 16.0D)
     );
 
     public BlockDisassemblyStation(BlockBehaviour.Properties properties) {
@@ -158,19 +138,15 @@ public class BlockDisassemblyStation extends BaseEntityBlock {
             CollisionContext context
     ) {
         Part part = state.getValue(PART);
-        if (part == Part.BASE) {
-            return BASE_SHAPE;
-        }
-        if (part == Part.SIDE) {
-            return SIDE_SHAPE;
+        if (part == Part.BASE || part == Part.SIDE) {
+            return LOWER_SHAPE;
         }
 
-        boolean sideTop = part == Part.TOP_SIDE;
         return switch (state.getValue(HorizontalDirectionalBlock.FACING)) {
-            case NORTH -> sideTop ? NORTH_TOP_SIDE_SHAPE : NORTH_TOP_BASE_SHAPE;
-            case WEST -> sideTop ? WEST_TOP_SIDE_SHAPE : WEST_TOP_BASE_SHAPE;
-            case EAST -> sideTop ? EAST_TOP_SIDE_SHAPE : EAST_TOP_BASE_SHAPE;
-            default -> sideTop ? SOUTH_TOP_SIDE_SHAPE : SOUTH_TOP_BASE_SHAPE;
+            case NORTH -> NORTH_TOP_SHAPE;
+            case WEST -> WEST_TOP_SHAPE;
+            case EAST -> EAST_TOP_SHAPE;
+            default -> SOUTH_TOP_SHAPE;
         };
     }
 
