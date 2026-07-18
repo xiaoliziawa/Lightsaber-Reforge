@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " LS",
+    "LCL",
+    " L "
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "S": {
+      "item": "minecraft:string"
+    },
+    "C": {
+      "type": "forge:nbt",
+      "item": "lightsabers:lightsaber_crystal",
+      "nbt": {
+        "CrystalColorId": 8
+      }
+    }
+  },
+  "result": {
+    "item": "lightsabers:crystal_pouch",
+    "nbt": {
+      "CrystalColorId": 8
+    }
+  }
+}

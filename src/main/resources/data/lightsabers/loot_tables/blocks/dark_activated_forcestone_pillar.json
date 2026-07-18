@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:block",
+  "pools": [{
+    "bonus_rolls": 0.0,
+    "entries": [{
+      "type": "minecraft:item",
+      "functions": [{ "function": "minecraft:explosion_decay" }],
+      "name": "lightsabers:dark_activated_forcestone_pillar"
+    }],
+    "rolls": 1.0
+  }]
+}

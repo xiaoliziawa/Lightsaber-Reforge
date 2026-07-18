@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.fiskmods.lightsabers.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "lightsabers.refmap.json",
+  "client": [
+    "MixinMinecraft"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

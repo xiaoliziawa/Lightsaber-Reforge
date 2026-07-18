@@ -1,0 +1,6 @@
+{
+  "parent": "lightsabers:block/light_forcestone_slab",
+  "overrides": [
+    { "predicate": { "lightsabers:forcestone_slab_variant": 1.0 }, "model": "lightsabers:block/dark_forcestone_slab" }
+  ]
+}

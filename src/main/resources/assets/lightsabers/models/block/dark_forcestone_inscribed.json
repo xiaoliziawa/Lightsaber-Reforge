@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "lightsabers:block/dark_forcestone",
+    "side": "lightsabers:block/dark_forcestone_inscribed"
+  }
+}

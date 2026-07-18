@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=down": { "model": "lightsabers:block/lightsaber_crystal", "x": 180 },
+    "facing=east": { "model": "lightsabers:block/lightsaber_crystal", "x": 90, "y": 90 },
+    "facing=north": { "model": "lightsabers:block/lightsaber_crystal", "x": 90 },
+    "facing=south": { "model": "lightsabers:block/lightsaber_crystal", "x": 90, "y": 180 },
+    "facing=up": { "model": "lightsabers:block/lightsaber_crystal" },
+    "facing=west": { "model": "lightsabers:block/lightsaber_crystal", "x": 90, "y": 270 }
+  }
+}

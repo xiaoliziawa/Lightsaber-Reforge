@@ -1,0 +1,11 @@
+{
+  "multipart": [
+    { "when": { "variant": "default" }, "apply": { "model": "lightsabers:block/dark_forcestone_default" } },
+    { "when": { "variant": "inscribed" }, "apply": { "model": "lightsabers:block/dark_forcestone_inscribed" } },
+    { "when": { "variant": "cracked" }, "apply": { "model": "lightsabers:block/dark_forcestone_cracked" } },
+    { "when": { "variant": "mossy" }, "apply": { "model": "lightsabers:block/dark_forcestone_mossy" } },
+    { "when": { "variant": "pillar", "axis": "x" }, "apply": { "model": "lightsabers:block/dark_forcestone_pillar", "x": 90, "y": 90 } },
+    { "when": { "variant": "pillar", "axis": "y" }, "apply": { "model": "lightsabers:block/dark_forcestone_pillar" } },
+    { "when": { "variant": "pillar", "axis": "z" }, "apply": { "model": "lightsabers:block/dark_forcestone_pillar", "x": 90 } }
+  ]
+}

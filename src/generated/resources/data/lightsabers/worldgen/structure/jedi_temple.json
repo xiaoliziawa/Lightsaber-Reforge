@@ -1,0 +1,8 @@
+{
+  "type": "lightsabers:legacy",
+  "biomes": "#lightsabers:has_structure/jedi_temple",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "structure": "jedi_temple",
+  "terrain_adaptation": "beard_thin"
+}

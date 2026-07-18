@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ABA",
+    " C ",
+    "AAA"
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:polished_blackstone"
+    },
+    "B": {
+      "item": "minecraft:polished_blackstone_pressure_plate"
+    },
+    "C": {
+      "item": "lightsabers:lightsaber_crystal"
+    }
+  },
+  "result": {
+    "item": "lightsabers:crystal_display_stand"
+  }
+}

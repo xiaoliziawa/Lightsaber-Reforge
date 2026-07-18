@@ -1,0 +1,22 @@
+{
+  "ambientocclusion": false,
+  "render_type": "cutout",
+  "textures": {
+    "crystal": "lightsabers:block/lightsaber_crystal",
+    "particle": "lightsabers:block/lightsaber_crystal"
+  },
+  "elements": [
+    {
+      "from": [5, 0, 5],
+      "to": [11, 6, 11],
+      "faces": {
+        "down": { "texture": "#crystal", "tintindex": 0 },
+        "up": { "texture": "#crystal", "tintindex": 0 },
+        "north": { "texture": "#crystal", "tintindex": 0 },
+        "south": { "texture": "#crystal", "tintindex": 0 },
+        "west": { "texture": "#crystal", "tintindex": 0 },
+        "east": { "texture": "#crystal", "tintindex": 0 }
+      }
+    }
+  ]
+}

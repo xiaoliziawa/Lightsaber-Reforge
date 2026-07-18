@@ -1,0 +1,53 @@
+package com.fiskmods.lightsabers.common.generator.worldgen;
+
+import com.fiskmods.lightsabers.Lightsabers;
+import com.fiskmods.lightsabers.common.generator.structure.EnumStructure;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.StructureType;
+import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceType;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.RegistryObject;
+
+public final class ModWorldgen {
+    public static final ResourceKey<Structure> JEDI_TEMPLE = structureKey("jedi_temple");
+    public static final ResourceKey<Structure> SITH_TOMB = structureKey("sith_tomb");
+
+    private static final DeferredRegister<StructureType<?>> STRUCTURE_TYPES =
+            DeferredRegister.create(Registries.STRUCTURE_TYPE, Lightsabers.MODID);
+    private static final DeferredRegister<StructurePieceType> STRUCTURE_PIECE_TYPES =
+            DeferredRegister.create(Registries.STRUCTURE_PIECE, Lightsabers.MODID);
+
+    public static final RegistryObject<StructureType<LegacyDataStructure>> LEGACY_STRUCTURE =
+            STRUCTURE_TYPES.register("legacy", () -> () -> LegacyDataStructure.CODEC);
+    public static final RegistryObject<StructurePieceType> LEGACY_PIECE =
+            STRUCTURE_PIECE_TYPES.register(
+                    "legacy",
+                    () -> (StructurePieceType.ContextlessType) LegacyStructurePiece::new
+            );
+
+    private ModWorldgen() {
+    }
+
+    public static void register(IEventBus modEventBus) {
+        STRUCTURE_TYPES.register(modEventBus);
+        STRUCTURE_PIECE_TYPES.register(modEventBus);
+    }
+
+    public static ResourceKey<Structure> key(EnumStructure structure) {
+        return switch (structure) {
+            case JEDI_TEMPLE -> JEDI_TEMPLE;
+            case SITH_TOMB -> SITH_TOMB;
+        };
+    }
+
+    private static ResourceKey<Structure> structureKey(String name) {
+        return ResourceKey.create(
+                Registries.STRUCTURE,
+                ResourceLocation.fromNamespaceAndPath(Lightsabers.MODID, name)
+        );
+    }
+}

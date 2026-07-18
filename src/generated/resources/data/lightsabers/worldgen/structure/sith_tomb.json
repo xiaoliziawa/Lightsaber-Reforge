@@ -1,0 +1,8 @@
+{
+  "type": "lightsabers:legacy",
+  "biomes": "#lightsabers:has_structure/sith_tomb",
+  "spawn_overrides": {},
+  "step": "surface_structures",
+  "structure": "sith_tomb",
+  "terrain_adaptation": "bury"
+}

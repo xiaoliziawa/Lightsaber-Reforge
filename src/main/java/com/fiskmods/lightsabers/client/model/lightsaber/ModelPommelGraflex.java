@@ -1,0 +1,208 @@
+package com.fiskmods.lightsabers.client.model.lightsaber;
+
+import com.fiskmods.lightsabers.client.model.legacy.LegacyGlState;
+
+import com.fiskmods.lightsabers.client.model.legacy.LegacyModelBase;
+import com.fiskmods.lightsabers.client.model.legacy.LegacyModelRenderer;
+import net.minecraft.world.entity.Entity;
+
+public class ModelPommelGraflex extends LegacyModelBase
+{
+    public LegacyModelRenderer body1;
+    public LegacyModelRenderer top1;
+    public LegacyModelRenderer bottom1;
+    public LegacyModelRenderer body2;
+    public LegacyModelRenderer body3;
+    public LegacyModelRenderer body4;
+    public LegacyModelRenderer body5;
+    public LegacyModelRenderer body6;
+    public LegacyModelRenderer body7;
+    public LegacyModelRenderer body8;
+    public LegacyModelRenderer body9;
+    public LegacyModelRenderer top2;
+    public LegacyModelRenderer top3;
+    public LegacyModelRenderer top4;
+    public LegacyModelRenderer top5;
+    public LegacyModelRenderer top6;
+    public LegacyModelRenderer top7;
+    public LegacyModelRenderer top8;
+    public LegacyModelRenderer bottom2;
+    public LegacyModelRenderer bottom3;
+    public LegacyModelRenderer bottom6;
+    public LegacyModelRenderer bottom9;
+    public LegacyModelRenderer bottom4;
+    public LegacyModelRenderer bottom5;
+    public LegacyModelRenderer bottom7;
+    public LegacyModelRenderer bottom8;
+
+    public ModelPommelGraflex()
+    {
+        textureWidth = 64;
+        textureHeight = 32;
+        body1 = new LegacyModelRenderer(this, 0, 0);
+        body1.setRotationPoint(0.0F, 0.0F, 0.0F);
+        body1.addBox(-1.5F, 0.0F, -0.38F, 3, 1, 4, 0.0F);
+        bottom3 = new LegacyModelRenderer(this, 10, 2);
+        bottom3.mirror = true;
+        bottom3.setRotationPoint(0.5F, 0.0F, -4.0F);
+        bottom3.addBox(0.0F, -0.5F, -0.5F, 4, 1, 1, 0.0F);
+        bottom1 = new LegacyModelRenderer(this, 0, 8);
+        bottom1.setRotationPoint(2.3F, 0.8F, 0.0F);
+        bottom1.addBox(0.0F, -1.0F, -3.0F, 2, 2, 6, 0.0F);
+        bottom2 = new LegacyModelRenderer(this, 7, 7);
+        bottom2.mirror = true;
+        bottom2.setRotationPoint(1.0F, 0.0F, 0.0F);
+        bottom2.addBox(-0.5F, -0.5F, -4.5F, 1, 1, 9, 0.0F);
+        setRotateAngle(bottom2, 0.0F, 0.0F, 0.47123889803846897F);
+        top7 = new LegacyModelRenderer(this, 10, 0);
+        top7.setRotationPoint(0.0F, 0.0F, 0.0F);
+        top7.addBox(-1.5F, -1.0F, 2.62F, 3, 1, 1, 0.0F);
+        setRotateAngle(top7, 0.0F, -1.5707963267948966F, 0.0F);
+        bottom6 = new LegacyModelRenderer(this, 10, 2);
+        bottom6.mirror = true;
+        bottom6.setRotationPoint(0.5F, 0.0F, 4.0F);
+        bottom6.addBox(0.0F, -0.5F, -0.5F, 4, 1, 1, 0.0F);
+        top8 = new LegacyModelRenderer(this, 10, 0);
+        top8.setRotationPoint(0.0F, 0.0F, 0.0F);
+        top8.addBox(-1.5F, -1.0F, 2.62F, 3, 1, 1, 0.0F);
+        setRotateAngle(top8, 0.0F, -0.7853981633974483F, 0.0F);
+        body7 = new LegacyModelRenderer(this, 0, 0);
+        body7.setRotationPoint(0.0F, 0.0F, 0.0F);
+        body7.addBox(-1.5F, 0.0F, -0.38F, 3, 1, 4, 0.0F);
+        setRotateAngle(body7, 0.0F, -1.5707963267948966F, 0.0F);
+        body9 = new LegacyModelRenderer(this, 0, 5);
+        body9.setRotationPoint(-0.2F, 1.0F, 0.0F);
+        body9.addBox(-2.5F, 0.0F, -1.0F, 5, 1, 2, 0.0F);
+        setRotateAngle(body9, 0.0F, 0.0F, 0.0017453292519943296F);
+        body6 = new LegacyModelRenderer(this, 0, 0);
+        body6.setRotationPoint(0.0F, 0.0F, 0.0F);
+        body6.addBox(-1.5F, 0.0F, -0.38F, 3, 1, 4, 0.0F);
+        setRotateAngle(body6, 0.0F, -2.356194490192345F, 0.0F);
+        body8 = new LegacyModelRenderer(this, 0, 0);
+        body8.setRotationPoint(0.0F, 0.0F, 0.0F);
+        body8.addBox(-1.5F, 0.0F, -0.38F, 3, 1, 4, 0.0F);
+        setRotateAngle(body8, 0.0F, -0.7853981633974483F, 0.0F);
+        bottom7 = new LegacyModelRenderer(this, 0, 8);
+        bottom7.mirror = true;
+        bottom7.setRotationPoint(3.68F, 0.0F, 0.12F);
+        bottom7.addBox(0.0F, -0.5F, -0.5F, 2, 1, 1, 0.0F);
+        setRotateAngle(bottom7, 0.0F, 0.6981317007977318F, 0.0F);
+        body5 = new LegacyModelRenderer(this, 0, 0);
+        body5.setRotationPoint(0.0F, 0.0F, 0.0F);
+        body5.addBox(-1.5F, 0.0F, -0.38F, 3, 1, 4, 0.0F);
+        setRotateAngle(body5, 0.0F, 3.141592653589793F, 0.0F);
+        body3 = new LegacyModelRenderer(this, 0, 0);
+        body3.setRotationPoint(0.0F, 0.0F, 0.0F);
+        body3.addBox(-1.5F, 0.0F, -0.38F, 3, 1, 4, 0.0F);
+        setRotateAngle(body3, 0.0F, 1.5707963267948966F, 0.0F);
+        top6 = new LegacyModelRenderer(this, 10, 0);
+        top6.setRotationPoint(0.0F, 0.0F, 0.0F);
+        top6.addBox(-1.5F, -1.0F, 2.62F, 3, 1, 1, 0.0F);
+        setRotateAngle(top6, 0.0F, -2.356194490192345F, 0.0F);
+        top4 = new LegacyModelRenderer(this, 10, 0);
+        top4.setRotationPoint(0.0F, 0.0F, 0.0F);
+        top4.addBox(-1.5F, -1.0F, 2.62F, 3, 1, 1, 0.0F);
+        setRotateAngle(top4, 0.0F, 2.356194490192345F, 0.0F);
+        bottom9 = new LegacyModelRenderer(this, 17, 1);
+        bottom9.mirror = true;
+        bottom9.setRotationPoint(6.35F, 0.0F, 0.0F);
+        bottom9.addBox(-0.5F, -0.5F, -1.5F, 1, 1, 3, 0.0F);
+        top3 = new LegacyModelRenderer(this, 10, 0);
+        top3.setRotationPoint(0.0F, 0.0F, 0.0F);
+        top3.addBox(-1.5F, -1.0F, 2.62F, 3, 1, 1, 0.0F);
+        setRotateAngle(top3, 0.0F, 1.5707963267948966F, 0.0F);
+        bottom4 = new LegacyModelRenderer(this, 0, 8);
+        bottom4.mirror = true;
+        bottom4.setRotationPoint(3.68F, 0.0F, -0.12F);
+        bottom4.addBox(0.0F, -0.5F, -0.5F, 2, 1, 1, 0.0F);
+        setRotateAngle(bottom4, 0.0F, -0.6981317007977318F, 0.0F);
+        top5 = new LegacyModelRenderer(this, 10, 0);
+        top5.setRotationPoint(0.0F, 0.0F, 0.0F);
+        top5.addBox(-1.5F, -1.0F, 2.62F, 3, 1, 1, 0.0F);
+        setRotateAngle(top5, 0.0F, 3.141592653589793F, 0.0F);
+        body4 = new LegacyModelRenderer(this, 0, 0);
+        body4.setRotationPoint(0.0F, 0.0F, 0.0F);
+        body4.addBox(-1.5F, 0.0F, -0.38F, 3, 1, 4, 0.0F);
+        setRotateAngle(body4, 0.0F, 2.356194490192345F, 0.0F);
+        bottom5 = new LegacyModelRenderer(this, 0, 10);
+        bottom5.mirror = true;
+        bottom5.setRotationPoint(1.78F, 0.0F, -0.05F);
+        bottom5.addBox(0.0F, -0.5F, -0.5F, 2, 1, 1, 0.0F);
+        setRotateAngle(bottom5, 0.0F, -0.45378560551852565F, 0.0F);
+        top1 = new LegacyModelRenderer(this, 10, 0);
+        top1.setRotationPoint(0.0F, 0.0F, 0.0F);
+        top1.addBox(-1.5F, -1.0F, 2.62F, 3, 1, 1, 0.0F);
+        top2 = new LegacyModelRenderer(this, 10, 0);
+        top2.setRotationPoint(0.0F, 0.0F, 0.0F);
+        top2.addBox(-1.5F, -1.0F, 2.62F, 3, 1, 1, 0.0F);
+        setRotateAngle(top2, 0.0F, 0.7853981633974483F, 0.0F);
+        body2 = new LegacyModelRenderer(this, 0, 0);
+        body2.setRotationPoint(0.0F, 0.0F, 0.0F);
+        body2.addBox(-1.5F, 0.0F, -0.38F, 3, 1, 4, 0.0F);
+        setRotateAngle(body2, 0.0F, 0.7853981633974483F, 0.0F);
+        bottom8 = new LegacyModelRenderer(this, 0, 10);
+        bottom8.mirror = true;
+        bottom8.setRotationPoint(1.78F, 0.0F, 0.05F);
+        bottom8.addBox(0.0F, -0.5F, -0.5F, 2, 1, 1, 0.0F);
+        setRotateAngle(bottom8, 0.0F, 0.45378560551852565F, 0.0F);
+        bottom2.addChild(bottom3);
+        bottom1.addChild(bottom2);
+        top1.addChild(top7);
+        bottom2.addChild(bottom6);
+        top1.addChild(top8);
+        body1.addChild(body7);
+        body1.addChild(body9);
+        body1.addChild(body6);
+        body1.addChild(body8);
+        bottom6.addChild(bottom7);
+        body1.addChild(body5);
+        body1.addChild(body3);
+        top1.addChild(top6);
+        top1.addChild(top4);
+        bottom2.addChild(bottom9);
+        top1.addChild(top3);
+        bottom3.addChild(bottom4);
+        top1.addChild(top5);
+        body1.addChild(body4);
+        bottom4.addChild(bottom5);
+        top1.addChild(top2);
+        body1.addChild(body2);
+        bottom7.addChild(bottom8);
+    }
+
+    @Override
+    public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5)
+    {
+        LegacyGlState.glPushMatrix();
+        LegacyGlState.glTranslatef(body1.offsetX, body1.offsetY, body1.offsetZ);
+        LegacyGlState.glTranslatef(body1.rotationPointX * f5, body1.rotationPointY * f5, body1.rotationPointZ * f5);
+        LegacyGlState.glScaled(1.0D, 0.5D, 1.0D);
+        LegacyGlState.glTranslatef(-body1.offsetX, -body1.offsetY, -body1.offsetZ);
+        LegacyGlState.glTranslatef(-body1.rotationPointX * f5, -body1.rotationPointY * f5, -body1.rotationPointZ * f5);
+        body1.render(f5);
+        LegacyGlState.glPopMatrix();
+        LegacyGlState.glPushMatrix();
+        LegacyGlState.glTranslatef(bottom1.offsetX, bottom1.offsetY, bottom1.offsetZ);
+        LegacyGlState.glTranslatef(bottom1.rotationPointX * f5, bottom1.rotationPointY * f5, bottom1.rotationPointZ * f5);
+        LegacyGlState.glScaled(0.4D, 0.4D, 0.4D);
+        LegacyGlState.glTranslatef(-bottom1.offsetX, -bottom1.offsetY, -bottom1.offsetZ);
+        LegacyGlState.glTranslatef(-bottom1.rotationPointX * f5, -bottom1.rotationPointY * f5, -bottom1.rotationPointZ * f5);
+        bottom1.render(f5);
+        LegacyGlState.glPopMatrix();
+        LegacyGlState.glPushMatrix();
+        LegacyGlState.glTranslatef(top1.offsetX, top1.offsetY, top1.offsetZ);
+        LegacyGlState.glTranslatef(top1.rotationPointX * f5, top1.rotationPointY * f5, top1.rotationPointZ * f5);
+        LegacyGlState.glScaled(0.8D, 1.0D, 0.8D);
+        LegacyGlState.glTranslatef(-top1.offsetX, -top1.offsetY, -top1.offsetZ);
+        LegacyGlState.glTranslatef(-top1.rotationPointX * f5, -top1.rotationPointY * f5, -top1.rotationPointZ * f5);
+        top1.render(f5);
+        LegacyGlState.glPopMatrix();
+    }
+
+    public void setRotateAngle(LegacyModelRenderer modelRenderer, float x, float y, float z)
+    {
+        modelRenderer.rotateAngleX = x;
+        modelRenderer.rotateAngleY = y;
+        modelRenderer.rotateAngleZ = z;
+    }
+}

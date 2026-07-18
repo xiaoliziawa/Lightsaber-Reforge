@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "forge:nbt",
+      "item": "lightsabers:dark_forcestone",
+      "nbt": {
+        "BlockStateTag": {
+          "variant": "pillar"
+        }
+      }
+    },
+    {
+      "item": "minecraft:redstone"
+    }
+  ],
+  "result": {
+    "item": "lightsabers:dark_activated_forcestone_pillar"
+  }
+}

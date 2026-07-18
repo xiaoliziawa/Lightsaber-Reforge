@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "block": "lightsabers:dark_forcestone",
+              "function": "minecraft:copy_state",
+              "properties": ["variant"]
+            },
+            { "function": "minecraft:explosion_decay" }
+          ],
+          "name": "lightsabers:dark_forcestone"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ]
+}

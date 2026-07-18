@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "type=bottom,variant=light": { "model": "lightsabers:block/light_forcestone_slab" },
+    "type=top,variant=light": { "model": "lightsabers:block/light_forcestone_slab_top" },
+    "type=double,variant=light": { "model": "lightsabers:block/light_forcestone_slab_double" },
+    "type=bottom,variant=dark": { "model": "lightsabers:block/dark_forcestone_slab" },
+    "type=top,variant=dark": { "model": "lightsabers:block/dark_forcestone_slab_top" },
+    "type=double,variant=dark": { "model": "lightsabers:block/dark_forcestone_slab_double" }
+  }
+}

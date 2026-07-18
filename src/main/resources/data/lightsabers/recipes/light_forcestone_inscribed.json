@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "#",
+    "#"
+  ],
+  "key": {
+    "#": {
+      "type": "forge:nbt",
+      "item": "lightsabers:forcestone_slab",
+      "nbt": {
+        "BlockStateTag": {
+          "variant": "light"
+        }
+      }
+    }
+  },
+  "result": {
+    "item": "lightsabers:light_forcestone",
+    "nbt": {
+      "BlockStateTag": {
+        "variant": "inscribed"
+      }
+    }
+  }
+}

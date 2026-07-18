@@ -1,0 +1,9 @@
+{
+  "parent": "lightsabers:block/light_forcestone_default",
+  "overrides": [
+    { "predicate": { "lightsabers:forcestone_variant": 0.25 }, "model": "lightsabers:block/light_forcestone_inscribed" },
+    { "predicate": { "lightsabers:forcestone_variant": 0.5 }, "model": "lightsabers:block/light_forcestone_pillar" },
+    { "predicate": { "lightsabers:forcestone_variant": 0.75 }, "model": "lightsabers:block/light_forcestone_cracked" },
+    { "predicate": { "lightsabers:forcestone_variant": 1.0 }, "model": "lightsabers:block/light_forcestone_mossy" }
+  ]
+}

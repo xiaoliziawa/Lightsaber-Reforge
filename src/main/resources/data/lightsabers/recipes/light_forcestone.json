@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###",
+    "#C#",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:cut_sandstone"
+    },
+    "C": {
+      "item": "lightsabers:lightsaber_crystal"
+    }
+  },
+  "result": {
+    "item": "lightsabers:light_forcestone",
+    "count": 4,
+    "nbt": {
+      "BlockStateTag": {
+        "variant": "default"
+      }
+    }
+  }
+}

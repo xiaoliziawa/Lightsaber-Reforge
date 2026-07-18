@@ -1,0 +1,28 @@
+{
+  "multipart": [
+    {
+      "when": { "facing": "up", "axis": "x" },
+      "apply": { "model": "lightsabers:block/lightsaber_stand" }
+    },
+    {
+      "when": { "facing": "up", "axis": "z" },
+      "apply": { "model": "lightsabers:block/lightsaber_stand", "y": 90 }
+    },
+    {
+      "when": { "facing": "south" },
+      "apply": { "model": "lightsabers:block/lightsaber_stand", "x": 90, "y": 180 }
+    },
+    {
+      "when": { "facing": "west" },
+      "apply": { "model": "lightsabers:block/lightsaber_stand", "x": 90, "y": 270 }
+    },
+    {
+      "when": { "facing": "north" },
+      "apply": { "model": "lightsabers:block/lightsaber_stand", "x": 90 }
+    },
+    {
+      "when": { "facing": "east" },
+      "apply": { "model": "lightsabers:block/lightsaber_stand", "x": 90, "y": 90 }
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "type": "forge:nbt",
+      "item": "lightsabers:lightsaber_crystal",
+      "nbt": {
+        "CrystalColorId": 9
+      }
+    },
+    {
+      "type": "forge:nbt",
+      "item": "lightsabers:lightsaber_crystal",
+      "nbt": {
+        "CrystalColorId": 15
+      }
+    },
+    {
+      "type": "forge:nbt",
+      "item": "lightsabers:lightsaber_crystal",
+      "nbt": {
+        "CrystalColorId": 0
+      }
+    }
+  ],
+  "result": {
+    "item": "lightsabers:lightsaber_crystal",
+    "nbt": {
+      "CrystalColorId": 18
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "#",
+    "#"
+  ],
+  "key": {
+    "#": {
+      "type": "forge:nbt",
+      "item": "lightsabers:light_forcestone",
+      "nbt": {
+        "BlockStateTag": {
+          "variant": "default"
+        }
+      }
+    }
+  },
+  "result": {
+    "item": "lightsabers:light_forcestone",
+    "count": 2,
+    "nbt": {
+      "BlockStateTag": {
+        "variant": "pillar"
+      }
+    }
+  }
+}

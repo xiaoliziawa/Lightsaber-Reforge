@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "facing=south,part=base": { "model": "lightsabers:block/disassembly_station_base" },
+    "facing=west,part=base": { "model": "lightsabers:block/disassembly_station_base", "y": 90 },
+    "facing=north,part=base": { "model": "lightsabers:block/disassembly_station_base", "y": 180 },
+    "facing=east,part=base": { "model": "lightsabers:block/disassembly_station_base", "y": 270 },
+    "facing=south,part=side": { "model": "lightsabers:block/disassembly_station_side" },
+    "facing=west,part=side": { "model": "lightsabers:block/disassembly_station_side", "y": 90 },
+    "facing=north,part=side": { "model": "lightsabers:block/disassembly_station_side", "y": 180 },
+    "facing=east,part=side": { "model": "lightsabers:block/disassembly_station_side", "y": 270 },
+    "facing=south,part=top_base": { "model": "lightsabers:block/disassembly_station_top_base" },
+    "facing=west,part=top_base": { "model": "lightsabers:block/disassembly_station_top_base", "y": 90 },
+    "facing=north,part=top_base": { "model": "lightsabers:block/disassembly_station_top_base", "y": 180 },
+    "facing=east,part=top_base": { "model": "lightsabers:block/disassembly_station_top_base", "y": 270 },
+    "facing=south,part=top_side": { "model": "lightsabers:block/disassembly_station_top_side" },
+    "facing=west,part=top_side": { "model": "lightsabers:block/disassembly_station_top_side", "y": 90 },
+    "facing=north,part=top_side": { "model": "lightsabers:block/disassembly_station_top_side", "y": 180 },
+    "facing=east,part=top_side": { "model": "lightsabers:block/disassembly_station_top_side", "y": 270 }
+  }
+}

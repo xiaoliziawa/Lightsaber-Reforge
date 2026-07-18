@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "facing=north,part=base": { "model": "lightsabers:block/lightsaber_forge_base" },
+    "facing=east,part=base": { "model": "lightsabers:block/lightsaber_forge_base", "y": 90 },
+    "facing=south,part=base": { "model": "lightsabers:block/lightsaber_forge_base", "y": 180 },
+    "facing=west,part=base": { "model": "lightsabers:block/lightsaber_forge_base", "y": 270 },
+    "facing=north,part=panel": { "model": "lightsabers:block/lightsaber_forge_panel" },
+    "facing=east,part=panel": { "model": "lightsabers:block/lightsaber_forge_panel", "y": 90 },
+    "facing=south,part=panel": { "model": "lightsabers:block/lightsaber_forge_panel", "y": 180 },
+    "facing=west,part=panel": { "model": "lightsabers:block/lightsaber_forge_panel", "y": 270 }
+  }
+}

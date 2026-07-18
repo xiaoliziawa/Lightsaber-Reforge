@@ -1,0 +1,20 @@
+package com.fiskmods.lightsabers.common.item;
+
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+
+public class ItemCircuitry extends Item implements ILightsaberComponent {
+    public ItemCircuitry() {
+        super(new Item.Properties());
+    }
+
+    @Override
+    public long getFingerprint(ItemStack stack, int slot) {
+        return 0;
+    }
+
+    @Override
+    public boolean isCompatibleSlot(ItemStack stack, int slot) {
+        return slot == 4;
+    }
+}

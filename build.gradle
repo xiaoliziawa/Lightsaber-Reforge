@@ -1,0 +1,193 @@
+buildscript {
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net/' }
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.spongepowered:mixingradle:0.7.+'
+    }
+}
+
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[6.0.16,6.2)'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.2.0'
+}
+
+apply plugin: 'org.spongepowered.mixin'
+
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+minecraft {
+    mappings channel: mapping_channel, version: mapping_version
+    copyIdeResources = true
+
+    runs {
+        configureEach {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile',
+                    project.file('build/createSrgToMcp/output.srg').absolutePath
+            mods {
+                "${mod_id}" {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        client {
+            property 'forge.enabledGameTestNamespaces', mod_id
+        }
+
+        server {
+            property 'forge.enabledGameTestNamespaces', mod_id
+            args '--nogui'
+        }
+
+        gameTestServer {
+            property 'forge.enabledGameTestNamespaces', mod_id
+        }
+
+        data {
+            workingDirectory project.file('run-data')
+            args '--mod', mod_id,
+                    '--all',
+                    '--output', file('src/generated/resources/'),
+                    '--existing', file('src/main/resources/')
+        }
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+mixin {
+    add sourceSets.main, "${mod_id}.refmap.json"
+    config "${mod_id}.mixins.json"
+}
+
+sourceSets {
+    modelTools {
+        java.srcDir 'tools/model_exporter/src/main/java'
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += output + compileClasspath + sourceSets.main.runtimeClasspath
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'JaredsMaven'
+        url = 'https://maven.blamejared.com/'
+    }
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+    }
+    maven {
+        name = 'CurseMaven'
+        url = 'https://www.cursemaven.com'
+        content {
+            includeGroup 'curse.maven'
+        }
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
+    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
+
+    implementation fg.deobf("maven.modrinth:codechicken-lib:${codechickenlib_version}")
+    implementation fg.deobf("curse.maven:dynamic-lights-227874:${dynamic_lights_file_id}")
+
+    implementation fg.deobf("curse.maven:kubejs-238086:8020595")
+    runtimeOnly fg.deobf("curse.maven:rhino-416294:6186971")
+    runtimeOnly fg.deobf("curse.maven:architectury-api-419699:5137938")
+
+    implementation fg.deobf("curse.maven:oculus-581495:6020952")
+    implementation fg.deobf("curse.maven:embeddium-908741:5681725")
+
+    implementation fg.deobf("curse.maven:better-combat-by-daedelus-639842:7287334")
+    implementation fg.deobf("curse.maven:playeranimator-658587:4587214")
+    implementation fg.deobf("curse.maven:cloth-config-348521:5729105")
+
+    implementation fg.deobf("curse.maven:geckolib-388172:8285794")
+    implementation fg.deobf("curse.maven:torohealth-unofficial-931345:4831219")
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    var replaceProperties = [minecraft_version: minecraft_version,
+                             minecraft_version_range: minecraft_version_range,
+                             forge_version: forge_version,
+                             forge_version_range: forge_version_range,
+                             loader_version_range: loader_version_range,
+                             mod_id: mod_id,
+                             mod_name: mod_name,
+                             mod_license: mod_license,
+                             mod_version: mod_version,
+                             mod_authors: mod_authors,
+                             mod_description: mod_description,
+                             jei_version: jei_version,
+                             codechickenlib_version: codechickenlib_version,
+                             dynamic_lights_version: dynamic_lights_version]
+    inputs.properties replaceProperties
+    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties + [project: project]
+    }
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+                'Specification-Title'     : mod_id,
+                'Specification-Vendor'    : mod_authors,
+                'Specification-Version'   : '1',
+                'Implementation-Title'    : project.name,
+                'Implementation-Version'  : project.jar.archiveVersion,
+                'Implementation-Vendor'   : mod_authors,
+                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+    finalizedBy 'reobfJar'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs.addAll(['-Xmaxerrs', '20000'])
+}
+
+tasks.register('exportBlockbenchModels', JavaExec) {
+    group = 'model tools'
+    description = 'Exports hard-coded LegacyModelRenderer models to Blockbench .bbmodel files.'
+    dependsOn tasks.named('classes'), tasks.named('modelToolsClasses')
+    classpath = sourceSets.modelTools.runtimeClasspath
+    mainClass = 'com.fiskmods.lightsabers.tools.model.LegacyModelBlockbenchExporter'
+    systemProperty 'lightsabers.recordModelExportData', 'true'
+
+    args '--source', file('src/main/java/com/fiskmods/lightsabers/client/model').absolutePath,
+            '--textures', file('src/main/resources/assets/lightsabers/textures/models').absolutePath,
+            '--block-models', file('src/main/resources/assets/lightsabers/models/block').absolutePath,
+            '--block-textures', file('src/main/resources/assets/lightsabers/textures/block').absolutePath,
+            '--output', file(project.findProperty('modelOutput') ?: 'model_exports/blockbench').absolutePath
+
+    var modelFilter = providers.gradleProperty('model')
+    if (modelFilter.isPresent()) {
+        args '--model', modelFilter.get()
+    }
+}
