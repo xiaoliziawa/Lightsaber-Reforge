@@ -1,0 +1,56 @@
+newmtl initialShadingGroup
+illum 4
+Kd 0.75 0.75 0.75
+map_Kd minecraft:block/black_concrete
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+newmtl standardSurface2SG
+illum 4
+Kd 0.75 0.75 0.75
+map_Kd minecraft:block/black_concrete
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+newmtl standardSurface3SG
+illum 4
+Kd 0.75 0.75 0.75
+map_Kd minecraft:block/black_concrete
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+newmtl standardSurface4SG
+illum 4
+Kd 0.75 0.75 0.75
+map_Kd minecraft:block/red_concrete
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+newmtl standardSurface5SG
+illum 4
+Kd 0.75 0.75 0.75
+map_Kd minecraft:block/red_concrete
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+newmtl standardSurface6SG
+illum 4
+Kd 0.75 0.75 0.75
+map_Kd minecraft:block/black_concrete
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+newmtl standardSurface7SG
+illum 4
+Kd 0.75 0.75 0.75
+map_Kd minecraft:block/black_concrete
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+newmtl standardSurface8SG
+illum 4
+Kd 0.75 0.75 0.75
+map_Kd minecraft:block/black_concrete
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00

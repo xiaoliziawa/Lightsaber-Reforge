@@ -7,6 +7,7 @@ import com.fiskmods.lightsabers.common.block.ModBlocks;
 import com.fiskmods.lightsabers.common.hilt.Hilt;
 import com.fiskmods.lightsabers.common.lightsaber.CrystalColor;
 import com.fiskmods.lightsabers.common.lightsaber.FocusingCrystal;
+import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -41,13 +42,10 @@ public final class ModCreativeTabs {
             CreativeModeTab.Output output
     ) {
         for (Hilt hilt : Hilt.REGISTRY) {
-            if (hilt.getType() == Hilt.Type.SINGLE) {
-                output.accept(hilt.createDefault().create());
-            } else if (hilt.getType() == Hilt.Type.DOUBLE) {
-                output.accept(ItemDoubleLightsaber.create(
-                        hilt.createDefault().create(),
-                        hilt.createDefault().create()
-                ));
+            ItemStack lightsaber = hilt.createDefault().create();
+            output.accept(lightsaber);
+            if (LightsaberData.get(lightsaber).supportsDoubleLightsaber()) {
+                output.accept(ItemDoubleLightsaber.create(lightsaber, lightsaber));
             }
         }
 

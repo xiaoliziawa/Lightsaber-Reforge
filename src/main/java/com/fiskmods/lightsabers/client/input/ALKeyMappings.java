@@ -26,6 +26,12 @@ public final class ALKeyMappings {
             GLFW.GLFW_KEY_F,
             CATEGORY
     );
+    public static final KeyMapping FLIP_DOUBLE_LIGHTSABER = new KeyMapping(
+            "key.lightsabers.flip_double_lightsaber",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_G,
+            CATEGORY
+    );
 
     private ALKeyMappings() {
     }
@@ -34,5 +40,6 @@ public final class ALKeyMappings {
         event.register(ACTIVATE_LIGHTSABER);
         event.register(ACTIVATE_POWER);
         event.register(SELECT_POWER);
+        event.register(FLIP_DOUBLE_LIGHTSABER);
     }
 }

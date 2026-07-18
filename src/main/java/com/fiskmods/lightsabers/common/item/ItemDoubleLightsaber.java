@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class ItemDoubleLightsaber extends ItemLightsaberBase {
+    private static final String FLIPPED_TAG = "Flipped";
+
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
         if (!level.isClientSide && stack.hasTag()) {
@@ -153,6 +155,23 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
         return !stack.isEmpty() && stack.hasTag()
                 ? readFromNBT(stack.getTag())
                 : new LightsaberData[] {LightsaberData.EMPTY, LightsaberData.EMPTY};
+    }
+
+    public static boolean isFlipped(ItemStack stack) {
+        return !stack.isEmpty() && stack.hasTag() && stack.getTag().getBoolean(FLIPPED_TAG);
+    }
+
+    public static void toggleOrientation(ItemStack stack) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof ItemDoubleLightsaber)) {
+            return;
+        }
+
+        CompoundTag tag = stack.getOrCreateTag();
+        if (tag.getBoolean(FLIPPED_TAG)) {
+            tag.remove(FLIPPED_TAG);
+        } else {
+            tag.putBoolean(FLIPPED_TAG, true);
+        }
     }
 
     public static ItemStack create(LightsaberData[] sabers) {

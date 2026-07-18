@@ -23,6 +23,7 @@ import com.fiskmods.lightsabers.common.force.effect.PowerEffectFortify;
 import com.fiskmods.lightsabers.common.force.effect.PowerEffectMeditation;
 import com.fiskmods.lightsabers.common.force.effect.PowerEffectResist;
 import com.fiskmods.lightsabers.common.item.ModItems;
+import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import com.fiskmods.lightsabers.common.network.ALNetworkManager;
 import com.fiskmods.lightsabers.common.network.MessageBroadcastState;
 import com.fiskmods.lightsabers.common.network.MessagePlayerJoin;
@@ -30,6 +31,7 @@ import com.fiskmods.lightsabers.common.network.MessageUpdateEffects;
 import fiskfille.utils.helper.FiskServerUtils;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -37,6 +39,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
@@ -57,6 +61,9 @@ import java.util.UUID;
 
 public final class CommonEventHandler {
     private static final int STATUS_DAMAGE_INTERVAL = 5;
+    private static final double SPINNING_DEFLECT_DISTANCE = 3.0D;
+    private static final double SPINNING_DEFLECT_RADIUS = 1.25D;
+    private static final double SPINNING_DEFLECT_MIN_SPEED = 1.0D;
 
     private static final UUID STUN_SPEED_MODIFIER_ID = UUID.fromString(
             "B2AB4DE3-8276-4B86-A448-230FA6FDC689"
@@ -113,6 +120,9 @@ public final class CommonEventHandler {
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
         Player player = event.player;
+        if (event.phase == TickEvent.Phase.END && event.side == LogicalSide.SERVER) {
+            handleSpinningLightsaber(player);
+        }
         if (!ALPlayerData.hasData(player)) {
             return;
         }
@@ -138,6 +148,43 @@ public final class CommonEventHandler {
         ALData.PREV_USING_POWER.setWithoutNotify(player, ALData.USING_POWER.get(player));
         ALData.RIGHT_ARM_TIMER.clampWithoutNotify(player, 0.0F, 1.0F);
         ALData.LEFT_ARM_TIMER.clampWithoutNotify(player, 0.0F, 1.0F);
+    }
+
+    private static void handleSpinningLightsaber(Player player) {
+        if (!player.isUsingItem()) {
+            return;
+        }
+
+        ItemStack stack = player.getUseItem();
+        if (!ItemLightsaberBase.isActive(stack)
+                || !ItemLightsaberBase.isSpinningLightsaber(stack)) {
+            return;
+        }
+
+        Vec3 origin = player.getEyePosition();
+        Vec3 direction = player.getLookAngle().normalize();
+        AABB searchArea = player.getBoundingBox().inflate(SPINNING_DEFLECT_DISTANCE);
+        for (Projectile projectile : player.level().getEntitiesOfClass(
+                Projectile.class,
+                searchArea,
+                Entity::isAlive
+        )) {
+            Vec3 offset = projectile.position().subtract(origin);
+            double forwardDistance = offset.dot(direction);
+            if (forwardDistance <= 0.0D || forwardDistance > SPINNING_DEFLECT_DISTANCE) {
+                continue;
+            }
+
+            Vec3 perpendicular = offset.subtract(direction.scale(forwardDistance));
+            if (perpendicular.lengthSqr() > SPINNING_DEFLECT_RADIUS * SPINNING_DEFLECT_RADIUS) {
+                continue;
+            }
+
+            double speed = Math.max(projectile.getDeltaMovement().length(), SPINNING_DEFLECT_MIN_SPEED);
+            projectile.setOwner(player);
+            projectile.setDeltaMovement(direction.scale(speed));
+            projectile.hurtMarked = true;
+        }
     }
 
     @SubscribeEvent

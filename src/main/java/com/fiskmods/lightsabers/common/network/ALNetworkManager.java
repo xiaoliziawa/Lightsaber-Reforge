@@ -10,7 +10,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class ALNetworkManager {
-    private static final String PROTOCOL_VERSION = "1";
+    private static final String PROTOCOL_VERSION = "2";
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(Lightsabers.MODID, "main"),
             () -> PROTOCOL_VERSION,
@@ -82,6 +82,15 @@ public final class ALNetworkManager {
                 .encoder(MessageUnlockPower::encode)
                 .decoder(MessageUnlockPower::decode)
                 .consumerMainThread(MessageUnlockPower::handle)
+                .add();
+        CHANNEL.messageBuilder(
+                        MessageFlipDoubleLightsaber.class,
+                        nextMessageId++,
+                        NetworkDirection.PLAY_TO_SERVER
+                )
+                .encoder(MessageFlipDoubleLightsaber::encode)
+                .decoder(MessageFlipDoubleLightsaber::decode)
+                .consumerMainThread(MessageFlipDoubleLightsaber::handle)
                 .add();
     }
 

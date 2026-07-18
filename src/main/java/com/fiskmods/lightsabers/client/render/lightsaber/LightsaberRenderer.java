@@ -2,6 +2,7 @@ package com.fiskmods.lightsabers.client.render.lightsaber;
 
 import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
 import com.fiskmods.lightsabers.common.hilt.Hilt.Part;
+import com.fiskmods.lightsabers.common.item.ItemDoubleLightsaber;
 import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
@@ -26,6 +27,25 @@ public final class LightsaberRenderer {
             int packedOverlay,
             boolean inWorld
     ) {
+        if (SpinningLightsaberObjRenderer.isSupported(data)) {
+            SpinningLightsaberObjRenderer.renderHilt(
+                    data,
+                    poseStack,
+                    buffer,
+                    packedLight,
+                    packedOverlay
+            );
+            if (ItemLightsaberBase.isActive(stack)) {
+                SpinningLightsaberObjRenderer.renderBlades(
+                        data,
+                        stack,
+                        poseStack,
+                        buffer,
+                        inWorld
+                );
+            }
+            return;
+        }
         HiltModelRenderer.render(data, poseStack, buffer, packedLight, packedOverlay);
         if (!ItemLightsaberBase.isActive(stack)) {
             return;
@@ -69,8 +89,10 @@ public final class LightsaberRenderer {
             int packedOverlay,
             boolean inWorld
     ) {
+        boolean flipped = ItemDoubleLightsaber.isFlipped(stack);
         for (int index = 0; index < sabers.length; index++) {
-            LightsaberData data = sabers[index];
+            int dataIndex = flipped ? sabers.length - index - 1 : index;
+            LightsaberData data = sabers[dataIndex];
             poseStack.pushPose();
             if (index == 1) {
                 poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));

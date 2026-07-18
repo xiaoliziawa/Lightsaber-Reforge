@@ -17,6 +17,7 @@ public final class HiltManager {
     public static final Hilt REBEL = new HiltRebel();
     public static final Hilt IMPERIAL = new HiltImperial();
     public static final Hilt REBORN = new HiltReborn();
+    public static final Hilt SPINNING = new HiltSpinning();
 
     private HiltManager() {
     }
@@ -38,6 +39,7 @@ public final class HiltManager {
         Hilt.register("rebel", REBEL);
         Hilt.register("imperial", IMPERIAL);
         Hilt.register("reborn", REBORN);
+        Hilt.register("spinning", SPINNING);
 
         map(GRAFLEX, "Graflex");
         map(REDEEMER, "Redeemer");

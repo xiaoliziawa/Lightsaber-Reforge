@@ -4,6 +4,7 @@ import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.client.sound.ALSounds;
 import com.fiskmods.lightsabers.client.render.item.LightsaberClientItemExtensions;
 import com.fiskmods.lightsabers.common.entity.EntityLightsaber;
+import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -133,6 +134,14 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
 
     public static boolean isActive(ItemStack stack) {
         return !stack.isEmpty() && stack.hasTag() && stack.getTag().getBoolean(ACTIVE_TAG);
+    }
+
+    public static boolean isSpinningLightsaber(ItemStack stack) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof ItemLightsaber)) {
+            return false;
+        }
+
+        return LightsaberData.get(stack).canSpinBlades();
     }
 
     public static ItemStack setActive(ItemStack stack, boolean active) {

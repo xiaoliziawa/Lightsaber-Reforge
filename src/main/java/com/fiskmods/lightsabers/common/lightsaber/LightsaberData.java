@@ -4,6 +4,7 @@ import com.fiskmods.lightsabers.ALConstants;
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.hilt.Hilt;
 import com.fiskmods.lightsabers.common.hilt.Hilt.Part;
+import com.fiskmods.lightsabers.common.hilt.HiltManager;
 import com.fiskmods.lightsabers.common.item.ItemDoubleLightsaber;
 import com.fiskmods.lightsabers.common.item.ItemFocusingCrystal;
 import com.fiskmods.lightsabers.common.item.ModItems;
@@ -87,6 +88,41 @@ public class LightsaberData extends AbstractLightsaberData implements ISerializa
     public boolean isTooShort()
     {
         return getHeightCm() < MIN_LENGTH_CM;
+    }
+
+    public boolean supportsDoubleLightsaber()
+    {
+        for (PartType type : PartType.values())
+        {
+            if (!get(type).supportsDoubleLightsaber())
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean hasSpinningCore()
+    {
+        return get(PartType.BODY) == HiltManager.SPINNING
+                && get(PartType.EMITTER) == HiltManager.SPINNING
+                && get(PartType.SWITCH_SECTION) == HiltManager.SPINNING;
+    }
+
+    public boolean canSpinBlades()
+    {
+        return hasSpinningCore() && get(PartType.POMMEL) == HiltManager.SPINNING;
+    }
+
+    public boolean isAssemblyCompatible()
+    {
+        if (get(PartType.BODY) == HiltManager.SPINNING)
+        {
+            return hasSpinningCore();
+        }
+        return get(PartType.EMITTER) != HiltManager.SPINNING
+                && get(PartType.SWITCH_SECTION) != HiltManager.SPINNING
+                && get(PartType.POMMEL) != HiltManager.SPINNING;
     }
 
     /**

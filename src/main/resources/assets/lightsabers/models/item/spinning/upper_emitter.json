@@ -1,0 +1,11 @@
+{
+  "loader": "forge:obj",
+  "model": "lightsabers:models/item/spinning/upper_emitter.obj",
+  "automatic_culling": false,
+  "shade_quads": false,
+  "flip_v": false,
+  "emissive_ambient": false,
+  "textures": {
+    "particle": "minecraft:block/white_concrete"
+  }
+}

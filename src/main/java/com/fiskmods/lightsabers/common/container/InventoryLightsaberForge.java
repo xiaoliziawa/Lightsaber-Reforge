@@ -40,7 +40,13 @@ public class InventoryLightsaberForge extends SimpleContainer {
             }
         }
 
-        result = new LightsaberData(fingerprintHash);
+        LightsaberData candidate = new LightsaberData(fingerprintHash);
+        if (!candidate.isAssemblyCompatible()) {
+            result = null;
+            return null;
+        }
+
+        result = candidate;
         return result;
     }
 

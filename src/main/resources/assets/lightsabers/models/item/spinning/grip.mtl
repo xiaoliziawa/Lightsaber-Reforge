@@ -1,0 +1,46 @@
+# Blender 5.2.0 LTS MTL File: 'None'
+# www.blender.org
+
+newmtl initialShadingGroup.002
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.75 0.75 0.75
+map_Kd minecraft:block/gray_concrete
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+
+newmtl standardSurface7SG.002
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.75 0.75 0.75
+map_Kd minecraft:block/gray_concrete
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+
+newmtl standardSurface7SG.003
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.75 0.75 0.75
+map_Kd minecraft:block/gray_concrete
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+
+newmtl grip_stripe
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.65 0.65 0.65
+map_Kd minecraft:block/white_concrete
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1

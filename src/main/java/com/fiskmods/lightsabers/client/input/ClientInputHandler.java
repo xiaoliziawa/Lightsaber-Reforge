@@ -8,8 +8,10 @@ import com.fiskmods.lightsabers.common.force.Power;
 import com.fiskmods.lightsabers.common.force.PowerManager;
 import com.fiskmods.lightsabers.common.force.PowerType;
 import com.fiskmods.lightsabers.common.input.ForcePowerInput;
+import com.fiskmods.lightsabers.common.item.ItemDoubleLightsaber;
 import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import com.fiskmods.lightsabers.common.network.ALNetworkManager;
+import com.fiskmods.lightsabers.common.network.MessageFlipDoubleLightsaber;
 import com.fiskmods.lightsabers.common.network.MessageToggleLightsaber;
 import com.fiskmods.lightsabers.common.network.MessageUsePower;
 import net.minecraft.client.Minecraft;
@@ -25,10 +27,12 @@ public enum ClientInputHandler {
     INSTANCE;
 
     private static final int SELECT_HOLD_TICKS = 5;
+    private static final int SPINNING_SOUND_INTERVAL = 3;
 
     private int selectHeldTicks;
     private boolean selectorOpened;
     private boolean powerFailSoundPlayed;
+    private int spinningSoundCooldown;
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
@@ -41,15 +45,19 @@ public enum ClientInputHandler {
         if (player == null) {
             resetSelectorState();
             powerFailSoundPlayed = false;
+            spinningSoundCooldown = 0;
             return;
         }
 
         if (minecraft.screen == null) {
             handleLightsaberToggle(player);
+            handleDoubleLightsaberFlip(player);
             handlePowerUse(player);
             handlePowerSelection(minecraft, player);
+            handleSpinningLightsaberSound(player);
         } else if (!(minecraft.screen instanceof GuiSelectPowers)) {
             resetSelectorState();
+            spinningSoundCooldown = 0;
         }
 
         if (!ALKeyMappings.SELECT_POWER.isDown()) {
@@ -60,6 +68,29 @@ public enum ClientInputHandler {
         }
     }
 
+    private void handleSpinningLightsaberSound(Player player) {
+        ItemStack stack = player.getUseItem();
+        if (!player.isUsingItem()
+                || !ItemLightsaberBase.isActive(stack)
+                || !ItemLightsaberBase.isSpinningLightsaber(stack)) {
+            spinningSoundCooldown = 0;
+            return;
+        }
+
+        if (spinningSoundCooldown > 0) {
+            spinningSoundCooldown--;
+            return;
+        }
+
+        Lightsabers.proxy.playLocalSound(
+                player,
+                ALSounds.player_lightsaber_swing,
+                1.0F,
+                1.0F
+        );
+        spinningSoundCooldown = SPINNING_SOUND_INTERVAL - 1;
+    }
+
     private static void handleLightsaberToggle(Player player) {
         while (ALKeyMappings.ACTIVATE_LIGHTSABER.consumeClick()) {
             ItemStack stack = player.getMainHandItem();
@@ -67,6 +98,16 @@ public enum ClientInputHandler {
                 boolean active = !ItemLightsaberBase.isActive(stack);
                 ItemLightsaberBase.ignite(player, active);
                 ALNetworkManager.sendToServer(new MessageToggleLightsaber(active));
+            }
+        }
+    }
+
+    private static void handleDoubleLightsaberFlip(Player player) {
+        while (ALKeyMappings.FLIP_DOUBLE_LIGHTSABER.consumeClick()) {
+            ItemStack stack = player.getMainHandItem();
+            if (stack.getItem() instanceof ItemDoubleLightsaber) {
+                ItemDoubleLightsaber.toggleOrientation(stack);
+                ALNetworkManager.sendToServer(new MessageFlipDoubleLightsaber());
             }
         }
     }

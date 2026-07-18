@@ -135,7 +135,9 @@ public final class LightsabersJeiPlugin implements IModPlugin {
             LightsaberData data = hilt.createDefault();
             if (!data.isTooShort()) {
                 forgeRecipes.add(LightsaberForgeJeiRecipe.create(hilt));
-                doubleRecipes.add(DoubleLightsaberJeiRecipe.create(hilt));
+                if (data.supportsDoubleLightsaber()) {
+                    doubleRecipes.add(DoubleLightsaberJeiRecipe.create(hilt));
+                }
             }
             disassemblyRecipes.add(DisassemblyJeiRecipe.create(hilt, false));
             disassemblyRecipes.add(DisassemblyJeiRecipe.create(hilt, true));

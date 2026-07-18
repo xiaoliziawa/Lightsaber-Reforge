@@ -1,7 +1,9 @@
 package com.fiskmods.lightsabers.client.render.hilt;
 
 import com.fiskmods.lightsabers.client.model.legacy.LegacyModelBase;
+import com.fiskmods.lightsabers.client.render.lightsaber.SpinningLightsaberObjRenderer;
 import com.fiskmods.lightsabers.common.hilt.Hilt;
+import com.fiskmods.lightsabers.common.hilt.HiltManager;
 import com.fiskmods.lightsabers.common.hilt.Hilt.Part;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
@@ -31,6 +33,16 @@ public final class HiltModelRenderer {
             int packedLight,
             int packedOverlay
     ) {
+        if (SpinningLightsaberObjRenderer.isSupported(data)) {
+            SpinningLightsaberObjRenderer.renderHilt(
+                    data,
+                    poseStack,
+                    buffer,
+                    packedLight,
+                    packedOverlay
+            );
+            return;
+        }
         registerModels();
         poseStack.pushPose();
         poseStack.translate(
@@ -90,6 +102,16 @@ public final class HiltModelRenderer {
             int packedLight,
             int packedOverlay
     ) {
+        if (hilt == HiltManager.SPINNING) {
+            SpinningLightsaberObjRenderer.renderPart(
+                    type,
+                    poseStack,
+                    buffer,
+                    packedLight,
+                    packedOverlay
+            );
+            return;
+        }
         registerModels();
         HiltRenderer renderer = HiltRenderer.get(hilt);
         if (renderer == null) {

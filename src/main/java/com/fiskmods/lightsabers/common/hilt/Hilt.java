@@ -61,6 +61,11 @@ public abstract class Hilt extends FiskRegistryEntry<Hilt>
         return Type.SINGLE;
     }
 
+    public boolean supportsDoubleLightsaber()
+    {
+        return true;
+    }
+
     public Collection<FocusingCrystal> getFocusingCrystals()
     {
         return Arrays.asList();
