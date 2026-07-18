@@ -85,13 +85,6 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
             return false;
         }
 
-        if (entity.isShiftKeyDown() && entity.getMainHandItem() == stack) {
-            if (!entity.level().isClientSide) {
-                throwLightsaber(entity, stack, 0);
-            }
-            return true;
-        }
-
         if (Lightsabers.proxy.isClientPlayer(entity)) {
             Lightsabers.proxy.playLocalSound(
                     (Player) entity,
