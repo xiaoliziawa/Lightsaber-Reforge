@@ -66,6 +66,7 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final float SPINNING_GUI_ROTATION = 45.0F;
     private static final float SPINNING_GUI_FACE_ROTATION = 90.0F;
     private static final float SPINNING_GUI_TURN_ROTATION = 180.0F;
+    private static final float SPINNING_THIRD_PERSON_TURN_ROTATION = 180.0F;
 
     public LightsaberItemRenderer() {
         super(
@@ -305,8 +306,18 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
             }
             case FIRST_PERSON_LEFT_HAND -> applyFirstPersonTransform(poseStack, -1, doubleLightsaber);
             case FIRST_PERSON_RIGHT_HAND -> applyFirstPersonTransform(poseStack, 1, doubleLightsaber);
-            case THIRD_PERSON_LEFT_HAND -> applyThirdPersonTransform(poseStack, -1, doubleLightsaber);
-            case THIRD_PERSON_RIGHT_HAND -> applyThirdPersonTransform(poseStack, 1, doubleLightsaber);
+            case THIRD_PERSON_LEFT_HAND -> {
+                applyThirdPersonTransform(poseStack, -1, doubleLightsaber);
+                if (spinning && !lightsaberPart) {
+                    poseStack.mulPose(Axis.YP.rotationDegrees(SPINNING_THIRD_PERSON_TURN_ROTATION));
+                }
+            }
+            case THIRD_PERSON_RIGHT_HAND -> {
+                applyThirdPersonTransform(poseStack, 1, doubleLightsaber);
+                if (spinning && !lightsaberPart) {
+                    poseStack.mulPose(Axis.YP.rotationDegrees(SPINNING_THIRD_PERSON_TURN_ROTATION));
+                }
+            }
             case GROUND -> {
                 poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
                 poseStack.scale(GROUND_SCALE, GROUND_SCALE, GROUND_SCALE);
