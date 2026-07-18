@@ -43,10 +43,21 @@ public final class SpinningLightsaberObjRenderer {
     private static final float LOWER_BLADE_BASE_X = 0.018F * OBJ_SCALE;
     private static final float LOWER_BLADE_BASE_Y = -10.178F * OBJ_SCALE;
     private static final float NORMAL_POMMEL_OFFSET_Y = -0.96F;
-    private static final float ROTATION_DEGREES_PER_TICK = 72.0F;
+    private static final float MAX_ROTATION_SPEED = 72.0F;
+    private static final float ROTATION_ACCELERATION = 8.0F;
+    private static final float MAX_ROTATION_DECELERATION = 96.0F;
+    private static final float EXTRA_DECELERATION_TURN_SPEED = 48.0F;
     private static final RenderType MODEL_RENDER_TYPE = RenderType.entityCutoutNoCull(
             TextureAtlas.LOCATION_BLOCKS
     );
+
+    private static float rotationAngle;
+    private static float rotationSpeed;
+    private static float decelerationRate;
+    private static float decelerationRemaining;
+    private static long animationDataHash;
+    private static double lastAnimationTime = Double.NaN;
+    private static boolean animationActive;
 
     private SpinningLightsaberObjRenderer() {
     }
@@ -229,19 +240,113 @@ public final class SpinningLightsaberObjRenderer {
     }
 
     private static float getRotation(Minecraft minecraft, LightsaberData data) {
-        if (minecraft.level == null
-                || minecraft.player == null
-                || !minecraft.player.isUsingItem()) {
+        if (minecraft.level == null) {
             return 0.0F;
         }
-        ItemStack usingStack = minecraft.player.getUseItem();
-        if (!ItemLightsaberBase.isActive(usingStack)
-                || !ItemLightsaberBase.isSpinningLightsaber(usingStack)
-                || LightsaberData.get(usingStack).hash != data.hash) {
+
+        boolean active = false;
+        long activeDataHash = animationDataHash;
+        if (minecraft.player != null && minecraft.player.isUsingItem()) {
+            ItemStack usingStack = minecraft.player.getUseItem();
+            if (ItemLightsaberBase.isActive(usingStack)
+                    && ItemLightsaberBase.isSpinningLightsaber(usingStack)) {
+                active = true;
+                activeDataHash = LightsaberData.get(usingStack).hash;
+            }
+        }
+        updateAnimation(minecraft, active, activeDataHash);
+        if (data.hash != animationDataHash) {
             return 0.0F;
         }
-        return (minecraft.level.getGameTime() + minecraft.getFrameTime())
-                * ROTATION_DEGREES_PER_TICK % 360.0F;
+        return rotationAngle;
+    }
+
+    private static void updateAnimation(
+            Minecraft minecraft,
+            boolean active,
+            long activeDataHash
+    ) {
+        double animationTime = minecraft.level.getGameTime() + minecraft.getFrameTime();
+        if (Double.compare(animationTime, lastAnimationTime) == 0) {
+            return;
+        }
+
+        float delta = Double.isNaN(lastAnimationTime)
+                ? 0.0F
+                : (float) Math.min(Math.max(animationTime - lastAnimationTime, 0.0D), 0.25D);
+        lastAnimationTime = animationTime;
+
+        if (active && activeDataHash != animationDataHash) {
+            animationDataHash = activeDataHash;
+            rotationAngle = 0.0F;
+            rotationSpeed = 0.0F;
+            decelerationRemaining = 0.0F;
+            decelerationRate = 0.0F;
+            animationActive = false;
+        }
+
+        if (active) {
+            decelerationRemaining = 0.0F;
+            rotationSpeed = Math.min(
+                    MAX_ROTATION_SPEED,
+                    rotationSpeed + ROTATION_ACCELERATION * delta
+            );
+            rotationAngle = (rotationAngle + rotationSpeed * delta) % 360.0F;
+            animationActive = true;
+            return;
+        }
+
+        if (animationActive) {
+            startDeceleration();
+            animationActive = false;
+        }
+        updateDeceleration(delta);
+    }
+
+    private static void startDeceleration() {
+        if (rotationSpeed <= 0.0F) {
+            rotationAngle = 0.0F;
+            decelerationRemaining = 0.0F;
+            return;
+        }
+
+        float distanceToAlignment = rotationAngle <= 0.0001F
+                ? 360.0F
+                : 360.0F - rotationAngle;
+        float minimumDistance = rotationSpeed * rotationSpeed
+                / (2.0F * MAX_ROTATION_DECELERATION);
+        while (distanceToAlignment < minimumDistance) {
+            distanceToAlignment += 360.0F;
+        }
+        if (rotationSpeed >= EXTRA_DECELERATION_TURN_SPEED) {
+            distanceToAlignment += 360.0F;
+        }
+        decelerationRemaining = distanceToAlignment;
+        decelerationRate = rotationSpeed * rotationSpeed
+                / (2.0F * decelerationRemaining);
+    }
+
+    private static void updateDeceleration(float delta) {
+        if (decelerationRemaining <= 0.0F || rotationSpeed <= 0.0F || delta <= 0.0F) {
+            return;
+        }
+
+        float stepDistance = rotationSpeed * delta
+                - 0.5F * decelerationRate * delta * delta;
+        if (stepDistance >= decelerationRemaining
+                || rotationSpeed <= decelerationRate * delta) {
+            rotationAngle = 0.0F;
+            rotationSpeed = 0.0F;
+            decelerationRemaining = 0.0F;
+            return;
+        }
+
+        rotationAngle = (rotationAngle + stepDistance) % 360.0F;
+        rotationSpeed = Math.max(
+                0.0F,
+                rotationSpeed - decelerationRate * delta
+        );
+        decelerationRemaining -= stepDistance;
     }
 
     private static ResourceLocation model(String name) {
