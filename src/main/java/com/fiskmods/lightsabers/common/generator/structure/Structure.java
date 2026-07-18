@@ -8,6 +8,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.jetbrains.annotations.Nullable;
@@ -93,7 +94,8 @@ public abstract class Structure {
         BlockPos pos = new BlockPos(x, y, z);
         BlockState state = LegacyStructureBlocks.fromLegacy(block, metadata);
         BlockState existing = worldObj.getBlockState(pos);
-        if (existing == state || existing.getDestroySpeed(worldObj, pos) < 0.0F) {
+        if (existing.getDestroySpeed(worldObj, pos) < 0.0F
+                || (existing == state && !(block instanceof IronBarsBlock))) {
             return;
         }
         placeBlock(x, y, z, state, Block.UPDATE_CLIENTS);
@@ -119,7 +121,46 @@ public abstract class Structure {
             return;
         }
         BlockPos pos = new BlockPos(x, y, z);
-        worldObj.setBlock(pos, state, flags);
+        BlockState connectedState = updateConnections(pos, state);
+        worldObj.setBlock(pos, connectedState, flags);
+        updateAdjacentConnections(pos, connectedState);
+    }
+
+    private BlockState updateConnections(BlockPos pos, BlockState state) {
+        if (!(state.getBlock() instanceof IronBarsBlock)) {
+            return state;
+        }
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos neighborPos = pos.relative(direction);
+            state = state.updateShape(
+                    direction,
+                    worldObj.getBlockState(neighborPos),
+                    worldObj,
+                    pos,
+                    neighborPos
+            );
+        }
+        return state;
+    }
+
+    private void updateAdjacentConnections(BlockPos pos, BlockState state) {
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos neighborPos = pos.relative(direction);
+            BlockState neighborState = worldObj.getBlockState(neighborPos);
+            if (!(neighborState.getBlock() instanceof IronBarsBlock)) {
+                continue;
+            }
+            BlockState connectedState = neighborState.updateShape(
+                    direction.getOpposite(),
+                    state,
+                    worldObj,
+                    neighborPos,
+                    pos
+            );
+            if (connectedState != neighborState) {
+                worldObj.setBlock(neighborPos, connectedState, Block.UPDATE_CLIENTS);
+            }
+        }
     }
 
     protected boolean generateStructureChestContents(
