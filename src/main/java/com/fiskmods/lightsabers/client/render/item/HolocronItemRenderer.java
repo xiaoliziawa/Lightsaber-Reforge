@@ -13,8 +13,6 @@ import net.minecraft.world.item.ItemStack;
 
 public final class HolocronItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final float GUI_SCALE = 0.9F;
-    private static final float FIRST_PERSON_SCALE = 1.5F;
-    private static final float THIRD_PERSON_SCALE = 1.25F;
     private static final float GROUND_SCALE = 1.0F;
     private static final float FIXED_SCALE = 1.25F;
 
@@ -65,17 +63,20 @@ public final class HolocronItemRenderer extends BlockEntityWithoutLevelRenderer 
             ItemDisplayContext displayContext,
             PoseStack poseStack
     ) {
-        float scale = switch (displayContext) {
-            case FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> FIRST_PERSON_SCALE;
-            case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> THIRD_PERSON_SCALE;
-            case GROUND -> GROUND_SCALE;
-            default -> FIXED_SCALE;
-        };
         poseStack.translate(0.5F, 0.5F, 0.5F);
-        if (displayContext == ItemDisplayContext.FIXED) {
-            poseStack.mulPose(Axis.XP.rotationDegrees(20.0F));
-            poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+        switch (displayContext) {
+            case FIRST_PERSON_LEFT_HAND,
+                    FIRST_PERSON_RIGHT_HAND,
+                    THIRD_PERSON_LEFT_HAND,
+                    THIRD_PERSON_RIGHT_HAND -> {
+            }
+            case GROUND -> poseStack.scale(GROUND_SCALE, GROUND_SCALE, GROUND_SCALE);
+            case FIXED -> {
+                poseStack.mulPose(Axis.XP.rotationDegrees(20.0F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.scale(FIXED_SCALE, FIXED_SCALE, FIXED_SCALE);
+            }
+            default -> poseStack.scale(FIXED_SCALE, FIXED_SCALE, FIXED_SCALE);
         }
-        poseStack.scale(scale, scale, scale);
     }
 }
