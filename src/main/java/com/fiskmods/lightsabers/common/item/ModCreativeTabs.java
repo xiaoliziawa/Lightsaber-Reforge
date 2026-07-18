@@ -85,6 +85,7 @@ public final class ModCreativeTabs {
         output.accept(ModBlocks.DISASSEMBLY_STATION_ITEM.get());
         output.accept(ModBlocks.SITH_COFFIN_ITEM.get());
         output.accept(ModBlocks.SITH_STONE_COFFIN_ITEM.get());
+        output.accept(ModBlocks.JEDI_HOLOCRON_ITEM.get());
         output.accept(ModBlocks.HOLOCRON_ITEM.get());
     }
 }

@@ -1,27 +1,21 @@
 package com.fiskmods.lightsabers.client.render.tile;
 
-import com.fiskmods.lightsabers.common.block.ModBlocks;
+import com.fiskmods.lightsabers.client.render.HolocronObjRenderer;
+import com.fiskmods.lightsabers.common.block.BlockHolocron;
 import com.fiskmods.lightsabers.common.tileentity.TileEntityHolocron;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
 
 public class RenderHolocron implements BlockEntityRenderer<TileEntityHolocron> {
-    private static final float BASE_SCALE = 0.75F;
-
-    private final ItemRenderer itemRenderer;
-    private final ItemStack displayStack;
+    private static final float MODEL_CENTER_Y = 0.25F;
+    private static final float OPEN_HEIGHT = 0.25F;
+    private static final float HOVER_SPEED = 10.0F;
+    private static final float HOVER_HEIGHT = 0.05F;
 
     public RenderHolocron(BlockEntityRendererProvider.Context context) {
-        itemRenderer = context.getItemRenderer();
-        displayStack = new ItemStack(ModBlocks.HOLOCRON_ITEM.get());
     }
 
     @Override
@@ -33,28 +27,26 @@ public class RenderHolocron implements BlockEntityRenderer<TileEntityHolocron> {
             int packedLight,
             int packedOverlay
     ) {
+        if (!(holocron.getBlockState().getBlock() instanceof BlockHolocron block)) {
+            return;
+        }
         float openProgress = holocron.getOpenProgress(partialTick);
-        float openTicks = holocron.getOpenTicks(partialTick);
-        float hoverOffset = Mth.sin(openTicks / 10.0F) / 20.0F;
-        float scale = BASE_SCALE;
+        float hoverOffset = Mth.sin(holocron.getOpenTicks(partialTick) / HOVER_SPEED)
+                * HOVER_HEIGHT;
 
         poseStack.pushPose();
         poseStack.translate(
                 0.5F,
-                0.25F + (0.5F + hoverOffset) * openProgress,
+                MODEL_CENTER_Y + (OPEN_HEIGHT + hoverOffset) * openProgress,
                 0.5F
         );
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F * openProgress));
-        poseStack.scale(scale, scale, scale);
-        itemRenderer.renderStatic(
-                displayStack,
-                ItemDisplayContext.FIXED,
-                LightTexture.FULL_BRIGHT,
-                packedOverlay,
+        HolocronObjRenderer.renderModel(
+                block.getType(),
+                openProgress,
+                holocron.getOpenTicks(partialTick),
                 poseStack,
                 buffer,
-                holocron.getLevel(),
-                (int) holocron.getBlockPos().asLong()
+                packedOverlay
         );
         poseStack.popPose();
     }

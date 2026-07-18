@@ -18,6 +18,7 @@ import com.fiskmods.lightsabers.client.render.entity.RenderSithGhost;
 import com.fiskmods.lightsabers.client.render.entity.RenderLightsaber;
 import com.fiskmods.lightsabers.client.render.entity.RenderForceLightning;
 import com.fiskmods.lightsabers.client.render.entity.ClientLightningSpawner;
+import com.fiskmods.lightsabers.client.render.HolocronObjRenderer;
 import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
 import com.fiskmods.lightsabers.client.render.item.LightsaberItemDecorator;
 import com.fiskmods.lightsabers.client.render.tile.RenderCrystal;
@@ -73,6 +74,7 @@ public final class ClientProxy extends CommonProxy {
         modEventBus.addListener(this::clientSetup);
         modEventBus.addListener(this::registerRenderers);
         modEventBus.addListener(this::registerLayerDefinitions);
+        modEventBus.addListener(HolocronObjRenderer::registerModels);
         modEventBus.addListener(this::registerItemColors);
         modEventBus.addListener(this::registerBlockColors);
         modEventBus.addListener(this::registerItemDecorations);

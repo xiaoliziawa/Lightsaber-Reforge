@@ -31,8 +31,15 @@ public class BlockHolocron extends BaseEntityBlock {
     private static final int SHAPE_STEPS = 100;
     private static final VoxelShape[] SHAPES = createShapes();
 
-    public BlockHolocron(BlockBehaviour.Properties properties) {
+    private final HolocronType type;
+
+    public BlockHolocron(BlockBehaviour.Properties properties, HolocronType type) {
         super(properties);
+        this.type = type;
+    }
+
+    public HolocronType getType() {
+        return type;
     }
 
     @Override

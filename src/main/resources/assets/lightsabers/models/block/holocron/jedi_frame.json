@@ -1,0 +1,11 @@
+{
+  "loader": "forge:obj",
+  "model": "lightsabers:models/block/holocron/jedi_frame.obj",
+  "automatic_culling": false,
+  "shade_quads": false,
+  "flip_v": false,
+  "emissive_ambient": true,
+  "textures": {
+    "particle": "lightsabers:block/jedi_holocron_corner"
+  }
+}

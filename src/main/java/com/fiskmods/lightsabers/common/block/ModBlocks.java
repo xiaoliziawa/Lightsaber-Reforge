@@ -5,6 +5,7 @@ import com.fiskmods.lightsabers.common.item.ItemForcestone;
 import com.fiskmods.lightsabers.common.item.ItemForcestoneSlab;
 import com.fiskmods.lightsabers.common.item.ItemCrystal;
 import com.fiskmods.lightsabers.common.item.ItemCrystalBlock;
+import com.fiskmods.lightsabers.common.item.ItemHolocron;
 import com.fiskmods.lightsabers.common.item.ItemLightsaberStand;
 import com.fiskmods.lightsabers.common.item.ItemLightsaberForge;
 import com.fiskmods.lightsabers.common.item.ItemDisassemblyTable;
@@ -105,13 +106,19 @@ public final class ModBlocks {
                             .pushReaction(PushReaction.BLOCK)
                             .noOcclusion())
             );
+    public static final RegistryObject<BlockHolocron> JEDI_HOLOCRON = BLOCKS.register(
+            "jedi_holocron",
+            () -> new BlockHolocron(
+                    holocronProperties(MapColor.COLOR_LIGHT_BLUE),
+                    HolocronType.JEDI
+            )
+    );
     public static final RegistryObject<BlockHolocron> HOLOCRON = BLOCKS.register(
             "holocron",
-            () -> new BlockHolocron(BlockBehaviour.Properties.of()
-                    .mapColor(MapColor.COLOR_PURPLE)
-                    .strength(0.0F, HOLOCRON_EXPLOSION_RESISTANCE)
-                    .lightLevel(state -> HOLOCRON_LIGHT_LEVEL)
-                    .noOcclusion())
+            () -> new BlockHolocron(
+                    holocronProperties(MapColor.COLOR_PURPLE),
+                    HolocronType.SITH
+            )
     );
     public static final RegistryObject<BlockSithCoffin> SITH_COFFIN = BLOCKS.register(
             "sith_coffin",
@@ -185,10 +192,15 @@ public final class ModBlocks {
                     "disassembly_station",
                     () -> new ItemDisassemblyTable(DISASSEMBLY_STATION.get())
             );
-    public static final RegistryObject<BlockItem> HOLOCRON_ITEM =
+    public static final RegistryObject<ItemHolocron> JEDI_HOLOCRON_ITEM =
+            ModItems.ITEMS.register(
+                    "jedi_holocron",
+                    () -> new ItemHolocron(JEDI_HOLOCRON.get())
+            );
+    public static final RegistryObject<ItemHolocron> HOLOCRON_ITEM =
             ModItems.ITEMS.register(
                     "holocron",
-                    () -> new BlockItem(HOLOCRON.get(), new Item.Properties().stacksTo(1))
+                    () -> new ItemHolocron(HOLOCRON.get())
             );
     public static final RegistryObject<ItemSithCoffin> SITH_COFFIN_ITEM =
             ModItems.ITEMS.register(
@@ -258,6 +270,14 @@ public final class ModBlocks {
                 .strength(LIGHTSABER_FORGE_HARDNESS, LIGHTSABER_FORGE_EXPLOSION_RESISTANCE)
                 .sound(SoundType.METAL)
                 .pushReaction(PushReaction.BLOCK)
+                .noOcclusion();
+    }
+
+    private static BlockBehaviour.Properties holocronProperties(MapColor mapColor) {
+        return BlockBehaviour.Properties.of()
+                .mapColor(mapColor)
+                .strength(0.0F, HOLOCRON_EXPLOSION_RESISTANCE)
+                .lightLevel(state -> HOLOCRON_LIGHT_LEVEL)
                 .noOcclusion();
     }
 

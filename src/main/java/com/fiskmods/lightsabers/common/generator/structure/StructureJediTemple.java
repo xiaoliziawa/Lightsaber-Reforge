@@ -735,8 +735,8 @@ public class StructureJediTemple extends Structure
 
             setBlock(ModBlocks.lightActivatedForcestone, 0, 21, 0, 14);
             setBlock(ModBlocks.lightActivatedForcestone, 0, 0, 0, 35);
-            setBlock(ModBlocks.holocron, 0, 21, 1, 14);
-            setBlock(ModBlocks.holocron, 0, 0, 1, 35);
+            setBlock(ModBlocks.JEDI_HOLOCRON.get(), 0, 21, 1, 14);
+            setBlock(ModBlocks.JEDI_HOLOCRON.get(), 0, 0, 1, 35);
 
             boolean prevMirrorX = mirrorX;
             mirrorX = false;

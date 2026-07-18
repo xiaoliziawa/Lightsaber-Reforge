@@ -49,6 +49,7 @@ public final class ModBlockEntities {
                     "holocron",
                     () -> BlockEntityType.Builder.of(
                             TileEntityHolocron::new,
+                            ModBlocks.JEDI_HOLOCRON.get(),
                             ModBlocks.HOLOCRON.get()
                     ).build(null)
             );
