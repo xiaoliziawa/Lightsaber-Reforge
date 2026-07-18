@@ -154,6 +154,8 @@
   "gui.disassembly_station": "光剑拆解台",
   "gui.forcePowers": "原力能力",
   "gui.forcePowers.basePower": "基础原力：%s",
+  "gui.forcePowers.requires": "需要“%s”",
+  "gui.forcePowers.unknown": "???",
   "gui.forcePowers.xp": "原力经验：%s",
   "gui.lightsaber_forge": "光剑锻造台",
   "gui.lightsaber_forge.height": "%s 厘米",

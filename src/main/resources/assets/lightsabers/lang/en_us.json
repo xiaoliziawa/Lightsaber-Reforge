@@ -154,6 +154,8 @@
   "gui.disassembly_station": "Disassembly Station",
   "gui.forcePowers": "Force Powers",
   "gui.forcePowers.basePower": "Base Power: %s",
+  "gui.forcePowers.requires": "Requires '%s'",
+  "gui.forcePowers.unknown": "???",
   "gui.forcePowers.xp": "Force XP: %s",
   "gui.lightsaber_forge": "Lightsaber Forge",
   "gui.lightsaber_forge.height": "%s cm",
