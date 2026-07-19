@@ -5,11 +5,12 @@ import com.fiskmods.lightsabers.common.data.ALData;
 import com.fiskmods.lightsabers.common.force.Power;
 import com.fiskmods.lightsabers.common.force.PowerData;
 import com.fiskmods.lightsabers.common.force.PowerManager;
-import com.fiskmods.lightsabers.common.force.PowerType;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +32,18 @@ public final class GuiSelectPowers extends Screen {
     private static final int POWER_COLUMNS = 4;
     private static final int POWER_ROWS = 4;
     private static final int SELECTED_SLOTS = 3;
+    private static final int ICON_TEXTURE_SIZE = 256;
+    private static final int PREVIEW_ICON_SIZE = 64;
+    private static final int PREVIEW_ICON_X = 94;
+    private static final int PREVIEW_ICON_Y = 9;
+    private static final int DETAILS_X = 8;
+    private static final int DETAILS_Y = 84;
+    private static final int DETAILS_WIDTH = 160;
+    private static final int DETAILS_HEIGHT = 52;
+    private static final int DETAILS_PADDING = 3;
+    private static final int DETAILS_LINE_SPACING = 2;
+    private static final int DETAILS_BACKGROUND_COLOR = 0xA5222222;
+    private static final int DETAILS_TEXT_COLOR = 0xFFA4A4A4;
 
     private final List<PowerSlot> slots = new ArrayList<>();
     private final Power[] selectedPowers = new Power[SELECTED_SLOTS];
@@ -115,11 +128,12 @@ public final class GuiSelectPowers extends Screen {
             }
         }
 
+        Power detailedPower = hoveredPower != null ? hoveredPower : grabbedPower;
+        if (detailedPower != null) {
+            renderPowerDetails(guiGraphics, detailedPower);
+        }
         if (grabbedPower != null) {
             drawPower(guiGraphics, grabbedPower, mouseX - 8, mouseY - 8);
-        }
-        if (hoveredPower != null) {
-            renderPowerTooltip(guiGraphics, hoveredPower, mouseX, mouseY);
         }
         super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
@@ -211,28 +225,103 @@ public final class GuiSelectPowers extends Screen {
         guiGraphics.fill(x, y, x + 16, y + 16, 0x80FFFFFF);
     }
 
-    private void renderPowerTooltip(
-            GuiGraphics guiGraphics,
-            Power power,
-            int mouseX,
-            int mouseY
-    ) {
-        List<Component> tooltip = new ArrayList<>();
-        tooltip.add(Component.literal(power.getLocalizedName()));
-        if (power.powerStats.useCost > 0) {
-            tooltip.add(Component.translatable(
-                    power.powerStats.powerType == PowerType.PER_USE
-                            ? "forcepower.perUse"
-                            : "forcepower.perSecond",
-                    power.powerStats.useCost
-            ));
+    private void renderPowerDetails(GuiGraphics guiGraphics, Power power) {
+        if (power.hasIcon()) {
+            guiGraphics.blit(
+                    ICONS,
+                    leftPos + PREVIEW_ICON_X,
+                    topPos + PREVIEW_ICON_Y,
+                    PREVIEW_ICON_SIZE,
+                    PREVIEW_ICON_SIZE,
+                    power.getIconX() * 16.0F,
+                    power.getIconY() * 16.0F,
+                    16,
+                    16,
+                    ICON_TEXTURE_SIZE,
+                    ICON_TEXTURE_SIZE
+            );
         }
+
+        int panelLeft = leftPos + DETAILS_X;
+        int panelTop = topPos + DETAILS_Y;
+        int panelRight = panelLeft + DETAILS_WIDTH;
+        int panelBottom = panelTop + DETAILS_HEIGHT;
+        guiGraphics.fill(
+                panelLeft,
+                panelTop,
+                panelRight,
+                panelBottom,
+                DETAILS_BACKGROUND_COLOR
+        );
+
+        int textX = panelLeft + DETAILS_PADDING;
+        int textY = panelTop + DETAILS_PADDING;
+        int textWidth = DETAILS_WIDTH - DETAILS_PADDING * 2;
+        guiGraphics.enableScissor(panelLeft, panelTop, panelRight, panelBottom);
+        guiGraphics.drawString(
+                font,
+                Component.literal(power.getLocalizedName()),
+                textX,
+                textY,
+                0xFFFFFFFF,
+                true
+        );
+        textY += font.lineHeight + DETAILS_LINE_SPACING;
+
+        if (power.powerStats.useCost > 0) {
+            String translationKey = switch (power.powerStats.powerType) {
+                case PER_USE -> "forcepower.perUse";
+                case PER_SECOND -> "forcepower.perSecond";
+                case PASSIVE -> "forcepower.passive";
+            };
+            Component useCost = Component.translatable(
+                    translationKey,
+                    ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(power.powerStats.useCost)
+            );
+            textY = drawWrappedDetailsLine(
+                    guiGraphics,
+                    useCost,
+                    textX,
+                    textY,
+                    textWidth,
+                    panelBottom
+            );
+        }
+
         if (power.powerEffect != null) {
             for (String description : power.powerEffect.getDesc()) {
-                tooltip.add(Component.literal(description));
+                textY = drawWrappedDetailsLine(
+                        guiGraphics,
+                        Component.literal(description),
+                        textX,
+                        textY,
+                        textWidth,
+                        panelBottom
+                );
+                if (textY >= panelBottom) {
+                    break;
+                }
             }
         }
-        guiGraphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);
+        guiGraphics.disableScissor();
+    }
+
+    private int drawWrappedDetailsLine(
+            GuiGraphics guiGraphics,
+            Component text,
+            int x,
+            int y,
+            int width,
+            int bottom
+    ) {
+        for (FormattedCharSequence line : font.split(text, width)) {
+            if (y + font.lineHeight > bottom) {
+                return bottom;
+            }
+            guiGraphics.drawString(font, line, x, y, DETAILS_TEXT_COLOR, true);
+            y += font.lineHeight + DETAILS_LINE_SPACING;
+        }
+        return y;
     }
 
     private static boolean hasNoUnlockedChildren(PowerManager manager, Power power) {
