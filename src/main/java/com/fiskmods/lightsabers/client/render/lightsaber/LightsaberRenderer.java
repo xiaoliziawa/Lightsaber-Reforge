@@ -30,6 +30,7 @@ public final class LightsaberRenderer {
         if (SpinningLightsaberObjRenderer.isSupported(data)) {
             SpinningLightsaberObjRenderer.renderHilt(
                     data,
+                    stack,
                     poseStack,
                     buffer,
                     packedLight,

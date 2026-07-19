@@ -12,6 +12,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.item.ItemStack;
 
 public final class HiltModelRenderer {
     private static boolean registered;
@@ -33,9 +34,21 @@ public final class HiltModelRenderer {
             int packedLight,
             int packedOverlay
     ) {
+        render(data, ItemStack.EMPTY, poseStack, buffer, packedLight, packedOverlay);
+    }
+
+    public static void render(
+            LightsaberData data,
+            ItemStack stack,
+            PoseStack poseStack,
+            MultiBufferSource buffer,
+            int packedLight,
+            int packedOverlay
+    ) {
         if (SpinningLightsaberObjRenderer.isSupported(data)) {
             SpinningLightsaberObjRenderer.renderHilt(
                     data,
+                    stack,
                     poseStack,
                     buffer,
                     packedLight,
@@ -81,6 +94,17 @@ public final class HiltModelRenderer {
             int packedLight,
             int packedOverlay
     ) {
+        render(sabers, ItemStack.EMPTY, poseStack, buffer, packedLight, packedOverlay);
+    }
+
+    public static void render(
+            LightsaberData[] sabers,
+            ItemStack stack,
+            PoseStack poseStack,
+            MultiBufferSource buffer,
+            int packedLight,
+            int packedOverlay
+    ) {
         for (int index = 0; index < sabers.length; index++) {
             LightsaberData data = sabers[index];
             poseStack.pushPose();
@@ -89,7 +113,7 @@ public final class HiltModelRenderer {
                 poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
             }
             poseStack.translate(0.0F, -data.getHeight() / 32.0F, 0.0F);
-            render(data, poseStack, buffer, packedLight, packedOverlay);
+            render(data, stack, poseStack, buffer, packedLight, packedOverlay);
             poseStack.popPose();
         }
     }

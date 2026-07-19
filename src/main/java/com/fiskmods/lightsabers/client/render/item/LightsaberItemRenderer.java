@@ -114,6 +114,7 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
             if (stack.getItem() instanceof ItemDoubleLightsaber) {
                 HiltModelRenderer.render(
                         ItemDoubleLightsaber.get(stack),
+                        stack,
                         poseStack,
                         buffer,
                         packedLight,
@@ -122,6 +123,7 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
             } else {
                 HiltModelRenderer.render(
                         LightsaberData.get(stack),
+                        stack,
                         poseStack,
                         buffer,
                         packedLight,
