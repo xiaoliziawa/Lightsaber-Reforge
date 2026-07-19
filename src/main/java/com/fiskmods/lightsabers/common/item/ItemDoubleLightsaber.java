@@ -104,6 +104,7 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
 
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        super.hurtEnemy(stack, target, attacker);
         float width = attacker.getBbWidth() * 2;
         Vec3 center = VectorHelper.getOffsetCoords(attacker, 0, 0, -0.2F);
         AABB area = new AABB(

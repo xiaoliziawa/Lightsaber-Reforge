@@ -8,6 +8,7 @@ import com.fiskmods.lightsabers.client.gui.GuiDisassemblyStation;
 import com.fiskmods.lightsabers.client.gui.GuiForcePowers;
 import com.fiskmods.lightsabers.client.gui.GuiSithCoffin;
 import com.fiskmods.lightsabers.client.gui.GuiOverlay;
+import com.fiskmods.lightsabers.client.integration.epicfight.EpicFightClientIntegration;
 import com.fiskmods.lightsabers.client.input.ALKeyMappings;
 import com.fiskmods.lightsabers.client.input.ClientInputHandler;
 import com.fiskmods.lightsabers.client.model.ModelSithGhost;
@@ -87,6 +88,9 @@ public final class ClientProxy extends CommonProxy {
         MinecraftForge.EVENT_BUS.register(new GuiOverlay());
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
         MinecraftForge.EVENT_BUS.register(new CommandExportIcon());
+        if (Lightsabers.isEpicFightLoaded) {
+            EpicFightClientIntegration.register();
+        }
     }
 
     @Override

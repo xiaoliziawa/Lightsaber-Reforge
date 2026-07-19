@@ -1,0 +1,10 @@
+{
+  "type": "lightsabers:lightsaber_sword",
+  "variations": [
+    {
+      "condition": "lightsabers:spinning_lightsaber",
+      "predicate": {},
+      "type": "lightsabers:lightsaber_spear"
+    }
+  ]
+}

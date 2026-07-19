@@ -42,13 +42,8 @@
   },
   "mob.lightsaber.hit": {
 	"sounds": [
-	  "lightsabers:item/lightsaber/hit1",
-	  "lightsabers:item/lightsaber/hit2",
-	  "lightsabers:item/lightsaber/hit3",
-	  "lightsabers:item/lightsaber/hit4",
-	  "lightsabers:item/lightsaber/hit5",
-	  "lightsabers:item/lightsaber/hit6",
-	  "lightsabers:item/lightsaber/hit7"
+	  "lightsabers:item/lightsaber/combat_hit1",
+	  "lightsabers:item/lightsaber/combat_hit2"
 	],
 	"category": "hostile"
   },
@@ -138,13 +133,8 @@
   },
   "player.lightsaber.hit": {
 	"sounds": [
-	  "lightsabers:item/lightsaber/hit1",
-	  "lightsabers:item/lightsaber/hit2",
-	  "lightsabers:item/lightsaber/hit3",
-	  "lightsabers:item/lightsaber/hit4",
-	  "lightsabers:item/lightsaber/hit5",
-	  "lightsabers:item/lightsaber/hit6",
-	  "lightsabers:item/lightsaber/hit7"
+	  "lightsabers:item/lightsaber/combat_hit1",
+	  "lightsabers:item/lightsaber/combat_hit2"
 	],
 	"category": "player"
   },

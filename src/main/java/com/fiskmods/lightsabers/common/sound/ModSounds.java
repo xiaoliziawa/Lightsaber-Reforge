@@ -27,8 +27,14 @@ public final class ModSounds {
     public static final RegistryObject<SoundEvent> PLAYER_LIGHTSABER_SWING = register(
             "player.lightsaber.swing"
     );
+    public static final RegistryObject<SoundEvent> PLAYER_LIGHTSABER_HIT = register(
+            "player.lightsaber.hit"
+    );
     public static final RegistryObject<SoundEvent> MOB_LIGHTSABER_SWING = register(
             "mob.lightsaber.swing"
+    );
+    public static final RegistryObject<SoundEvent> MOB_LIGHTSABER_HIT = register(
+            "mob.lightsaber.hit"
     );
 
     private ModSounds() {

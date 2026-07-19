@@ -4,7 +4,9 @@ import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.client.sound.ALSounds;
 import com.fiskmods.lightsabers.client.render.item.LightsaberClientItemExtensions;
 import com.fiskmods.lightsabers.common.entity.EntityLightsaber;
+import com.fiskmods.lightsabers.common.integration.epicfight.EpicFightIntegration;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
+import com.fiskmods.lightsabers.common.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -118,6 +120,23 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
 
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (!attacker.level().isClientSide
+                && (!(attacker instanceof Player player)
+                        || !Lightsabers.isEpicFightLoaded
+                        || !EpicFightIntegration.isBattleMode(player))) {
+            attacker.level().playSound(
+                    null,
+                    target.getX(),
+                    target.getY(),
+                    target.getZ(),
+                    attacker instanceof Player
+                            ? ModSounds.PLAYER_LIGHTSABER_HIT.get()
+                            : ModSounds.MOB_LIGHTSABER_HIT.get(),
+                    attacker.getSoundSource(),
+                    1.0F,
+                    1.0F
+            );
+        }
         return true;
     }
 

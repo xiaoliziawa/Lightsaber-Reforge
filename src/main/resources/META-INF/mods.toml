@@ -45,5 +45,12 @@ versionRange="[${dynamic_lights_version},)"
 ordering="AFTER"
 side="BOTH"
 
+[[dependencies.${mod_id}]]
+modId="epicfight"
+mandatory=false
+versionRange="[20.14.17,)"
+ordering="AFTER"
+side="BOTH"
+
 [[mixins]]
 config="lightsabers.mixins.json"

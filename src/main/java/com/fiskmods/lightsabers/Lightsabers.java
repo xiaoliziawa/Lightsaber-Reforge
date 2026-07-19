@@ -16,7 +16,7 @@ import com.fiskmods.lightsabers.common.force.Power;
 import com.fiskmods.lightsabers.common.force.PowerData;
 import com.fiskmods.lightsabers.common.hilt.HiltManager;
 import com.fiskmods.lightsabers.common.generator.worldgen.ModWorldgen;
-import com.fiskmods.lightsabers.common.item.ModCreativeTabs;
+import com.fiskmods.lightsabers.common.integration.epicfight.EpicFightIntegration;
 import com.fiskmods.lightsabers.common.item.ModCreativeTabs;
 import com.fiskmods.lightsabers.common.item.ModItems;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
@@ -52,11 +52,13 @@ public final class Lightsabers {
     public static Lightsabers instance;
     public static boolean isBattlegearLoaded;
     public static boolean isDynamicLightsLoaded;
+    public static boolean isEpicFightLoaded;
 
     public Lightsabers() {
         instance = this;
         isBattlegearLoaded = false;
         isDynamicLightsLoaded = ModList.get().isLoaded(ALConstants.DYNAMIC_LIGHTS);
+        isEpicFightLoaded = ModList.get().isLoaded(ALConstants.EPIC_FIGHT);
 
         HiltManager.register();
         Effect.register();
@@ -77,6 +79,9 @@ public final class Lightsabers {
         ModRecipeSerializers.register(modEventBus);
         ModSounds.register(modEventBus);
         ModWorldgen.register(modEventBus);
+        if (isEpicFightLoaded) {
+            EpicFightIntegration.register(modEventBus);
+        }
         modEventBus.addListener(ModDataGenerators::gatherData);
         ModLoadingContext.get().registerConfig(Type.CLIENT, ModConfig.SPEC);
         proxy.registerModEvents(modEventBus);

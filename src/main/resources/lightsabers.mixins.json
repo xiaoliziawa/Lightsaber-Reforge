@@ -4,6 +4,9 @@
   "package": "com.fiskmods.lightsabers.mixin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "lightsabers.refmap.json",
+  "mixins": [
+    "MixinEpicFightLivingEntityPatch"
+  ],
   "client": [
     "MixinMinecraft"
   ],

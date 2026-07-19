@@ -127,7 +127,7 @@ dependencies {
     implementation fg.deobf("curse.maven:oculus-581495:6020952")
     implementation fg.deobf("curse.maven:embeddium-908741:5681725")
 
-    implementation fg.deobf("curse.maven:better-combat-by-daedelus-639842:7287334")
+    implementation fg.deobf("curse.maven:epic-fight-mod-405076:8049910")
     implementation fg.deobf("curse.maven:playeranimator-658587:4587214")
     implementation fg.deobf("curse.maven:cloth-config-348521:5729105")
 

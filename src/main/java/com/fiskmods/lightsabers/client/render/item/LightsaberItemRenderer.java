@@ -1,5 +1,7 @@
 package com.fiskmods.lightsabers.client.render.item;
 
+import com.fiskmods.lightsabers.Lightsabers;
+import com.fiskmods.lightsabers.client.integration.epicfight.EpicFightClientIntegration;
 import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.SpinningLightsaberObjRenderer;
@@ -67,6 +69,12 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final float SPINNING_GUI_FACE_ROTATION = 90.0F;
     private static final float SPINNING_GUI_TURN_ROTATION = 180.0F;
     private static final float SPINNING_THIRD_PERSON_TURN_ROTATION = 180.0F;
+    // 右键旋转姿势的最终位置：水平、垂直、前后。
+    private static final float SPINNING_DEFENSE_HORIZONTAL_OFFSET = 0.05F;
+    private static final float SPINNING_DEFENSE_VERTICAL_OFFSET = -0.10F;
+    private static final float SPINNING_DEFENSE_FORWARD_OFFSET = 0.05F;
+    // 圆环朝向：90 度使旋转平面面向玩家正前方，只控制角度，不控制位置。
+    private static final float SPINNING_DEFENSE_FACE_ROTATION = 90.0F;
 
     public LightsaberItemRenderer() {
         super(
@@ -92,13 +100,26 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                 && (partItem == null || partItem.partType == PartType.BODY);
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.5F, 0.5F);
+        boolean activeDoubleLightsaber = stack.getItem() instanceof ItemDoubleLightsaber
+                && ItemLightsaberBase.isActive(stack);
+        if (activeDoubleLightsaber
+                && isThirdPerson(displayContext)
+                && Lightsabers.isEpicFightLoaded
+                && EpicFightClientIntegration.isBattleModeHeldStack(stack)) {
+            activeDoubleLightsaber = false;
+        }
+        boolean spinningDefense = spinning
+                && partItem == null
+                && isThirdPerson(displayContext)
+                && Lightsabers.isEpicFightLoaded
+                && EpicFightClientIntegration.isBattleModeUsingStack(stack);
         applyDisplayTransform(
                 displayContext,
                 partItem != null,
-                stack.getItem() instanceof ItemDoubleLightsaber
-                        && ItemLightsaberBase.isActive(stack),
+                activeDoubleLightsaber,
                 spinning,
                 rotateSpinningGui,
+                spinningDefense,
                 poseStack
         );
         if (partItem != null) {
@@ -256,16 +277,30 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
     private void applyThirdPersonTransform(
             PoseStack poseStack,
             int handSide,
-            boolean doubleLightsaber
+            boolean doubleLightsaber,
+            boolean spinningDefense
     ) {
         poseStack.translate(
-                0.0F,
-                THIRD_PERSON_VERTICAL_OFFSET,
+                spinningDefense
+                        ? SPINNING_DEFENSE_HORIZONTAL_OFFSET * handSide
+                        : 0.0F,
+                THIRD_PERSON_VERTICAL_OFFSET
+                        + (spinningDefense
+                                ? SPINNING_DEFENSE_VERTICAL_OFFSET
+                                : 0.0F),
                 THIRD_PERSON_DEPTH_OFFSET
+                        + (spinningDefense
+                                ? SPINNING_DEFENSE_FORWARD_OFFSET
+                                : 0.0F)
         );
         poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F * handSide));
         poseStack.mulPose(Axis.ZP.rotationDegrees(THIRD_PERSON_TILT * handSide));
         poseStack.mulPose(Axis.ZP.rotationDegrees(THIRD_PERSON_PITCH * handSide));
+        if (spinningDefense) {
+            poseStack.mulPose(Axis.YP.rotationDegrees(
+                    SPINNING_DEFENSE_FACE_ROTATION * handSide
+            ));
+        }
         if (doubleLightsaber) {
             poseStack.mulPose(Axis.XP.rotationDegrees(DOUBLE_THIRD_PERSON_ROT_X * handSide));
             poseStack.mulPose(Axis.YP.rotationDegrees(DOUBLE_THIRD_PERSON_ROT_Y * handSide));
@@ -286,6 +321,7 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
             boolean doubleLightsaber,
             boolean spinning,
             boolean rotateSpinningGui,
+            boolean spinningDefense,
             PoseStack poseStack
     ) {
         switch (displayContext) {
@@ -309,13 +345,23 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
             case FIRST_PERSON_LEFT_HAND -> applyFirstPersonTransform(poseStack, -1, doubleLightsaber);
             case FIRST_PERSON_RIGHT_HAND -> applyFirstPersonTransform(poseStack, 1, doubleLightsaber);
             case THIRD_PERSON_LEFT_HAND -> {
-                applyThirdPersonTransform(poseStack, -1, doubleLightsaber);
+                applyThirdPersonTransform(
+                        poseStack,
+                        -1,
+                        doubleLightsaber,
+                        spinningDefense
+                );
                 if (spinning && !lightsaberPart) {
                     poseStack.mulPose(Axis.YP.rotationDegrees(SPINNING_THIRD_PERSON_TURN_ROTATION));
                 }
             }
             case THIRD_PERSON_RIGHT_HAND -> {
-                applyThirdPersonTransform(poseStack, 1, doubleLightsaber);
+                applyThirdPersonTransform(
+                        poseStack,
+                        1,
+                        doubleLightsaber,
+                        spinningDefense
+                );
                 if (spinning && !lightsaberPart) {
                     poseStack.mulPose(Axis.YP.rotationDegrees(SPINNING_THIRD_PERSON_TURN_ROTATION));
                 }
@@ -345,5 +391,10 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
             return false;
         }
         return SpinningLightsaberObjRenderer.isSupported(LightsaberData.get(stack));
+    }
+
+    private boolean isThirdPerson(ItemDisplayContext displayContext) {
+        return displayContext == ItemDisplayContext.THIRD_PERSON_LEFT_HAND
+                || displayContext == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
     }
 }
