@@ -3,6 +3,7 @@ package com.fiskmods.lightsabers.client.render.item;
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.client.integration.epicfight.EpicFightClientIntegration;
 import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
+import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberBladeRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.SpinningLightsaberObjRenderer;
 import com.fiskmods.lightsabers.common.hilt.Hilt;
@@ -40,6 +41,9 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final float FIRST_PERSON_DEPTH_OFFSET = -0.35F;
     private static final float FIRST_PERSON_TILT = -12.0F;
     private static final float FIRST_PERSON_YAW = 65.0F;
+    // 第一人称把光剑绕剑轴拧了 rotX(180°)+rotY(65°)，方向敏感的剑刃（如武士刀）
+    // 需要绕剑轴补转，才能让刀刃指向劈砍方向而不是镜头。
+    private static final float FIRST_PERSON_EDGE_ROLL_BASE = -90.0F;
     private static final float DOUBLE_FIRST_PERSON_VERTICAL_OFFSET = -0.32F;
     private static final float DOUBLE_FIRST_PERSON_DEPTH_OFFSET = -0.45F;
     private static final float DOUBLE_FIRST_PERSON_ROLL = -90.0F;
@@ -130,6 +134,11 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                 spinningDefense,
                 poseStack
         );
+        LightsaberBladeRenderer.bladeRoll = switch (displayContext) {
+            case FIRST_PERSON_RIGHT_HAND -> FIRST_PERSON_EDGE_ROLL_BASE - FIRST_PERSON_YAW;
+            case FIRST_PERSON_LEFT_HAND -> FIRST_PERSON_EDGE_ROLL_BASE + FIRST_PERSON_YAW;
+            default -> 0.0F;
+        };
         if (partItem != null) {
             renderPart(
                     stack,
@@ -180,6 +189,7 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                     displayContext != ItemDisplayContext.GUI
             );
         }
+        LightsaberBladeRenderer.bladeRoll = 0.0F;
         poseStack.popPose();
     }
 

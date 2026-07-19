@@ -39,10 +39,15 @@ public abstract class MixinEpicFightLivingEntityPatch {
             return;
         }
 
-        SoundEvent swingSound = stack.getItem() instanceof ItemDoubleLightsaber
-                || ItemLightsaberBase.isSpinningLightsaber(stack)
-                ? EpicFightSounds.WHOOSH_ROD.get()
-                : EpicFightSounds.WHOOSH.get();
+        SoundEvent swingSound;
+        if (stack.getItem() instanceof ItemDoubleLightsaber
+                || ItemLightsaberBase.isSpinningLightsaber(stack)) {
+            swingSound = EpicFightSounds.WHOOSH_ROD.get();
+        } else if (ItemLightsaberBase.isDaggerLightsaber(stack)) {
+            swingSound = EpicFightSounds.WHOOSH_SMALL.get();
+        } else {
+            swingSound = EpicFightSounds.WHOOSH.get();
+        }
         CapabilityItem itemCapability = getAdvancedHoldingItemCapability(hand);
         callback.setReturnValue(
                 entityDecorations.getModifiedSwingSound(swingSound, itemCapability)

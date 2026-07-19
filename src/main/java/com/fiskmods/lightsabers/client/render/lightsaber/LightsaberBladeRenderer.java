@@ -5,6 +5,7 @@ import com.fiskmods.lightsabers.common.lightsaber.FocusingCrystal;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.util.Mth;
@@ -14,6 +15,8 @@ import org.joml.Matrix4f;
 public final class LightsaberBladeRenderer {
     public static final int MAIN_BLADE_LENGTH = 38;
     public static final int CROSSGUARD_BLADE_LENGTH = 4;
+
+    public static float bladeRoll;
 
     private static final float PIXEL = 1.0F / 16.0F;
     private static final float CORE_HALF_WIDTH = PIXEL / 2.0F;
@@ -25,6 +28,19 @@ public final class LightsaberBladeRenderer {
     private static final float PICK_ARM_BASE_HALF_HEIGHT = PIXEL * 1.1F;
     private static final float PICK_ARM_TIP_HALF_HEIGHT = PIXEL * 0.12F;
     private static final float PICK_GLOW_EXPANSION = 0.12F;
+    private static final int KATANA_SEGMENTS = 12;
+    private static final float KATANA_CURVATURE = 0.08F;
+    private static final float KATANA_TIP_START = 0.72F;
+    private static final float KATANA_TIP_MIN_WIDTH = 0.08F;
+    private static final float KATANA_WIDTH_SCALE = 0.6F;
+    private static final float KATANA_EDGE_SCALE = 1.5F;
+    private static final int CYLINDER_SIDES = 10;
+    private static final float CYLINDER_RADIUS_SCALE = 1.8F;
+    private static final float DAGGER_LENGTH_SCALE = 0.42F;
+    private static final float DAGGER_WIDTH_SCALE = 1.25F;
+    private static final float DAGGER_TAPER_START = 0.55F;
+    private static final float DAGGER_MID_SCALE = 0.7F;
+    private static final float DAGGER_TIP_SCALE = 0.04F;
     private static final float DITHER_GOLDEN_RATIO = 0.618034F;
     private static final float WHITE_GLOW_BRIGHTNESS = 0.62F;
 
@@ -45,12 +61,12 @@ public final class LightsaberBladeRenderer {
             boolean crossguard
     ) {
         float[] rgb = data.getRGB(stack);
-        boolean compressed = data.hasFocusingCrystal(FocusingCrystal.COMPRESSED);
-        boolean fineCut = data.hasFocusingCrystal(FocusingCrystal.FINE_CUT);
-        boolean inverting = data.hasFocusingCrystal(FocusingCrystal.INVERTING);
-        boolean prismatic = data.hasFocusingCrystal(FocusingCrystal.PRISMATIC);
-        boolean cracked = data.hasFocusingCrystal(FocusingCrystal.CRACKED);
-        boolean pickaxe = data.hasFocusingCrystal(FocusingCrystal.PICKAXE);
+        BladeStyle style = BladeStyle.of(data);
+        boolean rollBlade = !crossguard && style.katana() && bladeRoll != 0.0F;
+        if (rollBlade) {
+            poseStack.pushPose();
+            poseStack.mulPose(Axis.YP.rotationDegrees(bladeRoll));
+        }
 
         renderGlow(
                 stack,
@@ -60,26 +76,38 @@ public final class LightsaberBladeRenderer {
                 inWorld,
                 bladeLength,
                 crossguard,
-                compressed,
-                fineCut,
-                inverting && prismatic,
-                pickaxe
+                style
         );
 
-        float coreRed = inverting ? 0.0F : prismatic ? rgb[0] : 1.0F;
-        float coreGreen = inverting ? 0.0F : prismatic ? rgb[1] : 1.0F;
-        float coreBlue = inverting ? 0.0F : prismatic ? rgb[2] : 1.0F;
-        float widthScale = compressed ? 0.6F : 1.0F;
-        float lengthScale = crossguard && fineCut ? 1.2F : 1.0F;
+        float coreRed = style.inverting() ? 0.0F : style.prismatic() ? rgb[0] : 1.0F;
+        float coreGreen = style.inverting() ? 0.0F : style.prismatic() ? rgb[1] : 1.0F;
+        float coreBlue = style.inverting() ? 0.0F : style.prismatic() ? rgb[2] : 1.0F;
+        float widthScale = style.compressed() ? 0.6F : 1.0F;
+        float lengthScale = crossguard && style.fineCut() ? 1.2F : 1.0F;
         float length = getBladeLength(bladeLength) * lengthScale;
-        float xHalf = CORE_HALF_WIDTH * widthScale * (fineCut ? 0.75F : 1.0F);
-        float zHalf = CORE_HALF_WIDTH * widthScale * (fineCut ? 1.5F : 1.0F);
+        float xHalf = CORE_HALF_WIDTH * widthScale * (style.fineCut() ? 0.75F : 1.0F);
+        float zHalf = CORE_HALF_WIDTH * widthScale * (style.fineCut() ? 1.5F : 1.0F);
+        if (!crossguard) {
+            if (style.katana()) {
+                xHalf *= KATANA_EDGE_SCALE;
+                zHalf *= KATANA_WIDTH_SCALE;
+            } else if (style.dagger()) {
+                xHalf *= DAGGER_WIDTH_SCALE;
+                zHalf *= DAGGER_WIDTH_SCALE;
+                length *= DAGGER_LENGTH_SCALE;
+            } else if (style.cylinder()) {
+                xHalf *= CYLINDER_RADIUS_SCALE;
+                zHalf *= CYLINDER_RADIUS_SCALE;
+            }
+        }
         VertexConsumer core = buffer.getBuffer(LightsaberRenderTypes.BLADE_CORE);
         Matrix4f matrix = poseStack.last().pose();
 
-        renderBladeGeometry(
+        renderCoreShape(
                 core,
                 matrix,
+                style,
+                crossguard,
                 0.0F,
                 0.0F,
                 xHalf,
@@ -90,10 +118,12 @@ public final class LightsaberBladeRenderer {
                 coreBlue,
                 1.0F
         );
-        if (cracked && !fineCut) {
+        if (style.cracked() && !style.fineCut()) {
             renderCrackedCopies(
                     core,
                     matrix,
+                    style,
+                    crossguard,
                     xHalf,
                     zHalf,
                     length,
@@ -102,7 +132,7 @@ public final class LightsaberBladeRenderer {
                     coreBlue
             );
         }
-        if (pickaxe && !crossguard) {
+        if (style.pickaxe() && !crossguard) {
             renderPickaxeHead(
                     core,
                     matrix,
@@ -115,6 +145,71 @@ public final class LightsaberBladeRenderer {
                     1.0F
             );
         }
+        if (rollBlade) {
+            poseStack.popPose();
+        }
+    }
+
+    private record BladeStyle(
+            boolean compressed,
+            boolean fineCut,
+            boolean inverting,
+            boolean prismatic,
+            boolean cracked,
+            boolean pickaxe,
+            boolean katana,
+            boolean cylinder,
+            boolean dagger
+    ) {
+        static BladeStyle of(LightsaberData data) {
+            return new BladeStyle(
+                    data.hasFocusingCrystal(FocusingCrystal.COMPRESSED),
+                    data.hasFocusingCrystal(FocusingCrystal.FINE_CUT),
+                    data.hasFocusingCrystal(FocusingCrystal.INVERTING),
+                    data.hasFocusingCrystal(FocusingCrystal.PRISMATIC),
+                    data.hasFocusingCrystal(FocusingCrystal.CRACKED),
+                    data.hasFocusingCrystal(FocusingCrystal.PICKAXE),
+                    data.hasFocusingCrystal(FocusingCrystal.KATANA),
+                    data.hasFocusingCrystal(FocusingCrystal.CYLINDER),
+                    data.hasFocusingCrystal(FocusingCrystal.DAGGER)
+            );
+        }
+
+        boolean darkGlow() {
+            return inverting && prismatic;
+        }
+    }
+
+    private static void renderCoreShape(
+            VertexConsumer consumer,
+            Matrix4f matrix,
+            BladeStyle style,
+            boolean crossguard,
+            float offsetX,
+            float offsetZ,
+            float xHalf,
+            float zHalf,
+            float length,
+            float red,
+            float green,
+            float blue,
+            float alpha
+    ) {
+        if (!crossguard) {
+            if (style.katana()) {
+                renderKatanaBlade(consumer, matrix, offsetX, offsetZ, 0.0F, xHalf, zHalf, length, red, green, blue, alpha);
+                return;
+            }
+            if (style.dagger()) {
+                renderDaggerBlade(consumer, matrix, offsetX, offsetZ, xHalf, zHalf, length, red, green, blue, alpha);
+                return;
+            }
+            if (style.cylinder()) {
+                renderCylinderBlade(consumer, matrix, offsetX, offsetZ, xHalf, zHalf, length, red, green, blue, alpha);
+                return;
+            }
+        }
+        renderBladeGeometry(consumer, matrix, offsetX, offsetZ, xHalf, zHalf, length, red, green, blue, alpha);
     }
 
     private static void renderGlow(
@@ -125,11 +220,11 @@ public final class LightsaberBladeRenderer {
             boolean inWorld,
             int bladeLength,
             boolean crossguard,
-            boolean compressed,
-            boolean fineCut,
-            boolean darkGlow,
-            boolean pickaxe
+            BladeStyle style
     ) {
+        boolean compressed = style.compressed();
+        boolean fineCut = style.fineCut();
+        boolean darkGlow = style.darkGlow();
         int smoothing = compressed ? 7 : 10;
         float width = compressed ? 0.28F : crossguard ? 0.2F : 0.3F;
         float opacity = compressed ? 0.055F : 0.075F;
@@ -138,6 +233,19 @@ public final class LightsaberBladeRenderer {
         float zScale = fineCut ? (crossguard ? 1.3F : 1.1F) : 1.0F;
         if (crossguard && compressed) {
             yScale *= 0.9F;
+        }
+        if (!crossguard) {
+            if (style.katana()) {
+                xScale *= KATANA_EDGE_SCALE;
+                zScale *= KATANA_WIDTH_SCALE;
+            } else if (style.dagger()) {
+                xScale *= DAGGER_WIDTH_SCALE;
+                zScale *= DAGGER_WIDTH_SCALE;
+                yScale *= DAGGER_LENGTH_SCALE;
+            } else if (style.cylinder()) {
+                xScale *= CYLINDER_RADIUS_SCALE;
+                zScale *= CYLINDER_RADIUS_SCALE;
+            }
         }
 
         if (inWorld) {
@@ -170,6 +278,7 @@ public final class LightsaberBladeRenderer {
         Matrix4f matrix = poseStack.last().pose();
         float baseLength = getBladeLength(bladeLength);
 
+        boolean katanaGlow = !crossguard && style.katana();
         for (int layer = 0; layer < layerCount; layer++) {
             float progress = layer / (float) layerCount * 50.0F;
             float radialScale = 1.0F + layer * (width / smoothing);
@@ -182,23 +291,44 @@ public final class LightsaberBladeRenderer {
             float length = baseLength * verticalScale;
             float fineCutOffset = fineCut ? 0.005F + progress * 0.00001F : 0.0F;
             float dither = (layer * DITHER_GOLDEN_RATIO) % 1.0F;
-            renderPrism(
-                    glow,
-                    matrix,
-                    -xHalf,
-                    yOffset - length,
-                    -zHalf + fineCutOffset,
-                    xHalf,
-                    yOffset,
-                    zHalf + fineCutOffset,
-                    darkGlow ? red : premultiply(red, layerAlpha, dither),
-                    darkGlow ? green : premultiply(green, layerAlpha, dither),
-                    darkGlow ? blue : premultiply(blue, layerAlpha, dither),
-                    darkGlow ? layerAlpha : 1.0F
-            );
+            float layerRed = darkGlow ? red : premultiply(red, layerAlpha, dither);
+            float layerGreen = darkGlow ? green : premultiply(green, layerAlpha, dither);
+            float layerBlue = darkGlow ? blue : premultiply(blue, layerAlpha, dither);
+            float layerOutAlpha = darkGlow ? layerAlpha : 1.0F;
+            if (katanaGlow) {
+                renderKatanaBlade(
+                        glow,
+                        matrix,
+                        0.0F,
+                        0.0F,
+                        yOffset,
+                        xHalf,
+                        zHalf,
+                        length,
+                        layerRed,
+                        layerGreen,
+                        layerBlue,
+                        layerOutAlpha
+                );
+            } else {
+                renderPrism(
+                        glow,
+                        matrix,
+                        -xHalf,
+                        yOffset - length,
+                        -zHalf + fineCutOffset,
+                        xHalf,
+                        yOffset,
+                        zHalf + fineCutOffset,
+                        layerRed,
+                        layerGreen,
+                        layerBlue,
+                        layerOutAlpha
+                );
+            }
         }
 
-        if (pickaxe && !crossguard) {
+        if (style.pickaxe() && !crossguard) {
             float armAlpha = layerAlpha * 5.0F;
             for (int layer = 0; layer < smoothing; layer++) {
                 float expansion = 1.0F + (layer + 1) * PICK_GLOW_EXPANSION;
@@ -226,6 +356,8 @@ public final class LightsaberBladeRenderer {
     private static void renderCrackedCopies(
             VertexConsumer consumer,
             Matrix4f matrix,
+            BladeStyle style,
+            boolean crossguard,
             float xHalf,
             float zHalf,
             float length,
@@ -241,9 +373,11 @@ public final class LightsaberBladeRenderer {
             float previousX = randomSigned(tick - 1L, copy * 2) / 120.0F;
             float currentZ = randomSigned(tick, copy * 2 + 1) / 120.0F;
             float previousZ = randomSigned(tick - 1L, copy * 2 + 1) / 120.0F;
-            renderBladeGeometry(
+            renderCoreShape(
                     consumer,
                     matrix,
+                    style,
+                    crossguard,
                     Mth.lerp(partialTick, previousX, currentX),
                     Mth.lerp(partialTick, previousZ, currentZ),
                     xHalf,
@@ -306,6 +440,146 @@ public final class LightsaberBladeRenderer {
             }
             quad(consumer, matrix, topX, topY, -zHalf, topX, topY, zHalf, bottomX, bottomY, zHalf, bottomX, bottomY, -zHalf, red, green, blue, alpha);
         }
+    }
+
+    private static void renderKatanaBlade(
+            VertexConsumer consumer,
+            Matrix4f matrix,
+            float offsetX,
+            float offsetZ,
+            float offsetY,
+            float xHalf,
+            float zHalf,
+            float length,
+            float red,
+            float green,
+            float blue,
+            float alpha
+    ) {
+        float prevY = 0.0F;
+        float prevMinX = 0.0F;
+        float prevMaxX = 0.0F;
+        float prevMinZ = 0.0F;
+        float prevMaxZ = 0.0F;
+        for (int segment = 0; segment <= KATANA_SEGMENTS; segment++) {
+            float progress = segment / (float) KATANA_SEGMENTS;
+            float y = offsetY - length * progress;
+            float curve = offsetX - length * KATANA_CURVATURE * progress * progress;
+            float tipProgress = Mth.clamp((progress - KATANA_TIP_START) / (1.0F - KATANA_TIP_START), 0.0F, 1.0F);
+            float thickness = zHalf * Mth.lerp(tipProgress, 1.0F, KATANA_TIP_MIN_WIDTH);
+            float minX = curve - xHalf;
+            float maxX = curve + xHalf * (1.0F - 2.0F * tipProgress);
+            float minZ = offsetZ - thickness;
+            float maxZ = offsetZ + thickness;
+            if (segment == 0) {
+                capQuad(consumer, matrix, y, minX, maxX, minZ, maxZ, red, green, blue, alpha);
+            } else {
+                loftSegment(consumer, matrix, prevY, prevMinX, prevMaxX, prevMinZ, prevMaxZ, y, minX, maxX, minZ, maxZ, red, green, blue, alpha);
+            }
+            prevY = y;
+            prevMinX = minX;
+            prevMaxX = maxX;
+            prevMinZ = minZ;
+            prevMaxZ = maxZ;
+        }
+    }
+
+    private static void renderDaggerBlade(
+            VertexConsumer consumer,
+            Matrix4f matrix,
+            float offsetX,
+            float offsetZ,
+            float xHalf,
+            float zHalf,
+            float length,
+            float red,
+            float green,
+            float blue,
+            float alpha
+    ) {
+        float minX = offsetX - xHalf;
+        float maxX = offsetX + xHalf;
+        float minZ = offsetZ - zHalf;
+        float maxZ = offsetZ + zHalf;
+        float midY = -length * DAGGER_TAPER_START;
+        float midXHalf = xHalf * DAGGER_MID_SCALE;
+        float midZHalf = zHalf * DAGGER_MID_SCALE;
+        float tipXHalf = xHalf * DAGGER_TIP_SCALE;
+        float tipZHalf = zHalf * DAGGER_TIP_SCALE;
+        capQuad(consumer, matrix, 0.0F, minX, maxX, minZ, maxZ, red, green, blue, alpha);
+        loftSegment(consumer, matrix, 0.0F, minX, maxX, minZ, maxZ,
+                midY, offsetX - midXHalf, offsetX + midXHalf, offsetZ - midZHalf, offsetZ + midZHalf, red, green, blue, alpha);
+        loftSegment(consumer, matrix, midY, offsetX - midXHalf, offsetX + midXHalf, offsetZ - midZHalf, offsetZ + midZHalf,
+                -length, offsetX - tipXHalf, offsetX + tipXHalf, offsetZ - tipZHalf, offsetZ + tipZHalf, red, green, blue, alpha);
+    }
+
+    private static void renderCylinderBlade(
+            VertexConsumer consumer,
+            Matrix4f matrix,
+            float offsetX,
+            float offsetZ,
+            float radiusX,
+            float radiusZ,
+            float length,
+            float red,
+            float green,
+            float blue,
+            float alpha
+    ) {
+        float step = (float) (Math.PI * 2.0 / CYLINDER_SIDES);
+        float bottom = -length;
+        float prevX = offsetX + radiusX;
+        float prevZ = offsetZ;
+        for (int side = 1; side <= CYLINDER_SIDES; side++) {
+            float angle = side * step;
+            float x = offsetX + radiusX * Mth.cos(angle);
+            float z = offsetZ + radiusZ * Mth.sin(angle);
+            quad(consumer, matrix, prevX, 0.0F, prevZ, x, 0.0F, z, x, bottom, z, prevX, bottom, prevZ, red, green, blue, alpha);
+            triangle(consumer, matrix, prevX, 0.0F, prevZ, x, 0.0F, z, offsetX, 0.0F, offsetZ, red, green, blue, alpha);
+            triangle(consumer, matrix, prevX, bottom, prevZ, x, bottom, z, offsetX, bottom, offsetZ, red, green, blue, alpha);
+            prevX = x;
+            prevZ = z;
+        }
+    }
+
+    private static void loftSegment(
+            VertexConsumer consumer,
+            Matrix4f matrix,
+            float prevY,
+            float prevMinX,
+            float prevMaxX,
+            float prevMinZ,
+            float prevMaxZ,
+            float y,
+            float minX,
+            float maxX,
+            float minZ,
+            float maxZ,
+            float red,
+            float green,
+            float blue,
+            float alpha
+    ) {
+        quad(consumer, matrix, prevMinX, prevY, prevMinZ, prevMaxX, prevY, prevMinZ, maxX, y, minZ, minX, y, minZ, red, green, blue, alpha);
+        quad(consumer, matrix, prevMaxX, prevY, prevMaxZ, prevMinX, prevY, prevMaxZ, minX, y, maxZ, maxX, y, maxZ, red, green, blue, alpha);
+        quad(consumer, matrix, prevMinX, prevY, prevMaxZ, prevMinX, prevY, prevMinZ, minX, y, minZ, minX, y, maxZ, red, green, blue, alpha);
+        quad(consumer, matrix, prevMaxX, prevY, prevMinZ, prevMaxX, prevY, prevMaxZ, maxX, y, maxZ, maxX, y, minZ, red, green, blue, alpha);
+    }
+
+    private static void capQuad(
+            VertexConsumer consumer,
+            Matrix4f matrix,
+            float y,
+            float minX,
+            float maxX,
+            float minZ,
+            float maxZ,
+            float red,
+            float green,
+            float blue,
+            float alpha
+    ) {
+        quad(consumer, matrix, minX, y, minZ, maxX, y, minZ, maxX, y, maxZ, minX, y, maxZ, red, green, blue, alpha);
     }
 
     private static float randomSigned(long tick, int salt) {

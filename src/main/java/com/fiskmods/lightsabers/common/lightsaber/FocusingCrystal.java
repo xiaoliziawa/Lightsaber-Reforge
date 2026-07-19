@@ -12,7 +12,10 @@ public enum FocusingCrystal
     FINE_CUT,
 //    CHARGED,
     PRISMATIC,
-    PICKAXE;
+    PICKAXE,
+    KATANA,
+    CYLINDER,
+    DAGGER;
     
     public long getCode()
     {

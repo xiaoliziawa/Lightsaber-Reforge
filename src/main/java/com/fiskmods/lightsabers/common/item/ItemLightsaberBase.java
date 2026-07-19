@@ -5,6 +5,7 @@ import com.fiskmods.lightsabers.client.sound.ALSounds;
 import com.fiskmods.lightsabers.client.render.item.LightsaberClientItemExtensions;
 import com.fiskmods.lightsabers.common.entity.EntityLightsaber;
 import com.fiskmods.lightsabers.common.integration.epicfight.EpicFightIntegration;
+import com.fiskmods.lightsabers.common.lightsaber.FocusingCrystal;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.sound.ModSounds;
 import net.minecraft.core.BlockPos;
@@ -161,6 +162,12 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
         }
 
         return LightsaberData.get(stack).canSpinBlades();
+    }
+
+    public static boolean isDaggerLightsaber(ItemStack stack) {
+        return !isSpinningLightsaber(stack)
+                && stack.getItem() instanceof ItemLightsaber
+                && LightsaberData.hasFocusingCrystal(stack, FocusingCrystal.DAGGER);
     }
 
     public static ItemStack setActive(ItemStack stack, boolean active) {

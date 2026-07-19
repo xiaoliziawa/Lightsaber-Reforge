@@ -29,6 +29,11 @@ public final class EpicFightIntegration {
                     "spinning_lightsaber",
                     () -> SpinningLightsaberCondition::new
             );
+    private static final RegistryObject<Supplier<Condition<?>>> DAGGER_LIGHTSABER =
+            CONDITIONS.register(
+                    "dagger_lightsaber",
+                    () -> DaggerLightsaberCondition::new
+            );
 
     private EpicFightIntegration() {
     }
@@ -46,6 +51,10 @@ public final class EpicFightIntegration {
         event.getTypeEntry().put(
                 weaponType("lightsaber_spear"),
                 item -> withLightsaberSounds(WeaponCapabilityPresets.SPEAR, item)
+        );
+        event.getTypeEntry().put(
+                weaponType("lightsaber_dagger"),
+                item -> withLightsaberSounds(WeaponCapabilityPresets.DAGGER, item)
         );
     }
 
