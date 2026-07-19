@@ -48,6 +48,8 @@ public final class SpinningLightsaberObjRenderer {
     private static final float LOWER_BLADE_BASE_X = 0.018F * OBJ_SCALE;
     private static final float LOWER_BLADE_BASE_Y = -10.178F * OBJ_SCALE;
     private static final float NORMAL_POMMEL_OFFSET_Y = -0.96F;
+    private static final float BLADE_EDGE_ROLL = 90.0F;
+    private static final float SPIN_DIRECTION = 1.0F;
     private static final float MAX_ROTATION_SPEED = 72.0F;
     private static final float ROTATION_ACCELERATION = 8.0F;
     private static final float MAX_ROTATION_DECELERATION = 96.0F;
@@ -153,6 +155,7 @@ public final class SpinningLightsaberObjRenderer {
         poseStack.pushPose();
         poseStack.mulPose(Axis.XP.rotationDegrees(MODEL_ORIENTATION_ROTATION));
         poseStack.scale(DISPLAY_SCALE, DISPLAY_SCALE, DISPLAY_SCALE);
+        LightsaberBladeRenderer.bladeRoll = BLADE_EDGE_ROLL;
         poseStack.pushPose();
         poseStack.mulPose(Axis.XP.rotationDegrees(rotation));
         poseStack.translate(UPPER_BLADE_BASE_X, UPPER_BLADE_BASE_Y, 0.0F);
@@ -170,6 +173,7 @@ public final class SpinningLightsaberObjRenderer {
         poseStack.popPose();
 
         if (!hasLowerEmitter(data)) {
+            LightsaberBladeRenderer.bladeRoll = 0.0F;
             poseStack.popPose();
             return;
         }
@@ -188,6 +192,7 @@ public final class SpinningLightsaberObjRenderer {
                 false
         );
         poseStack.popPose();
+        LightsaberBladeRenderer.bladeRoll = 0.0F;
         poseStack.popPose();
     }
 
@@ -270,7 +275,7 @@ public final class SpinningLightsaberObjRenderer {
         if (state.isFinished()) {
             ANIMATION_STATES.remove(stack);
         }
-        return rotation;
+        return rotation * SPIN_DIRECTION;
     }
 
     private static boolean isBeingUsed(Minecraft minecraft, ItemStack stack) {
