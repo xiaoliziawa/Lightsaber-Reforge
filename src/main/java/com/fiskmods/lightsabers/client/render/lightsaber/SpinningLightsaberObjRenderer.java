@@ -62,6 +62,10 @@ public final class SpinningLightsaberObjRenderer {
     private SpinningLightsaberObjRenderer() {
     }
 
+    public static float getBladeModelLength() {
+        return LightsaberBladeRenderer.getBladeLength(BLADE_LENGTH) * DISPLAY_SCALE;
+    }
+
     public static void registerModels(ModelEvent.RegisterAdditional event) {
         event.register(GRIP_MODEL);
         event.register(OUTER_MODEL);

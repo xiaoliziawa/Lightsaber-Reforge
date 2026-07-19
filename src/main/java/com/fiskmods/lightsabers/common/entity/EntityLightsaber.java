@@ -33,9 +33,9 @@ public class EntityLightsaber extends ThrowableItemProjectile {
     private static final EntityDataAccessor<Integer> AMPLIFIER =
             SynchedEntityData.defineId(EntityLightsaber.class, EntityDataSerializers.INT);
 
-    private static final int RETURN_DELAY_TICKS = 20;
+    private static final int BASE_RETURN_DELAY_TICKS = 20;
+    private static final int MAX_THROW_AMPLIFIER = 1;
     private static final int SWING_SOUND_INTERVAL = 3;
-    private static final double MAX_THROW_DISTANCE = 12.0D;
     private static final double CATCH_DISTANCE = 2.0D;
     private static final double RETURN_SPEED = 2.0D;
     private static final double BLOCK_BOUNCE_OFFSET = 0.3D;
@@ -121,8 +121,7 @@ public class EntityLightsaber extends ThrowableItemProjectile {
                 );
             }
 
-            if (tickCount > RETURN_DELAY_TICKS
-                    || distanceTo(thrower) >= MAX_THROW_DISTANCE) {
+            if (tickCount > getReturnDelayTicks()) {
                 setReturning(true);
             }
 
@@ -209,6 +208,11 @@ public class EntityLightsaber extends ThrowableItemProjectile {
         } else {
             dropLightsaber(thrower);
         }
+    }
+
+    private int getReturnDelayTicks() {
+        int throwLevel = Math.min(Math.max(getAmplifier(), 0), MAX_THROW_AMPLIFIER) + 1;
+        return BASE_RETURN_DELAY_TICKS * throwLevel;
     }
 
     private void dropLightsaber(Entity location) {

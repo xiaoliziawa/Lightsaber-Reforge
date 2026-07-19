@@ -8,6 +8,7 @@
     "MixinEpicFightLivingEntityPatch"
   ],
   "client": [
+    "MixinHumanoidModel",
     "MixinMinecraft"
   ],
   "injectors": {

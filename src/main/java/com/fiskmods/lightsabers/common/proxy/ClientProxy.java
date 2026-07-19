@@ -18,7 +18,7 @@ import com.fiskmods.lightsabers.client.model.tile.ModelSithStoneCoffin;
 import com.fiskmods.lightsabers.client.render.entity.RenderSithGhost;
 import com.fiskmods.lightsabers.client.render.entity.RenderLightsaber;
 import com.fiskmods.lightsabers.client.render.entity.RenderForceLightning;
-import com.fiskmods.lightsabers.client.render.entity.ClientLightningSpawner;
+import com.fiskmods.lightsabers.client.render.entity.ClientForceEffectRenderer;
 import com.fiskmods.lightsabers.client.render.HolocronObjRenderer;
 import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.SpinningLightsaberObjRenderer;
@@ -84,7 +84,7 @@ public final class ClientProxy extends CommonProxy {
         modEventBus.addListener(ALKeyMappings::register);
         MinecraftForge.EVENT_BUS.register(ClientInputHandler.INSTANCE);
         MinecraftForge.EVENT_BUS.register(ClientSoundHandler.INSTANCE);
-        MinecraftForge.EVENT_BUS.register(ClientLightningSpawner.INSTANCE);
+        MinecraftForge.EVENT_BUS.register(ClientForceEffectRenderer.INSTANCE);
         MinecraftForge.EVENT_BUS.register(new GuiOverlay());
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
         MinecraftForge.EVENT_BUS.register(new CommandExportIcon());

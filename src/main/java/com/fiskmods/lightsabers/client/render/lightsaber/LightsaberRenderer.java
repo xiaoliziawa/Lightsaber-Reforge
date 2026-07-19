@@ -18,6 +18,12 @@ public final class LightsaberRenderer {
     private LightsaberRenderer() {
     }
 
+    public static float getMainBladeModelLength() {
+        return LightsaberBladeRenderer.getBladeLength(
+                LightsaberBladeRenderer.MAIN_BLADE_LENGTH
+        ) * BLADE_MODEL_SCALE;
+    }
+
     public static void render(
             LightsaberData data,
             ItemStack stack,

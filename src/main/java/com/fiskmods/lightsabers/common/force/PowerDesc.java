@@ -101,6 +101,7 @@ public class PowerDesc
         SPEED,
         INVISIBILITY,
         IMPACT_RADIUS,
+        THROW_RANGE,
         KNOCKBACK,
         FALL_RESISTANCE;
 

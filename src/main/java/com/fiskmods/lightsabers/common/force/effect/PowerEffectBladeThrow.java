@@ -43,7 +43,13 @@ public class PowerEffectBladeThrow extends PowerEffect
     @Override
     public String[] getDesc()
     {
-        return new String[][] {{}, {PowerDesc.create("multiply", Unit.IMPACT_RADIUS, PowerDesc.format("%s%s", ChatFormatting.GRAY, 2))}}[amplifier];
+        return new String[][] {
+                {},
+                {
+                        PowerDesc.create("multiply", Unit.IMPACT_RADIUS, PowerDesc.format("%s%s", ChatFormatting.GRAY, 2)),
+                        PowerDesc.create("multiply", Unit.THROW_RANGE, PowerDesc.format("%s%s", ChatFormatting.GRAY, 2))
+                }
+        }[amplifier];
     }
 
     @Override

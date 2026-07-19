@@ -96,6 +96,42 @@ public final class LightsaberRenderTypes extends RenderStateShard {
                     .setOutputState(ITEM_ENTITY_TARGET)
                     .createCompositeState(false)
     );
+    public static final RenderType FORCE_EFFECT_GLOW = RenderType.create(
+            "lightsabers_force_effect_glow",
+            DefaultVertexFormat.POSITION_COLOR,
+            VertexFormat.Mode.QUADS,
+            16384,
+            false,
+            true,
+            RenderType.CompositeState.builder()
+                    .setShaderState(POSITION_COLOR_SHADER)
+                    .setTextureState(NO_TEXTURE)
+                    .setTransparencyState(LIGHTNING_TRANSPARENCY)
+                    .setCullState(NO_CULL)
+                    .setLightmapState(NO_LIGHTMAP)
+                    .setOverlayState(NO_OVERLAY)
+                    .setWriteMaskState(COLOR_WRITE)
+                    .setOutputState(PARTICLES_TARGET)
+                    .createCompositeState(false)
+    );
+    public static final RenderType FORCE_EFFECT_CORE = RenderType.create(
+            "lightsabers_force_effect_core",
+            DefaultVertexFormat.POSITION_COLOR,
+            VertexFormat.Mode.QUADS,
+            4096,
+            false,
+            false,
+            RenderType.CompositeState.builder()
+                    .setShaderState(POSITION_COLOR_SHADER)
+                    .setTextureState(NO_TEXTURE)
+                    .setTransparencyState(NO_TRANSPARENCY)
+                    .setCullState(NO_CULL)
+                    .setLightmapState(NO_LIGHTMAP)
+                    .setOverlayState(NO_OVERLAY)
+                    .setWriteMaskState(COLOR_DEPTH_WRITE)
+                    .setOutputState(PARTICLES_TARGET)
+                    .createCompositeState(false)
+    );
 
     private LightsaberRenderTypes() {
         super("lightsabers_render_types", () -> {

@@ -19,10 +19,20 @@ public final class LightsaberBladeRenderer {
     private static final float CORE_HALF_WIDTH = PIXEL / 2.0F;
     private static final float TIP_LENGTH = PIXEL * 2.0F;
     private static final int MAX_GLOW_LAYERS = 80;
+    private static final int PICK_ARM_SEGMENTS = 12;
+    private static final float PICK_ARM_RADIUS = PIXEL * 9.0F;
+    private static final float PICK_ARM_SWEEP = 1.9F;
+    private static final float PICK_ARM_BASE_HALF_HEIGHT = PIXEL * 1.1F;
+    private static final float PICK_ARM_TIP_HALF_HEIGHT = PIXEL * 0.12F;
+    private static final float PICK_GLOW_EXPANSION = 0.12F;
     private static final float DITHER_GOLDEN_RATIO = 0.618034F;
     private static final float WHITE_GLOW_BRIGHTNESS = 0.62F;
 
     private LightsaberBladeRenderer() {
+    }
+
+    public static float getBladeLength(int bladeLength) {
+        return bladeLength * PIXEL;
     }
 
     public static void render(
@@ -40,6 +50,7 @@ public final class LightsaberBladeRenderer {
         boolean inverting = data.hasFocusingCrystal(FocusingCrystal.INVERTING);
         boolean prismatic = data.hasFocusingCrystal(FocusingCrystal.PRISMATIC);
         boolean cracked = data.hasFocusingCrystal(FocusingCrystal.CRACKED);
+        boolean pickaxe = data.hasFocusingCrystal(FocusingCrystal.PICKAXE);
 
         renderGlow(
                 stack,
@@ -51,7 +62,8 @@ public final class LightsaberBladeRenderer {
                 crossguard,
                 compressed,
                 fineCut,
-                inverting && prismatic
+                inverting && prismatic,
+                pickaxe
         );
 
         float coreRed = inverting ? 0.0F : prismatic ? rgb[0] : 1.0F;
@@ -59,7 +71,7 @@ public final class LightsaberBladeRenderer {
         float coreBlue = inverting ? 0.0F : prismatic ? rgb[2] : 1.0F;
         float widthScale = compressed ? 0.6F : 1.0F;
         float lengthScale = crossguard && fineCut ? 1.2F : 1.0F;
-        float length = bladeLength * PIXEL * lengthScale;
+        float length = getBladeLength(bladeLength) * lengthScale;
         float xHalf = CORE_HALF_WIDTH * widthScale * (fineCut ? 0.75F : 1.0F);
         float zHalf = CORE_HALF_WIDTH * widthScale * (fineCut ? 1.5F : 1.0F);
         VertexConsumer core = buffer.getBuffer(LightsaberRenderTypes.BLADE_CORE);
@@ -90,6 +102,19 @@ public final class LightsaberBladeRenderer {
                     coreBlue
             );
         }
+        if (pickaxe && !crossguard) {
+            renderPickaxeHead(
+                    core,
+                    matrix,
+                    length,
+                    zHalf,
+                    1.0F,
+                    coreRed,
+                    coreGreen,
+                    coreBlue,
+                    1.0F
+            );
+        }
     }
 
     private static void renderGlow(
@@ -102,7 +127,8 @@ public final class LightsaberBladeRenderer {
             boolean crossguard,
             boolean compressed,
             boolean fineCut,
-            boolean darkGlow
+            boolean darkGlow,
+            boolean pickaxe
     ) {
         int smoothing = compressed ? 7 : 10;
         float width = compressed ? 0.28F : crossguard ? 0.2F : 0.3F;
@@ -142,7 +168,7 @@ public final class LightsaberBladeRenderer {
                         : LightsaberRenderTypes.BLADE_GLOW
         );
         Matrix4f matrix = poseStack.last().pose();
-        float baseLength = bladeLength * PIXEL;
+        float baseLength = getBladeLength(bladeLength);
 
         for (int layer = 0; layer < layerCount; layer++) {
             float progress = layer / (float) layerCount * 50.0F;
@@ -170,6 +196,25 @@ public final class LightsaberBladeRenderer {
                     darkGlow ? blue : premultiply(blue, layerAlpha, dither),
                     darkGlow ? layerAlpha : 1.0F
             );
+        }
+
+        if (pickaxe && !crossguard) {
+            float armAlpha = layerAlpha * 5.0F;
+            for (int layer = 0; layer < smoothing; layer++) {
+                float expansion = 1.0F + (layer + 1) * PICK_GLOW_EXPANSION;
+                float dither = (layer * DITHER_GOLDEN_RATIO) % 1.0F;
+                renderPickaxeHead(
+                        glow,
+                        matrix,
+                        baseLength,
+                        CORE_HALF_WIDTH * expansion,
+                        expansion,
+                        darkGlow ? red : premultiply(red, armAlpha, dither),
+                        darkGlow ? green : premultiply(green, armAlpha, dither),
+                        darkGlow ? blue : premultiply(blue, armAlpha, dither),
+                        darkGlow ? armAlpha : 1.0F
+                );
+            }
         }
     }
 
@@ -209,6 +254,57 @@ public final class LightsaberBladeRenderer {
                     blue,
                     1.0F
             );
+        }
+    }
+
+    private static void renderPickaxeHead(
+            VertexConsumer consumer,
+            Matrix4f matrix,
+            float length,
+            float zHalf,
+            float heightScale,
+            float red,
+            float green,
+            float blue,
+            float alpha
+    ) {
+        float baseY = -length + PICK_ARM_BASE_HALF_HEIGHT;
+        for (int side = -1; side <= 1; side += 2) {
+            float prevTopX = 0.0F;
+            float prevTopY = 0.0F;
+            float prevBottomX = 0.0F;
+            float prevBottomY = 0.0F;
+            float topX = 0.0F;
+            float topY = 0.0F;
+            float bottomX = 0.0F;
+            float bottomY = 0.0F;
+            for (int segment = 0; segment <= PICK_ARM_SEGMENTS; segment++) {
+                float progress = segment / (float) PICK_ARM_SEGMENTS;
+                float angle = progress * PICK_ARM_SWEEP;
+                float sin = Mth.sin(angle);
+                float cos = Mth.cos(angle);
+                float centerX = side * PICK_ARM_RADIUS * sin;
+                float centerY = baseY + PICK_ARM_RADIUS * (1.0F - cos);
+                float halfHeight = Mth.lerp(progress, PICK_ARM_BASE_HALF_HEIGHT, PICK_ARM_TIP_HALF_HEIGHT) * heightScale;
+                float normalX = -side * sin * halfHeight;
+                float normalY = cos * halfHeight;
+                prevTopX = topX;
+                prevTopY = topY;
+                prevBottomX = bottomX;
+                prevBottomY = bottomY;
+                topX = centerX + normalX;
+                topY = centerY + normalY;
+                bottomX = centerX - normalX;
+                bottomY = centerY - normalY;
+                if (segment == 0) {
+                    continue;
+                }
+                quad(consumer, matrix, prevTopX, prevTopY, -zHalf, topX, topY, -zHalf, topX, topY, zHalf, prevTopX, prevTopY, zHalf, red, green, blue, alpha);
+                quad(consumer, matrix, prevBottomX, prevBottomY, zHalf, bottomX, bottomY, zHalf, bottomX, bottomY, -zHalf, prevBottomX, prevBottomY, -zHalf, red, green, blue, alpha);
+                quad(consumer, matrix, prevTopX, prevTopY, zHalf, topX, topY, zHalf, bottomX, bottomY, zHalf, prevBottomX, prevBottomY, zHalf, red, green, blue, alpha);
+                quad(consumer, matrix, prevBottomX, prevBottomY, -zHalf, bottomX, bottomY, -zHalf, topX, topY, -zHalf, prevTopX, prevTopY, -zHalf, red, green, blue, alpha);
+            }
+            quad(consumer, matrix, topX, topY, -zHalf, topX, topY, zHalf, bottomX, bottomY, zHalf, bottomX, bottomY, -zHalf, red, green, blue, alpha);
         }
     }
 

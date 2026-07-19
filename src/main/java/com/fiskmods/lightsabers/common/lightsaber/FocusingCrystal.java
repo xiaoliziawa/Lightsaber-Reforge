@@ -11,7 +11,8 @@ public enum FocusingCrystal
     INVERTING,
     FINE_CUT,
 //    CHARGED,
-    PRISMATIC;
+    PRISMATIC,
+    PICKAXE;
     
     public long getCode()
     {

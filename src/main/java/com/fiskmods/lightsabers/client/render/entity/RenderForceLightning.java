@@ -1,5 +1,6 @@
 package com.fiskmods.lightsabers.client.render.entity;
 
+import com.fiskmods.lightsabers.client.render.EnergyBeamRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberRenderTypes;
 import com.fiskmods.lightsabers.common.data.effect.Effect;
 import com.fiskmods.lightsabers.common.data.effect.StatusEffect;
@@ -21,7 +22,6 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4f;
 
 public final class RenderForceLightning extends EntityRenderer<EntityForceLightning> {
     private static final double TARGET_RANGE = 7.0D;
@@ -57,6 +57,27 @@ public final class RenderForceLightning extends EntityRenderer<EntityForceLightn
                 .subtract(anchor);
         boolean firstPerson = caster == Minecraft.getInstance().player
                 && Minecraft.getInstance().options.getCameraType().isFirstPerson();
+        renderForCaster(
+                caster,
+                partialTick,
+                poseStack,
+                buffer,
+                anchor,
+                camera,
+                firstPerson
+        );
+        super.render(lightning, entityYaw, partialTick, poseStack, buffer, packedLight);
+    }
+
+    public static void renderForCaster(
+            LivingEntity caster,
+            float partialTick,
+            PoseStack poseStack,
+            MultiBufferSource buffer,
+            Vec3 anchor,
+            Vec3 camera,
+            boolean firstPerson
+    ) {
         long tick = caster.tickCount;
 
         int drainIndex = 0;
@@ -104,7 +125,6 @@ public final class RenderForceLightning extends EntityRenderer<EntityForceLightn
                 }
             }
         }
-        super.render(lightning, entityYaw, partialTick, poseStack, buffer, packedLight);
     }
 
     @Override
@@ -155,16 +175,14 @@ public final class RenderForceLightning extends EntityRenderer<EntityForceLightn
 
         double glowWidth = firstPerson ? FIRST_PERSON_GLOW_WIDTH : THIRD_PERSON_GLOW_WIDTH;
         double coreWidth = firstPerson ? FIRST_PERSON_CORE_WIDTH : THIRD_PERSON_CORE_WIDTH;
-        VertexConsumer glow = buffer.getBuffer(LightsaberRenderTypes.LIGHTNING_GLOW);
-        VertexConsumer core = buffer.getBuffer(LightsaberRenderTypes.LIGHTNING_CORE);
-        Matrix4f matrix = poseStack.last().pose();
-
-        renderSegment(glow, matrix, points.source, points.first, camera, glowWidth, color, 0.85F);
-        renderSegment(glow, matrix, points.first, points.second, camera, glowWidth, color, 0.85F);
-        renderSegment(glow, matrix, points.second, points.target, camera, glowWidth, color, 0.85F);
-        renderSegment(core, matrix, points.source, points.first, camera, coreWidth, CORE_COLOR, 1.0F);
-        renderSegment(core, matrix, points.first, points.second, camera, coreWidth, CORE_COLOR, 1.0F);
-        renderSegment(core, matrix, points.second, points.target, camera, coreWidth, CORE_COLOR, 1.0F);
+        VertexConsumer glow = buffer.getBuffer(LightsaberRenderTypes.FORCE_EFFECT_GLOW);
+        VertexConsumer core = buffer.getBuffer(LightsaberRenderTypes.FORCE_EFFECT_CORE);
+        renderSegment(glow, poseStack, points.source, points.first, camera, glowWidth, color, 0.85F);
+        renderSegment(glow, poseStack, points.first, points.second, camera, glowWidth, color, 0.85F);
+        renderSegment(glow, poseStack, points.second, points.target, camera, glowWidth, color, 0.85F);
+        renderSegment(core, poseStack, points.source, points.first, camera, coreWidth, CORE_COLOR, 1.0F);
+        renderSegment(core, poseStack, points.first, points.second, camera, coreWidth, CORE_COLOR, 1.0F);
+        renderSegment(core, poseStack, points.second, points.target, camera, coreWidth, CORE_COLOR, 1.0F);
     }
 
     private static Vec3 getHandPosition(
@@ -205,7 +223,7 @@ public final class RenderForceLightning extends EntityRenderer<EntityForceLightn
 
     private static void renderSegment(
             VertexConsumer consumer,
-            Matrix4f matrix,
+            PoseStack poseStack,
             Vec3 start,
             Vec3 end,
             Vec3 camera,
@@ -213,34 +231,16 @@ public final class RenderForceLightning extends EntityRenderer<EntityForceLightn
             Vec3 color,
             float alpha
     ) {
-        Vec3 direction = end.subtract(start);
-        Vec3 toCamera = camera.subtract(start.add(end).scale(0.5D));
-        Vec3 perpendicular = direction.cross(toCamera);
-        if (perpendicular.lengthSqr() < 1.0E-8D) {
-            perpendicular = direction.cross(new Vec3(0, 1, 0));
-        }
-        perpendicular = perpendicular.normalize().scale(halfWidth);
-
-        Vec3 first = start.add(perpendicular);
-        Vec3 second = start.subtract(perpendicular);
-        Vec3 third = end.subtract(perpendicular);
-        Vec3 fourth = end.add(perpendicular);
-        vertex(consumer, matrix, first, color, alpha);
-        vertex(consumer, matrix, second, color, alpha);
-        vertex(consumer, matrix, third, color, alpha);
-        vertex(consumer, matrix, fourth, color, alpha);
-    }
-
-    private static void vertex(
-            VertexConsumer consumer,
-            Matrix4f matrix,
-            Vec3 position,
-            Vec3 color,
-            float alpha
-    ) {
-        consumer.vertex(matrix, (float) position.x, (float) position.y, (float) position.z)
-                .color((float) color.x, (float) color.y, (float) color.z, alpha)
-                .endVertex();
+        EnergyBeamRenderer.renderCameraFacingQuad(
+                consumer,
+                poseStack.last().pose(),
+                start,
+                end,
+                camera,
+                halfWidth,
+                color,
+                alpha
+        );
     }
 
     private record BoltPoints(Vec3 source, Vec3 first, Vec3 second, Vec3 target) {

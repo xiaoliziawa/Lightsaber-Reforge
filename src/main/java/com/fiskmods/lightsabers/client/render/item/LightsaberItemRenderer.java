@@ -84,6 +84,13 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
         );
     }
 
+    public static double getThirdPersonBladeLength(ItemStack stack) {
+        float bladeLength = ItemLightsaberBase.isSpinningLightsaber(stack)
+                ? SpinningLightsaberObjRenderer.getBladeModelLength()
+                : LightsaberRenderer.getMainBladeModelLength();
+        return bladeLength * THIRD_PERSON_SCALE;
+    }
+
     @Override
     public void renderByItem(
             ItemStack stack,
