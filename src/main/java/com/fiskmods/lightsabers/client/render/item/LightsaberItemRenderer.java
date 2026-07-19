@@ -59,8 +59,9 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final float DOUBLE_THIRD_PERSON_ROT_X = 0F;
     private static final float DOUBLE_THIRD_PERSON_ROT_Y = 90F;
     private static final float DOUBLE_THIRD_PERSON_ROT_Z = 90.0F;
-    private static final float DOUBLE_THIRD_PERSON_OFFSET_X = 0.4F;
-    private static final float DOUBLE_THIRD_PERSON_OFFSET_Y = 0.25F;
+    // 非 Epic Fight 状态下，开启双刃光剑的最终第三人称握持位置。
+    private static final float DOUBLE_THIRD_PERSON_OFFSET_X = 0.40F;
+    private static final float DOUBLE_THIRD_PERSON_OFFSET_Y = -0.35F;
     private static final float DOUBLE_THIRD_PERSON_OFFSET_Z = -0.05F;
     private static final float GROUND_SCALE = 0.20F;
     private static final float FIXED_SCALE = 0.24F;
