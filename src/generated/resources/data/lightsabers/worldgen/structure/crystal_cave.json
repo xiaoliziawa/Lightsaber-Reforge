@@ -1,0 +1,8 @@
+{
+  "type": "lightsabers:legacy",
+  "biomes": "#lightsabers:has_structure/crystal_cave",
+  "spawn_overrides": {},
+  "step": "underground_structures",
+  "structure": "crystal_cave",
+  "terrain_adaptation": "none"
+}

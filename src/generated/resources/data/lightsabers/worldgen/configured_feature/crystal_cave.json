@@ -1,0 +1,9 @@
+{
+  "type": "lightsabers:crystal_cave",
+  "config": {
+    "crystal_attempts": 100,
+    "crystal_max_y": 64,
+    "entrance_length": 32,
+    "minimum_air_blocks": 1024
+  }
+}

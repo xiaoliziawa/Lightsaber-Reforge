@@ -3,6 +3,7 @@ package com.fiskmods.lightsabers.common.generator.structure;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.BiomeTags;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.biome.Biome;
@@ -15,6 +16,12 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 public enum EnumStructure implements StringRepresentable {
+    CRYSTAL_CAVE(
+            (level, x, y, z, random) -> new StructureCrystalCave(level, x, y, z),
+            48,
+            64,
+            biome -> !biome.is(BiomeTags.IS_OCEAN)
+    ),
     SITH_TOMB(
             (level, x, y, z, random) -> new StructureSithTomb(level, x, y, z),
             8,

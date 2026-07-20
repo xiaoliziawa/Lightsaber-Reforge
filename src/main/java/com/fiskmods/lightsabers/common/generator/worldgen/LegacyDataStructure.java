@@ -8,6 +8,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 
@@ -36,6 +37,11 @@ public final class LegacyDataStructure extends Structure {
 
     @Override
     protected Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
+        if (structure == EnumStructure.CRYSTAL_CAVE
+                && context.chunkGenerator() instanceof FlatLevelSource) {
+            return Optional.empty();
+        }
+
         int x = context.chunkPos().getMiddleBlockX();
         int z = context.chunkPos().getMiddleBlockZ();
         int y = context.chunkGenerator().getFirstOccupiedHeight(

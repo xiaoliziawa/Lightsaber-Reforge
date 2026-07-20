@@ -15,8 +15,15 @@ public final class WorldgenDataProvider implements DataProvider {
     private static final int SITH_TOMB_SEPARATION = 8;
     private static final int JEDI_TEMPLE_SPACING = 64;
     private static final int JEDI_TEMPLE_SEPARATION = 24;
+    private static final int CRYSTAL_CAVE_SPACING = 64;
+    private static final int CRYSTAL_CAVE_SEPARATION = 48;
     private static final int SITH_TOMB_SALT = 235785655;
     private static final int JEDI_TEMPLE_SALT = 235785656;
+    private static final int CRYSTAL_CAVE_SALT = 235785657;
+    private static final int CRYSTAL_CAVE_MINIMUM_AIR_BLOCKS = 1024;
+    private static final int CRYSTAL_CAVE_ENTRANCE_LENGTH = 32;
+    private static final int CRYSTAL_CAVE_CRYSTAL_ATTEMPTS = 100;
+    private static final int CRYSTAL_CAVE_CRYSTAL_MAX_Y = 64;
 
     private final Path dataOutput;
 
@@ -27,8 +34,27 @@ public final class WorldgenDataProvider implements DataProvider {
     @Override
     public CompletableFuture<?> run(CachedOutput output) {
         return CompletableFuture.allOf(
-                saveStructure(output, "jedi_temple", "jedi_temple", "beard_thin"),
-                saveStructure(output, "sith_tomb", "sith_tomb", "bury"),
+                saveStructure(
+                        output,
+                        "jedi_temple",
+                        "jedi_temple",
+                        "surface_structures",
+                        "beard_thin"
+                ),
+                saveStructure(
+                        output,
+                        "sith_tomb",
+                        "sith_tomb",
+                        "surface_structures",
+                        "bury"
+                ),
+                saveStructure(
+                        output,
+                        "crystal_cave",
+                        "crystal_cave",
+                        "underground_structures",
+                        "none"
+                ),
                 saveStructureSet(
                         output,
                         "jedi_temple",
@@ -43,7 +69,15 @@ public final class WorldgenDataProvider implements DataProvider {
                         SITH_TOMB_SEPARATION,
                         SITH_TOMB_SALT
                 ),
+                saveStructureSet(
+                        output,
+                        "crystal_cave",
+                        CRYSTAL_CAVE_SPACING,
+                        CRYSTAL_CAVE_SEPARATION,
+                        CRYSTAL_CAVE_SALT
+                ),
                 saveBiomeTag(output, "jedi_temple", "#minecraft:is_overworld"),
+                saveBiomeTag(output, "crystal_cave", "#minecraft:is_overworld"),
                 saveBiomeTag(
                         output,
                         "sith_tomb",
@@ -51,7 +85,56 @@ public final class WorldgenDataProvider implements DataProvider {
                         "minecraft:badlands",
                         "minecraft:eroded_badlands",
                         "minecraft:wooded_badlands"
-                )
+                ),
+                saveCrystalCaveConfiguredFeature(output),
+                saveCrystalCavePlacedFeature(output),
+                saveCrystalCaveBiomeModifier(output)
+        );
+    }
+
+    private CompletableFuture<?> saveCrystalCaveConfiguredFeature(CachedOutput output) {
+        JsonObject config = new JsonObject();
+        config.addProperty("minimum_air_blocks", CRYSTAL_CAVE_MINIMUM_AIR_BLOCKS);
+        config.addProperty("entrance_length", CRYSTAL_CAVE_ENTRANCE_LENGTH);
+        config.addProperty("crystal_attempts", CRYSTAL_CAVE_CRYSTAL_ATTEMPTS);
+        config.addProperty("crystal_max_y", CRYSTAL_CAVE_CRYSTAL_MAX_Y);
+
+        JsonObject json = new JsonObject();
+        json.addProperty("type", Lightsabers.MODID + ":crystal_cave");
+        json.add("config", config);
+        return DataProvider.saveStable(
+                output,
+                json,
+                dataPath("worldgen/configured_feature/crystal_cave.json")
+        );
+    }
+
+    private CompletableFuture<?> saveCrystalCavePlacedFeature(CachedOutput output) {
+        JsonObject biomePlacement = new JsonObject();
+        biomePlacement.addProperty("type", "minecraft:biome");
+        JsonArray placement = new JsonArray();
+        placement.add(biomePlacement);
+
+        JsonObject json = new JsonObject();
+        json.addProperty("feature", Lightsabers.MODID + ":crystal_cave");
+        json.add("placement", placement);
+        return DataProvider.saveStable(
+                output,
+                json,
+                dataPath("worldgen/placed_feature/crystal_cave.json")
+        );
+    }
+
+    private CompletableFuture<?> saveCrystalCaveBiomeModifier(CachedOutput output) {
+        JsonObject json = new JsonObject();
+        json.addProperty("type", "forge:add_features");
+        json.addProperty("biomes", "#minecraft:is_overworld");
+        json.addProperty("features", Lightsabers.MODID + ":crystal_cave");
+        json.addProperty("step", "underground_decoration");
+        return DataProvider.saveStable(
+                output,
+                json,
+                dataPath("forge/biome_modifier/crystal_cave.json")
         );
     }
 
@@ -59,6 +142,7 @@ public final class WorldgenDataProvider implements DataProvider {
             CachedOutput output,
             String name,
             String structure,
+            String step,
             String terrainAdaptation
     ) {
         JsonObject json = new JsonObject();
@@ -67,7 +151,7 @@ public final class WorldgenDataProvider implements DataProvider {
                 "biomes",
                 "#" + Lightsabers.MODID + ":has_structure/" + name
         );
-        json.addProperty("step", "surface_structures");
+        json.addProperty("step", step);
         json.add("spawn_overrides", new JsonObject());
         json.addProperty("terrain_adaptation", terrainAdaptation);
         json.addProperty("structure", structure);

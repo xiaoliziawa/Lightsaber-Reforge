@@ -1,0 +1,8 @@
+{
+  "feature": "lightsabers:crystal_cave",
+  "placement": [
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

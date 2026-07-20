@@ -80,6 +80,14 @@ public final class LegacyStructurePiece extends StructurePiece {
 
     private static BoundingBox createBoundingBox(EnumStructure structure, BlockPos origin) {
         return switch (structure) {
+            case CRYSTAL_CAVE -> new BoundingBox(
+                    origin.getX() - 8,
+                    origin.getY() - 512,
+                    origin.getZ() - 8,
+                    origin.getX() + 7,
+                    origin.getY() + 64,
+                    origin.getZ() + 7
+            );
             case JEDI_TEMPLE -> new BoundingBox(
                     origin.getX() - 32,
                     origin.getY() - 48,
