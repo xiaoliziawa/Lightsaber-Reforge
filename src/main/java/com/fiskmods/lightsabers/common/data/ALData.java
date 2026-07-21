@@ -262,27 +262,27 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
     {
         if (value instanceof Byte)
         {
-            return setWithoutNotify(entity, cast(Byte.valueOf((byte) ((Byte) get(entity) + (Byte) value))));
+            return setWithoutNotify(entity, cast((byte) ((Byte) get(entity) + (Byte) value)));
         }
         else if (value instanceof Short)
         {
-            return setWithoutNotify(entity, cast(Short.valueOf((short) ((Short) get(entity) + (Short) value))));
+            return setWithoutNotify(entity, cast((short) ((Short) get(entity) + (Short) value)));
         }
         else if (value instanceof Integer)
         {
-            return setWithoutNotify(entity, cast(Integer.valueOf((Integer) get(entity) + (Integer) value)));
+            return setWithoutNotify(entity, cast((Integer) get(entity) + (Integer) value));
         }
         else if (value instanceof Long)
         {
-            return setWithoutNotify(entity, cast(Long.valueOf((Long) get(entity) + (Long) value)));
+            return setWithoutNotify(entity, cast((Long) get(entity) + (Long) value));
         }
         else if (value instanceof Float)
         {
-            return setWithoutNotify(entity, cast(Float.valueOf((Float) get(entity) + (Float) value)));
+            return setWithoutNotify(entity, cast((Float) get(entity) + (Float) value));
         }
         else if (value instanceof Double)
         {
-            return setWithoutNotify(entity, cast(Double.valueOf((Double) get(entity) + (Double) value)));
+            return setWithoutNotify(entity, cast((Double) get(entity) + (Double) value));
         }
         else if (value instanceof String)
         {
@@ -310,28 +310,28 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
     {
         if (min instanceof Byte)
         {
-            return setWithoutNotify(entity, cast(Byte.valueOf((byte) Mth.clamp((Byte) get(entity), (Byte) min, (Byte) max))));
+            return setWithoutNotify(entity, cast((byte) Mth.clamp((Byte) get(entity), (Byte) min, (Byte) max)));
         }
         else if (min instanceof Short)
         {
-            return setWithoutNotify(entity, cast(Short.valueOf((short) Mth.clamp((Short) get(entity), (Short) min, (Short) max))));
+            return setWithoutNotify(entity, cast((short) Mth.clamp((Short) get(entity), (Short) min, (Short) max)));
         }
         else if (min instanceof Integer)
         {
-            return setWithoutNotify(entity, cast(Integer.valueOf(Mth.clamp((Integer) get(entity), (Integer) min, (Integer) max))));
+            return setWithoutNotify(entity, cast(Mth.clamp((Integer) get(entity), (Integer) min, (Integer) max)));
         }
         else if (min instanceof Long)
         {
             long l = (Long) get(entity);
-            return setWithoutNotify(entity, cast(Long.valueOf(l < (Long) min ? (Long) min : l > (Long) max ? (Long) max : l)));
+            return setWithoutNotify(entity, cast(l < (Long) min ? (Long) min : l > (Long) max ? (Long) max : l));
         }
         else if (min instanceof Float)
         {
-            return setWithoutNotify(entity, cast(Float.valueOf(Mth.clamp((Float) get(entity), (Float) min, (Float) max))));
+            return setWithoutNotify(entity, cast(Mth.clamp((Float) get(entity), (Float) min, (Float) max)));
         }
         else if (min instanceof Double)
         {
-            return setWithoutNotify(entity, cast(Double.valueOf(Mth.clamp((Double) get(entity), (Double) min, (Double) max))));
+            return setWithoutNotify(entity, cast(Mth.clamp((Double) get(entity), (Double) min, (Double) max)));
         }
 
         throw new RuntimeException("Cannot clamp a non-numerical data type!");
