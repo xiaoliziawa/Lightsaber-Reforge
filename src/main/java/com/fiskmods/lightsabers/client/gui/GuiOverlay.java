@@ -14,6 +14,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.gui.overlay.NamedGuiOverlay;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
@@ -34,8 +35,12 @@ public final class GuiOverlay {
     private static final int FORCE_BAR_WIDTH = 182;
     private static final int VANILLA_HUD_OFFSET = 9;
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    private boolean hudOffsetActive;
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onRenderOverlayPre(RenderGuiOverlayEvent.Pre event) {
+        popHudOffset(event.getGuiGraphics());
+
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null
                 || ALHelper.getForcePowerMax(player) <= 0
@@ -44,17 +49,24 @@ public final class GuiOverlay {
         }
         event.getGuiGraphics().pose().pushPose();
         event.getGuiGraphics().pose().translate(0, -VANILLA_HUD_OFFSET, 0);
+        hudOffsetActive = true;
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void restoreOverlayPose(RenderGuiOverlayEvent.Post event) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null
-                || ALHelper.getForcePowerMax(player) <= 0
-                || !shouldOffsetVanillaHud(event.getOverlay())) {
-            return;
+        popHudOffset(event.getGuiGraphics());
+    }
+
+    @SubscribeEvent
+    public void onRenderGuiPost(RenderGuiEvent.Post event) {
+        popHudOffset(event.getGuiGraphics());
+    }
+
+    private void popHudOffset(GuiGraphics graphics) {
+        if (hudOffsetActive) {
+            graphics.pose().popPose();
+            hudOffsetActive = false;
         }
-        event.getGuiGraphics().pose().popPose();
     }
 
     private static boolean shouldOffsetVanillaHud(NamedGuiOverlay overlay) {

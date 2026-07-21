@@ -134,6 +134,9 @@ dependencies {
     implementation fg.deobf("curse.maven:geckolib-388172:8285794")
     implementation fg.deobf("curse.maven:torohealth-unofficial-931345:4831219")
 
+    implementation fg.deobf("curse.maven:puzzles-lib-495476:6918565")
+    implementation fg.deobf("curse.maven:overflowing-bars-852662:5763974")
+    implementation fg.deobf("curse.maven:appleskin-248787:4770828")
 }
 
 tasks.named('processResources', ProcessResources).configure {
