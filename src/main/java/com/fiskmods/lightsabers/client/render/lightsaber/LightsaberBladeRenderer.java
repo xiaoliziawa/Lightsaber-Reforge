@@ -270,7 +270,8 @@ public final class LightsaberBladeRenderer {
         float red = darkGlow ? 0.0F : whiteBlade ? WHITE_GLOW_BRIGHTNESS : rgb[0];
         float green = darkGlow ? 0.0F : whiteBlade ? WHITE_GLOW_BRIGHTNESS : rgb[1];
         float blue = darkGlow ? 0.0F : whiteBlade ? WHITE_GLOW_BRIGHTNESS : rgb[2];
-        VertexConsumer glow = buffer.getBuffer(
+        VertexConsumer glow = DeferredGlowRenderer.getBuffer(
+                buffer,
                 darkGlow
                         ? LightsaberRenderTypes.BLADE_DARK_GLOW
                         : LightsaberRenderTypes.BLADE_GLOW

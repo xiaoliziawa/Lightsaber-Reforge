@@ -54,10 +54,17 @@ public abstract class MessageSyncBase {
     }
 
     protected void apply(Player player) {
+        ALPlayerData playerCapability = ALPlayerData.getDataOrNull(player);
+        ALEntityData entityCapability = ALEntityData.getDataOrNull(player);
+        if (playerCapability == null || entityCapability == null) {
+            return;
+        }
+
+        playerCapability.data.clear();
         for (Map.Entry<ALData<?>, Object> entry : playerData.entrySet()) {
             setWithoutNotify(entry.getKey(), player, entry.getValue());
         }
-        ALEntityData.getData(player).activeEffects = new ArrayList<>(activeEffects);
+        entityCapability.activeEffects = new ArrayList<>(activeEffects);
     }
 
     @SuppressWarnings("unchecked")

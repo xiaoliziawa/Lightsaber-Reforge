@@ -11,32 +11,42 @@ import java.util.function.Predicate;
 
 public class ALDataInterp<T> extends ALData<T>
 {
+    public static final ALDataInterp<Float> FORCE_POWER = new ALDataInterp<>(0.0F);
+    public static final ALDataInterp<Float> FORCE_POWER_DIFF = new ALDataInterp<Float>(0.0F)
+            .setExempt(SAVE_NBT);
+    public static final ALDataInterp<Float> FORCE_PUSHING_TIMER = new ALDataInterp<>(0.0F);
+    public static final ALDataInterp<Float> DRAIN_LIFE_TIMER = new ALDataInterp<>(0.0F);
+    public static final ALDataInterp<Float> RIGHT_ARM_TIMER = new ALDataInterp<>(0.0F);
+    public static final ALDataInterp<Float> LEFT_ARM_TIMER = new ALDataInterp<>(0.0F);
+
     protected final ALData<T> prevData;
 
     protected ALDataInterp(T defaultValue)
     {
         super(defaultValue);
-        prevData = new ALData(defaultValue).setExempt(SAVE_NBT | SYNC_BYTES);
+        prevData = new ALData<T>(defaultValue).setExempt(SAVE_NBT | SYNC_BYTES);
     }
 
     protected ALDataInterp(T defaultValue, Predicate<Entity> canSet)
     {
         super(defaultValue, canSet);
-        prevData = new ALData(defaultValue, canSet).setExempt(SAVE_NBT | SYNC_BYTES);
+        prevData = new ALData<T>(defaultValue, canSet).setExempt(SAVE_NBT | SYNC_BYTES);
     }
 
     @Override
-    protected ALDataInterp setExempt(int exempt)
+    protected ALDataInterp<T> setExempt(int exempt)
     {
         prevData.setExempt(exempt);
-        return (ALDataInterp) super.setExempt(exempt);
+        super.setExempt(exempt);
+        return this;
     }
 
     @Override
-    protected ALDataInterp revokePerms(LogicalSide side)
+    protected ALDataInterp<T> revokePerms(LogicalSide side)
     {
         prevData.revokePerms(side);
-        return (ALDataInterp) super.revokePerms(side);
+        super.revokePerms(side);
+        return this;
     }
 
     @Override
@@ -68,11 +78,11 @@ public class ALDataInterp<T> extends ALData<T>
         }
         else if (ofType(Float.class))
         {
-            return (T) Float.valueOf(FiskServerUtils.interpolate((Float) getPrev(entity), (Float) get(entity), progress));
+            return typeClass.getType().cast(FiskServerUtils.interpolate((Float) getPrev(entity), (Float) get(entity), progress));
         }
         else if (ofType(Double.class))
         {
-            return (T) Double.valueOf(FiskServerUtils.interpolate((Double) getPrev(entity), (Double) get(entity), progress));
+            return typeClass.getType().cast(FiskServerUtils.interpolate((Double) getPrev(entity), (Double) get(entity), progress));
         }
         else
         {

@@ -1,6 +1,6 @@
 package com.fiskmods.lightsabers.common.force.effect;
 
-import com.fiskmods.lightsabers.common.data.ALData;
+import com.fiskmods.lightsabers.common.data.ALDataInterp;
 import com.fiskmods.lightsabers.common.data.effect.Effect;
 import com.fiskmods.lightsabers.common.data.effect.StatusEffect;
 
@@ -20,7 +20,7 @@ public class PowerEffectStatus extends PowerEffectActive
     @Override
     public boolean execute(Player player, LogicalSide side)
     {
-        float force = ALData.FORCE_POWER.get(player);
+        float force = ALDataInterp.FORCE_POWER.get(player);
 
         if (effect.getPower(amplifier) != null)
         {

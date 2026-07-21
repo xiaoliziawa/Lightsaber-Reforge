@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.LogicalSide;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -31,17 +32,17 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
     public static final FiskRegistryNamespaced<ALData<?>> REGISTRY =
             new FiskRegistryNamespaced<>(Lightsabers.MODID, null);
 
-    public static void register(String key, ALData value)
+    public static void register(String key, ALData<?> value)
     {
         REGISTRY.putObject(key, value);
     }
 
-    public static ALData getDataFromName(String key)
+    public static ALData<?> getDataFromName(String key)
     {
         return REGISTRY.getObject(key);
     }
 
-    public static String getNameForData(ALData value)
+    public static String getNameForData(ALData<?> value)
     {
         return REGISTRY.getNameForObject(value);
     }
@@ -51,25 +52,24 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
     protected static final int RESET_ON_DEATH = 0x4;
     protected static final int RESET_WO_PRED = 0x8;
 
-    public static final ALData<Float> FORCE_XP = new ALData<Float>(0.0F).setExempt(RESET_ON_DEATH);
-    public static final ALData<Byte> BASE_POWER = new ALData<Byte>((byte) -1).setExempt(RESET_ON_DEATH);
+    public static final ALData<Float> FORCE_XP = new ALData<Float>(0.0F)
+            .setExempt(RESET_ON_DEATH)
+            .revokePerms(LogicalSide.CLIENT);
+    public static final ALData<Byte> BASE_POWER = new ALData<Byte>((byte) -1)
+            .setExempt(RESET_ON_DEATH)
+            .revokePerms(LogicalSide.CLIENT);
     public static final ALData<Integer> PREV_XP = new ALData<Integer>(0).setExempt(RESET_ON_DEATH);
     public static final ALData<Byte> SELECTED_POWER = new ALData<Byte>((byte) 0).setExempt(RESET_ON_DEATH);
     public static final ALData<Boolean> USING_POWER = new ALData<Boolean>(false);
     public static final ALData<Boolean> PREV_USING_POWER = new ALData<Boolean>(false);
     public static final ALData<Integer> TICKS_USING_POWER = new ALData<Integer>(0);
     public static final ALData<Integer> USE_POWER_COOLDOWN = new ALData<Integer>(0);
-    public static final ALData<PowerData.Container> POWERS = new ALDataPowers().setExempt(RESET_ON_DEATH);
+    public static final ALData<PowerData.Container> POWERS = new ALDataPowers()
+            .setExempt(RESET_ON_DEATH)
+            .revokePerms(LogicalSide.CLIENT);
     public static final ALData<List<Power>> SELECTED_POWERS = new ALData<List<Power>>(Power.factory()).setExempt(RESET_ON_DEATH);
     public static final ALData<LightsaberData> LIGHTSABER = new ALData<LightsaberData>().setExempt(SAVE_NBT);
     
-    public static final ALDataInterp<Float> FORCE_POWER = new ALDataInterp<Float>(0.0F);
-    public static final ALDataInterp<Float> FORCE_POWER_DIFF = new ALDataInterp<Float>(0.0F).setExempt(SAVE_NBT);
-    public static final ALDataInterp<Float> FORCE_PUSHING_TIMER = new ALDataInterp<Float>(0.0F);
-    public static final ALDataInterp<Float> DRAIN_LIFE_TIMER = new ALDataInterp<Float>(0.0F);
-    public static final ALDataInterp<Float> RIGHT_ARM_TIMER = new ALDataInterp<Float>(0.0F);
-    public static final ALDataInterp<Float> LEFT_ARM_TIMER = new ALDataInterp<Float>(0.0F);
-
     final DataFactory<T> defaultValue;
     public final Predicate<Entity> canSet;
 
@@ -116,19 +116,19 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
         this((T) null);
     }
 
-    protected ALData setExempt(int exempt)
+    protected ALData<T> setExempt(int exempt)
     {
         flags &= ~exempt;
         return this;
     }
 
-    protected ALData revokePerms(LogicalSide side)
+    protected ALData<T> revokePerms(LogicalSide side)
     {
         permissions &= ~(1 << side.ordinal());
         return this;
     }
 
-    protected ALData revokePerms()
+    protected ALData<T> revokePerms()
     {
         revokePerms(LogicalSide.CLIENT);
         revokePerms(LogicalSide.SERVER);
@@ -170,7 +170,7 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
         return input -> Objects.equals(value, get(input));
     }
 
-    public boolean ofType(Class clazz)
+    public boolean ofType(Class<?> clazz)
     {
         return typeClass.getType() == clazz;
     }
@@ -262,31 +262,31 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
     {
         if (value instanceof Byte)
         {
-            return setWithoutNotify(entity, (T) Byte.valueOf((byte) ((Byte) get(entity) + (Byte) value)));
+            return setWithoutNotify(entity, cast(Byte.valueOf((byte) ((Byte) get(entity) + (Byte) value))));
         }
         else if (value instanceof Short)
         {
-            return setWithoutNotify(entity, (T) Short.valueOf((short) ((Short) get(entity) + (Short) value)));
+            return setWithoutNotify(entity, cast(Short.valueOf((short) ((Short) get(entity) + (Short) value))));
         }
         else if (value instanceof Integer)
         {
-            return setWithoutNotify(entity, (T) Integer.valueOf((Integer) get(entity) + (Integer) value));
+            return setWithoutNotify(entity, cast(Integer.valueOf((Integer) get(entity) + (Integer) value)));
         }
         else if (value instanceof Long)
         {
-            return setWithoutNotify(entity, (T) Long.valueOf((Long) get(entity) + (Long) value));
+            return setWithoutNotify(entity, cast(Long.valueOf((Long) get(entity) + (Long) value)));
         }
         else if (value instanceof Float)
         {
-            return setWithoutNotify(entity, (T) Float.valueOf((Float) get(entity) + (Float) value));
+            return setWithoutNotify(entity, cast(Float.valueOf((Float) get(entity) + (Float) value)));
         }
         else if (value instanceof Double)
         {
-            return setWithoutNotify(entity, (T) Double.valueOf((Double) get(entity) + (Double) value));
+            return setWithoutNotify(entity, cast(Double.valueOf((Double) get(entity) + (Double) value)));
         }
         else if (value instanceof String)
         {
-            return setWithoutNotify(entity, (T) String.valueOf((String) get(entity) + (String) value));
+            return setWithoutNotify(entity, cast((String) get(entity) + value));
         }
 
         throw new RuntimeException("Cannot increment a non-numerical data type unless a String!");
@@ -310,31 +310,36 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
     {
         if (min instanceof Byte)
         {
-            return setWithoutNotify(entity, (T) Byte.valueOf((byte) Mth.clamp((Byte) get(entity), (Byte) min, (Byte) max)));
+            return setWithoutNotify(entity, cast(Byte.valueOf((byte) Mth.clamp((Byte) get(entity), (Byte) min, (Byte) max))));
         }
         else if (min instanceof Short)
         {
-            return setWithoutNotify(entity, (T) Short.valueOf((short) Mth.clamp((Short) get(entity), (Short) min, (Short) max)));
+            return setWithoutNotify(entity, cast(Short.valueOf((short) Mth.clamp((Short) get(entity), (Short) min, (Short) max))));
         }
         else if (min instanceof Integer)
         {
-            return setWithoutNotify(entity, (T) Integer.valueOf(Mth.clamp((Integer) get(entity), (Integer) min, (Integer) max)));
+            return setWithoutNotify(entity, cast(Integer.valueOf(Mth.clamp((Integer) get(entity), (Integer) min, (Integer) max))));
         }
         else if (min instanceof Long)
         {
             long l = (Long) get(entity);
-            return setWithoutNotify(entity, (T) Long.valueOf(l < (Long) min ? (Long) min : l > (Long) max ? (Long) max : l));
+            return setWithoutNotify(entity, cast(Long.valueOf(l < (Long) min ? (Long) min : l > (Long) max ? (Long) max : l)));
         }
         else if (min instanceof Float)
         {
-            return setWithoutNotify(entity, (T) Float.valueOf(Mth.clamp((Float) get(entity), (Float) min, (Float) max)));
+            return setWithoutNotify(entity, cast(Float.valueOf(Mth.clamp((Float) get(entity), (Float) min, (Float) max))));
         }
         else if (min instanceof Double)
         {
-            return setWithoutNotify(entity, (T) Double.valueOf(Mth.clamp((Double) get(entity), (Double) min, (Double) max)));
+            return setWithoutNotify(entity, cast(Double.valueOf(Mth.clamp((Double) get(entity), (Double) min, (Double) max))));
         }
 
         throw new RuntimeException("Cannot clamp a non-numerical data type!");
+    }
+
+    private T cast(Object value)
+    {
+        return typeClass.getType().cast(value);
     }
 
     public T get(Entity entity)
@@ -438,7 +443,10 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
                     }
                 }
 
-                data.put(type, obj);
+                if (obj != null)
+                {
+                    data.put(type, obj);
+                }
             }
         }
 
@@ -517,10 +525,11 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected void init(Field field, String name) throws ClassNotFoundException
     {
         id = ALFormatHelper.getUnconventionalName(name);
-        typeClass = ClassType.construct(field.getGenericType().getTypeName()).getParam();
+        typeClass = (ClassType<T>) ClassType.construct(field.getGenericType().getTypeName()).getParam();
 
         register(name.toLowerCase(Locale.ROOT), this);
     }
@@ -541,13 +550,24 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
 
     public static void init()
     {
-        for (Field field : ALData.class.getFields())
+        initFields(ALData.class);
+        initFields(ALDataInterp.class);
+    }
+
+    private static void initFields(Class<?> owner)
+    {
+        for (Field field : owner.getDeclaredFields())
         {
-            if (ALData.class.isAssignableFrom(field.getType()))
+            if (Modifier.isStatic(field.getModifiers())
+                    && ALData.class.isAssignableFrom(field.getType()))
             {
                 try
                 {
-                    ((ALData) field.get(null)).init(field, field.getName());
+                    Object value = field.get(null);
+                    if (value instanceof ALData<?> data)
+                    {
+                        data.init(field, field.getName());
+                    }
                 }
                 catch (Exception e)
                 {
@@ -560,27 +580,27 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
     public static class ClassType<C>
     {
         private final Class<C> type;
-        private ClassType param;
+        private ClassType<?> param;
 
         public ClassType(Class<C> c)
         {
             type = c;
         }
 
-        private ClassType<C> setParam(ClassType type)
+        private ClassType<C> setParam(ClassType<?> type)
         {
             param = type;
             return this;
         }
 
-        public ClassType getParam()
+        public ClassType<?> getParam()
         {
             return param;
         }
 
-        public ClassType getParamSafe()
+        public ClassType<?> getParamSafe()
         {
-            return param == null ? new ClassType(Object.class) : param;
+            return param == null ? new ClassType<>(Object.class) : param;
         }
 
         public Class<C> getType()
@@ -601,17 +621,17 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
             return s;
         }
 
-        private static ClassType construct(String typeName) throws ClassNotFoundException
+        private static ClassType<?> construct(String typeName) throws ClassNotFoundException
         {
             if (typeName.contains("<"))
             {
-                ClassType type = new ClassType(Class.forName(typeName.substring(0, typeName.indexOf('<'))));
-                ClassType type1 = construct(typeName.substring(typeName.indexOf('<') + 1, typeName.length() - 1));
+                ClassType<?> type = new ClassType<>(Class.forName(typeName.substring(0, typeName.indexOf('<'))));
+                ClassType<?> type1 = construct(typeName.substring(typeName.indexOf('<') + 1, typeName.length() - 1));
 
                 return type.setParam(type1);
             }
 
-            return new ClassType(Class.forName(typeName));
+            return new ClassType<>(Class.forName(typeName));
         }
     }
 

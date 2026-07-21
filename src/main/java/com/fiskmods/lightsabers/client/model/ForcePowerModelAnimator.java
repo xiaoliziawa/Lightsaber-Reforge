@@ -1,6 +1,6 @@
 package com.fiskmods.lightsabers.client.model;
 
-import com.fiskmods.lightsabers.common.data.ALData;
+import com.fiskmods.lightsabers.common.data.ALDataInterp;
 import com.fiskmods.lightsabers.common.data.effect.Effect;
 import com.fiskmods.lightsabers.common.data.effect.StatusEffect;
 import net.minecraft.client.model.HumanoidModel;
@@ -35,14 +35,14 @@ public final class ForcePowerModelAnimator {
             float netHeadYaw,
             float headPitch
     ) {
-        float drainTimer = ALData.DRAIN_LIFE_TIMER.interpolate(entity);
+        float drainTimer = ALDataInterp.DRAIN_LIFE_TIMER.interpolate(entity);
         float drain = Mth.clamp(
                 Mth.sin(drainTimer * DRAIN_RAISE_SPEED) * 4.0F,
                 0.0F,
                 1.0F
         );
-        float right = Mth.clamp(ALData.RIGHT_ARM_TIMER.interpolate(entity), 0.0F, 1.0F);
-        float left = Mth.clamp(ALData.LEFT_ARM_TIMER.interpolate(entity), 0.0F, 1.0F);
+        float right = Mth.clamp(ALDataInterp.RIGHT_ARM_TIMER.interpolate(entity), 0.0F, 1.0F);
+        float left = Mth.clamp(ALDataInterp.LEFT_ARM_TIMER.interpolate(entity), 0.0F, 1.0F);
         applyRaisedArm(model.rightArm, Math.max(drain, right), netHeadYaw, headPitch);
         applyRaisedArm(model.leftArm, left, netHeadYaw, headPitch);
     }

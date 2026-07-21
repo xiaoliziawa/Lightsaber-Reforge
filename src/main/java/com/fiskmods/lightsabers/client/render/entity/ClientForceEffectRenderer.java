@@ -2,7 +2,7 @@ package com.fiskmods.lightsabers.client.render.entity;
 
 import com.fiskmods.lightsabers.client.render.EnergyBeamRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberRenderTypes;
-import com.fiskmods.lightsabers.common.data.ALData;
+import com.fiskmods.lightsabers.common.data.ALDataInterp;
 import com.fiskmods.lightsabers.common.data.effect.Effect;
 import com.fiskmods.lightsabers.common.data.effect.StatusEffect;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -55,9 +55,9 @@ public enum ClientForceEffectRenderer {
             return;
         }
         for (Player player : level.players()) {
-            if (ALData.DRAIN_LIFE_TIMER.get(player) <= 0.0F
+            if (ALDataInterp.DRAIN_LIFE_TIMER.get(player) <= 0.0F
                     && !StatusEffect.getTargets(player, Effect.DRAIN).isEmpty()) {
-                ALData.DRAIN_LIFE_TIMER.setWithoutNotify(player, 1.0F);
+                ALDataInterp.DRAIN_LIFE_TIMER.setWithoutNotify(player, 1.0F);
             }
         }
     }
@@ -98,7 +98,7 @@ public enum ClientForceEffectRenderer {
     ) {
         for (Player caster : level.players()) {
             boolean lightning = StatusEffect.has(caster, Effect.LIGHTNING);
-            boolean draining = ALData.DRAIN_LIFE_TIMER.get(caster) > 0.0F;
+            boolean draining = ALDataInterp.DRAIN_LIFE_TIMER.get(caster) > 0.0F;
             if (!lightning && !draining) {
                 continue;
             }

@@ -3,6 +3,7 @@ package com.fiskmods.lightsabers.common.input;
 import com.fiskmods.lightsabers.ALConstants;
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.data.ALData;
+import com.fiskmods.lightsabers.common.data.ALDataInterp;
 import com.fiskmods.lightsabers.common.force.Power;
 import com.fiskmods.lightsabers.common.force.PowerManager;
 import com.fiskmods.lightsabers.common.force.PowerType;
@@ -20,7 +21,7 @@ public final class ForcePowerInput {
                 && power.powerStats.powerType == PowerType.PER_USE
                 && ALData.USE_POWER_COOLDOWN.get(player) == 0
                 && ALData.POWERS.get(player).getForceMax() > 0
-                && ALData.FORCE_POWER.get(player) >= power.getUseCost(player);
+                && ALDataInterp.FORCE_POWER.get(player) >= power.getUseCost(player);
 
         if (!valid || !power.powerEffect.execute(player, side)) {
             return false;
@@ -37,7 +38,7 @@ public final class ForcePowerInput {
                 );
             }
         } else {
-            ALData.FORCE_POWER.incr(player, -power.getUseCost(player));
+            ALDataInterp.FORCE_POWER.incr(player, -power.getUseCost(player));
             ALData.USE_POWER_COOLDOWN.set(player, ALConstants.FORCE_POWER_COOLDOWN);
         }
         return true;

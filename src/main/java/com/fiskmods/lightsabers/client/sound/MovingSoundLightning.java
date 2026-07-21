@@ -1,6 +1,6 @@
 package com.fiskmods.lightsabers.client.sound;
 
-import com.fiskmods.lightsabers.common.data.ALData;
+import com.fiskmods.lightsabers.common.data.ALDataInterp;
 import com.fiskmods.lightsabers.common.force.effect.ForceTargeting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
@@ -38,7 +38,7 @@ public class MovingSoundLightning extends AbstractTickableSoundInstance {
             return;
         }
 
-        float intensity = ALData.RIGHT_ARM_TIMER.interpolate(caster);
+        float intensity = ALDataInterp.RIGHT_ARM_TIMER.interpolate(caster);
         if (intensity <= 0) {
             stop();
             return;

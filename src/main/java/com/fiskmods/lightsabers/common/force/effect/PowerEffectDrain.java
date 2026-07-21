@@ -1,6 +1,6 @@
 package com.fiskmods.lightsabers.common.force.effect;
 
-import com.fiskmods.lightsabers.common.data.ALData;
+import com.fiskmods.lightsabers.common.data.ALDataInterp;
 import com.fiskmods.lightsabers.common.data.effect.Effect;
 import com.fiskmods.lightsabers.common.data.effect.StatusEffect;
 import com.fiskmods.lightsabers.common.force.Power;
@@ -39,7 +39,7 @@ public class PowerEffectDrain extends PowerEffect {
         if (targets.isEmpty()) {
             return false;
         }
-        ALData.DRAIN_LIFE_TIMER.setWithoutNotify(player, 1.0F);
+        ALDataInterp.DRAIN_LIFE_TIMER.setWithoutNotify(player, 1.0F);
         return true;
     }
 
@@ -69,7 +69,7 @@ public class PowerEffectDrain extends PowerEffect {
                 player.getBoundingBox().inflate(AREA_RANGE),
                 entity -> entity != player && !ALHelper.isAlly(player, entity)
         );
-        float force = ALData.FORCE_POWER.get(player) + ADDITIONAL_TARGET_COST;
+        float force = ALDataInterp.FORCE_POWER.get(player) + ADDITIONAL_TARGET_COST;
         float baseCost = super.getUseCost(player, Effect.DRAIN.getPower(amplifier));
         for (LivingEntity entity : nearbyEntities) {
             float requiredForce = baseCost
@@ -86,7 +86,7 @@ public class PowerEffectDrain extends PowerEffect {
     @Override
     public float getUseCost(Player player, Power power) {
         float cost = super.getUseCost(player, power);
-        if (amplifier >= 2 && ALData.FORCE_POWER.get(player) >= cost) {
+        if (amplifier >= 2 && ALDataInterp.FORCE_POWER.get(player) >= cost) {
             cost += (getTargets(player).size() - 1) * ADDITIONAL_TARGET_COST;
         }
         return cost;

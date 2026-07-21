@@ -53,13 +53,12 @@ public final class ALPlayerData {
     }
 
     public void load(CompoundTag tag) {
-        if (tag.getBoolean("Saved")) {
-            ALData.readFromNBT(tag, data);
-        }
+        data.clear();
+        ALData.readFromNBT(tag, data);
     }
 
     public void copy(ALPlayerData source) {
-        data = new HashMap<>(source.data);
+        load(source.save());
     }
 
     public <T> void putData(ALData<T> type, T value) {

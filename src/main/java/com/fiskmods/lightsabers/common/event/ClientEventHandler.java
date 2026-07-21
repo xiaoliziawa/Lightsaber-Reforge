@@ -7,6 +7,7 @@ import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
 import com.fiskmods.lightsabers.client.sound.ALSounds;
 import com.fiskmods.lightsabers.common.config.ModConfig;
 import com.fiskmods.lightsabers.common.data.ALData;
+import com.fiskmods.lightsabers.common.data.ALDataInterp;
 import com.fiskmods.lightsabers.common.data.ALEntityData;
 import com.fiskmods.lightsabers.common.data.ALPlayerData;
 import com.fiskmods.lightsabers.common.data.effect.Effect;
@@ -112,7 +113,7 @@ public final class ClientEventHandler {
                 && power.powerStats.powerType == PowerType.PER_SECOND
                 && ALData.USE_POWER_COOLDOWN.get(player) == 0
                 && ALHelper.getForcePowerMax(player) > 0
-                && ALData.FORCE_POWER.get(player) >= power.getUseCost(player);
+                && ALDataInterp.FORCE_POWER.get(player) >= power.getUseCost(player);
         if (!using && ALData.USING_POWER.get(player)) {
             ALData.USE_POWER_COOLDOWN.set(player, ALConstants.FORCE_POWER_COOLDOWN);
         }

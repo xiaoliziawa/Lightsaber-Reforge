@@ -1,7 +1,7 @@
 package com.fiskmods.lightsabers.common.force.effect;
 
 import com.fiskmods.lightsabers.common.damage.ALDamageSources;
-import com.fiskmods.lightsabers.common.data.ALData;
+import com.fiskmods.lightsabers.common.data.ALDataInterp;
 import com.fiskmods.lightsabers.common.data.ALEntityData;
 import com.fiskmods.lightsabers.common.force.PowerDesc;
 import com.fiskmods.lightsabers.common.force.PowerDesc.Target;
@@ -40,7 +40,7 @@ public class PowerEffectPush extends PowerEffect {
         );
         target.setDeltaMovement(target.getDeltaMovement().add(knockbackPoint.subtract(origin)));
         target.hurtMarked = true;
-        ALData.FORCE_PUSHING_TIMER.setWithoutNotify(player, 1.0F);
+        ALDataInterp.FORCE_PUSHING_TIMER.setWithoutNotify(player, 1.0F);
         return true;
     }
 

@@ -9,6 +9,7 @@ import com.fiskmods.lightsabers.common.container.InventoryCrystalPouch;
 import com.fiskmods.lightsabers.common.damage.ALDamageSources;
 import com.fiskmods.lightsabers.common.damage.ALDamageTypes;
 import com.fiskmods.lightsabers.common.data.ALData;
+import com.fiskmods.lightsabers.common.data.ALDataInterp;
 import com.fiskmods.lightsabers.common.data.ALEntityData;
 import com.fiskmods.lightsabers.common.data.ALPlayerData;
 import com.fiskmods.lightsabers.common.data.effect.Effect;
@@ -98,6 +99,13 @@ public final class CommonEventHandler {
         }
     }
 
+    @SubscribeEvent
+    public void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            syncPlayerData(player);
+        }
+    }
+
     private static void syncPlayerData(ServerPlayer player) {
         ALNetworkManager.sendToPlayer(player, new MessagePlayerJoin(player));
     }
@@ -142,12 +150,12 @@ public final class CommonEventHandler {
         ensureBasePowersUnlocked(player);
 
         int forceMax = ALData.POWERS.get(player).getForceMax();
-        ALData.FORCE_POWER.clampWithoutNotify(player, 0.0F, (float) forceMax);
-        ALData.FORCE_POWER_DIFF.clampWithoutNotify(player, 0.0F, (float) forceMax);
+        ALDataInterp.FORCE_POWER.clampWithoutNotify(player, 0.0F, (float) forceMax);
+        ALDataInterp.FORCE_POWER_DIFF.clampWithoutNotify(player, 0.0F, (float) forceMax);
         ALData.PREV_XP.setWithoutNotify(player, player.totalExperience);
         ALData.PREV_USING_POWER.setWithoutNotify(player, ALData.USING_POWER.get(player));
-        ALData.RIGHT_ARM_TIMER.clampWithoutNotify(player, 0.0F, 1.0F);
-        ALData.LEFT_ARM_TIMER.clampWithoutNotify(player, 0.0F, 1.0F);
+        ALDataInterp.RIGHT_ARM_TIMER.clampWithoutNotify(player, 0.0F, 1.0F);
+        ALDataInterp.LEFT_ARM_TIMER.clampWithoutNotify(player, 0.0F, 1.0F);
     }
 
     private static void handleSpinningLightsaber(Player player) {
@@ -205,7 +213,7 @@ public final class CommonEventHandler {
             return;
         }
 
-        float force = ALData.FORCE_POWER.get(player);
+        float force = ALDataInterp.FORCE_POWER.get(player);
         if (force <= 0 || !PowerManager.hasPowerUnlocked(player, Power.REBOUND)) {
             return;
         }
@@ -221,7 +229,7 @@ public final class CommonEventHandler {
 
         event.setDistance(event.getDistance() - amount);
         if (!player.level().isClientSide) {
-            ALData.FORCE_POWER.incr(player, -cost * amount);
+            ALDataInterp.FORCE_POWER.incr(player, -cost * amount);
         }
         if (Lightsabers.proxy.isClientPlayer(player)) {
             float soundAmount = amount - 3.0F;
@@ -275,7 +283,10 @@ public final class CommonEventHandler {
     @SubscribeEvent
     public void onLivingDeath(LivingDeathEvent event) {
         LivingEntity entity = event.getEntity();
-        ALEntityData.getData(entity).activeEffects.clear();
+        ALEntityData entityData = ALEntityData.getDataOrNull(entity);
+        if (entityData != null) {
+            entityData.activeEffects.clear();
+        }
         if (!(entity instanceof Player player)) {
             return;
         }
@@ -370,49 +381,49 @@ public final class CommonEventHandler {
         if (power != null
                 && ALData.USING_POWER.get(player)
                 && power.powerStats.powerType == PowerType.PER_SECOND
-                && ALData.FORCE_POWER.get(player) >= power.getUseCost(player)
+                && ALDataInterp.FORCE_POWER.get(player) >= power.getUseCost(player)
                 && power.powerEffect.execute(player, side)) {
-            ALData.FORCE_POWER.incrWithoutNotify(player, -power.getUseCost(player) / 20.0F);
-        } else if (ALData.FORCE_POWER_DIFF.get(player) <= ALData.FORCE_POWER.get(player)) {
-            ALData.FORCE_POWER.incrWithoutNotify(
+            ALDataInterp.FORCE_POWER.incrWithoutNotify(player, -power.getUseCost(player) / 20.0F);
+        } else if (ALDataInterp.FORCE_POWER_DIFF.get(player) <= ALDataInterp.FORCE_POWER.get(player)) {
+            ALDataInterp.FORCE_POWER.incrWithoutNotify(
                     player,
                     ALData.POWERS.get(player).getRegen() / 20.0F
             );
         }
-        ALData.FORCE_POWER.clampWithoutNotify(player, 0.0F, (float) forceMax);
+        ALDataInterp.FORCE_POWER.clampWithoutNotify(player, 0.0F, (float) forceMax);
     }
 
     private static void updateInterpolationTimers(Player player) {
-        if (ALData.FORCE_POWER_DIFF.get(player) > ALData.FORCE_POWER.get(player)) {
-            ALData.FORCE_POWER_DIFF.incrWithoutNotify(player, -7.5F);
-            ALData.FORCE_POWER_DIFF.clampWithoutNotify(
+        if (ALDataInterp.FORCE_POWER_DIFF.get(player) > ALDataInterp.FORCE_POWER.get(player)) {
+            ALDataInterp.FORCE_POWER_DIFF.incrWithoutNotify(player, -7.5F);
+            ALDataInterp.FORCE_POWER_DIFF.clampWithoutNotify(
                     player,
                     0.0F,
-                    ALData.FORCE_POWER_DIFF.get(player)
+                    ALDataInterp.FORCE_POWER_DIFF.get(player)
             );
         } else {
-            ALData.FORCE_POWER_DIFF.setWithoutNotify(
+            ALDataInterp.FORCE_POWER_DIFF.setWithoutNotify(
                     player,
-                    ALData.FORCE_POWER.get(player)
+                    ALDataInterp.FORCE_POWER.get(player)
             );
         }
 
-        if (ALData.FORCE_PUSHING_TIMER.get(player) > 0) {
-            ALData.FORCE_PUSHING_TIMER.incrWithoutNotify(player, -0.075F);
-            ALData.FORCE_PUSHING_TIMER.clampWithoutNotify(player, 0.0F, 1.0F);
+        if (ALDataInterp.FORCE_PUSHING_TIMER.get(player) > 0) {
+            ALDataInterp.FORCE_PUSHING_TIMER.incrWithoutNotify(player, -0.075F);
+            ALDataInterp.FORCE_PUSHING_TIMER.clampWithoutNotify(player, 0.0F, 1.0F);
         } else {
-            ALData.FORCE_PUSHING_TIMER.setWithoutNotify(player, 0.0F);
+            ALDataInterp.FORCE_PUSHING_TIMER.setWithoutNotify(player, 0.0F);
         }
     }
 
     private static void updateDrain(Player player) {
-        if (ALData.DRAIN_LIFE_TIMER.get(player) <= 0) {
-            ALData.DRAIN_LIFE_TIMER.setWithoutNotify(player, 0.0F);
+        if (ALDataInterp.DRAIN_LIFE_TIMER.get(player) <= 0) {
+            ALDataInterp.DRAIN_LIFE_TIMER.setWithoutNotify(player, 0.0F);
             return;
         }
 
-        ALData.DRAIN_LIFE_TIMER.incrWithoutNotify(player, -1.0F / PowerEffectDrain.DURATION);
-        ALData.DRAIN_LIFE_TIMER.clampWithoutNotify(player, 0.0F, 1.0F);
+        ALDataInterp.DRAIN_LIFE_TIMER.incrWithoutNotify(player, -1.0F / PowerEffectDrain.DURATION);
+        ALDataInterp.DRAIN_LIFE_TIMER.clampWithoutNotify(player, 0.0F, 1.0F);
         for (LivingEntity target : StatusEffect.getTargets(player, Effect.DRAIN)) {
             StatusEffect effect = StatusEffect.get(target, Effect.DRAIN);
             if (effect == null) {
@@ -459,11 +470,11 @@ public final class CommonEventHandler {
         boolean lightning = StatusEffect.get(player, Effect.LIGHTNING) != null;
         boolean chokeRight = !StatusEffect.getTargets(player, Effect.CHOKE).isEmpty();
         boolean chokeLeft = !StatusEffect.getTargets(player, Effect.CHOKE, 2).isEmpty();
-        ALData.RIGHT_ARM_TIMER.incrWithoutNotify(
+        ALDataInterp.RIGHT_ARM_TIMER.incrWithoutNotify(
                 player,
                 lightning || chokeRight ? 0.33F : -0.33F
         );
-        ALData.LEFT_ARM_TIMER.incrWithoutNotify(
+        ALDataInterp.LEFT_ARM_TIMER.incrWithoutNotify(
                 player,
                 lightning || chokeLeft ? 0.33F : -0.33F
         );

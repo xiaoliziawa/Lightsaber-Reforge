@@ -2,6 +2,7 @@ package com.fiskmods.lightsabers.client.gui;
 
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.data.ALData;
+import com.fiskmods.lightsabers.common.data.ALDataInterp;
 import com.fiskmods.lightsabers.common.data.effect.StatusEffect;
 import com.fiskmods.lightsabers.common.force.Power;
 import com.fiskmods.lightsabers.common.force.effect.PowerEffectActive;
@@ -112,12 +113,12 @@ public final class GuiOverlay {
         int left = width / 2 - 91;
         int top = height - 29;
         int filled = Mth.clamp(
-                (int) (ALData.FORCE_POWER.interpolate(player) / cap * FORCE_BAR_WIDTH),
+                (int) (ALDataInterp.FORCE_POWER.interpolate(player) / cap * FORCE_BAR_WIDTH),
                 0,
                 FORCE_BAR_WIDTH
         );
         int delayed = Mth.clamp(
-                (int) (ALData.FORCE_POWER_DIFF.interpolate(player) / cap * FORCE_BAR_WIDTH),
+                (int) (ALDataInterp.FORCE_POWER_DIFF.interpolate(player) / cap * FORCE_BAR_WIDTH),
                 0,
                 FORCE_BAR_WIDTH
         );
@@ -132,7 +133,7 @@ public final class GuiOverlay {
         }
 
         Font font = Minecraft.getInstance().font;
-        String value = Mth.floor(ALData.FORCE_POWER.get(player)) + "/" + cap;
+        String value = Mth.floor(ALDataInterp.FORCE_POWER.get(player)) + "/" + cap;
         graphics.drawString(
                 font,
                 value,
