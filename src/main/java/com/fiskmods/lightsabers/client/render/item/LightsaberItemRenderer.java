@@ -35,25 +35,39 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final float SPINNING_SWITCH_EXTENT_CM = 1.740F;
     private static final float SPINNING_GRIP_EXTENT_CM = 13.947F;
     private static final float SPINNING_SMALL_PART_SCALE = 2.5F;
-    private static final float FIRST_PERSON_SCALE = 0.30F;
-    private static final float FIRST_PERSON_HORIZONTAL_OFFSET = 0.22F;
-    private static final float FIRST_PERSON_VERTICAL_OFFSET = -0.30F;
-    private static final float FIRST_PERSON_DEPTH_OFFSET = -0.35F;
-    private static final float FIRST_PERSON_TILT = -12.0F;
-    private static final float FIRST_PERSON_YAW = 65.0F;
-    // 第一人称把光剑绕剑轴拧了 rotX(180°)+rotY(65°)，方向敏感的剑刃（如武士刀）
-    // 需要绕剑轴补转，才能让刀刃指向劈砍方向而不是镜头。
+    private static final float FIRST_PERSON_SCALE = 0.12F;
+    private static final float FIRST_PERSON_OFFSET_X = 0.077F;
+    private static final float FIRST_PERSON_OFFSET_Y = -0.033F;
+    private static final float FIRST_PERSON_OFFSET_Z = 0.001F;
+    private static final float FIRST_PERSON_ROT_Y1 = 95.0F;
+    private static final float FIRST_PERSON_ROT_Z1 = -25.0F;
+    private static final float FIRST_PERSON_ROT_Y2 = -100.0F;
+    private static final float FIRST_PERSON_ROT_X = -150.0F;
+    private static final float FIRST_PERSON_ROT_Z2 = 5.0F;
     private static final float FIRST_PERSON_EDGE_ROLL_BASE = -90.0F;
-    private static final float DOUBLE_FIRST_PERSON_VERTICAL_OFFSET = -0.32F;
-    private static final float DOUBLE_FIRST_PERSON_DEPTH_OFFSET = -0.45F;
-    private static final float DOUBLE_FIRST_PERSON_ROLL = -90.0F;
-    private static final float DOUBLE_WALK_ROLL = -90.0F;
-    private static final float DOUBLE_WALK_PUSH_X = 0.10F;
-    private static final float DOUBLE_WALK_PUSH_Z = -0.10F;
-    private static final float DOUBLE_SWING_PUSH_X = 0.05F;
-    private static final float DOUBLE_SWING_PUSH_Y = 0.10F;
-    private static final float DOUBLE_SWING_TILT = -30.0F;
+    private static final float FIRST_PERSON_EDGE_ROLL_YAW = 3.6F;
+    private static final float DOUBLE_FIRST_PERSON_OFFSET_X = -0.032F;
+    private static final float DOUBLE_FIRST_PERSON_OFFSET_Y = 0.087F;
+    private static final float DOUBLE_FIRST_PERSON_OFFSET_Z = -0.145F;
+    private static final float DOUBLE_FIRST_PERSON_ROT_Y1 = 95.0F;
+    private static final float DOUBLE_FIRST_PERSON_ROT_Z1 = -25.0F;
+    private static final float DOUBLE_FIRST_PERSON_ROT_Y2 = -100.0F;
+    private static final float DOUBLE_FIRST_PERSON_ROT_X = -150.0F;
+    private static final float DOUBLE_FIRST_PERSON_ROT_Z2 = -85.0F;
+    private static final float DOUBLE_FIRST_PERSON_EDGE_ROLL_YAW = 5.4F;
+    private static final float DOUBLE_WALK_ROLL = 90.0F;
+    private static final float DOUBLE_WALK_PUSH_X = 0.8F;
+    private static final float DOUBLE_WALK_PUSH_Z = 0.4F;
+    private static final float DOUBLE_SWING_PUSH_X = 0.2F;
+    private static final float DOUBLE_SWING_PUSH_Y = 0.5F;
+    private static final float DOUBLE_SWING_TILT = 30.0F;
     private static final float DOUBLE_SWING_SPIN = 360.0F;
+    private static final float SPINNING_FP_SCALE = 0.30F;
+    private static final float SPINNING_FP_OFFSET_X = 0.22F;
+    private static final float SPINNING_FP_OFFSET_Y = -0.30F;
+    private static final float SPINNING_FP_OFFSET_Z = -0.35F;
+    private static final float SPINNING_FP_TILT = -12.0F;
+    private static final float SPINNING_FP_YAW = 65.0F;
     private static final float THIRD_PERSON_SCALE = 0.24F;
     private static final float THIRD_PERSON_VERTICAL_OFFSET = 0.25F;
     private static final float THIRD_PERSON_DEPTH_OFFSET = 0.15F;
@@ -63,7 +77,6 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final float DOUBLE_THIRD_PERSON_ROT_X = 0F;
     private static final float DOUBLE_THIRD_PERSON_ROT_Y = 90F;
     private static final float DOUBLE_THIRD_PERSON_ROT_Z = 90.0F;
-    // 非 Epic Fight 状态下，开启双刃光剑的最终第三人称握持位置。
     private static final float DOUBLE_THIRD_PERSON_OFFSET_X = 0.40F;
     private static final float DOUBLE_THIRD_PERSON_OFFSET_Y = -0.35F;
     private static final float DOUBLE_THIRD_PERSON_OFFSET_Z = -0.05F;
@@ -74,11 +87,9 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final float SPINNING_GUI_FACE_ROTATION = 90.0F;
     private static final float SPINNING_GUI_TURN_ROTATION = 180.0F;
     private static final float SPINNING_THIRD_PERSON_TURN_ROTATION = 180.0F;
-    // 右键旋转姿势的最终位置：水平、垂直、前后。
     private static final float SPINNING_DEFENSE_HORIZONTAL_OFFSET = 0.05F;
     private static final float SPINNING_DEFENSE_VERTICAL_OFFSET = -0.10F;
     private static final float SPINNING_DEFENSE_FORWARD_OFFSET = 0.05F;
-    // 圆环朝向：90 度使旋转平面面向玩家正前方，只控制角度，不控制位置。
     private static final float SPINNING_DEFENSE_FACE_ROTATION = 90.0F;
 
     public LightsaberItemRenderer() {
@@ -112,13 +123,13 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                 && (partItem == null || partItem.partType == PartType.BODY);
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.5F, 0.5F);
-        boolean activeDoubleLightsaber = stack.getItem() instanceof ItemDoubleLightsaber
-                && ItemLightsaberBase.isActive(stack);
-        if (activeDoubleLightsaber
+        boolean doubleLightsaber = stack.getItem() instanceof ItemDoubleLightsaber;
+        boolean doublePose = doubleLightsaber;
+        if (doublePose
                 && isThirdPerson(displayContext)
                 && Lightsabers.isEpicFightLoaded
                 && EpicFightClientIntegration.isBattleModeHeldStack(stack)) {
-            activeDoubleLightsaber = false;
+            doublePose = false;
         }
         boolean spinningDefense = spinning
                 && partItem == null
@@ -128,15 +139,16 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
         applyDisplayTransform(
                 displayContext,
                 partItem != null,
-                activeDoubleLightsaber,
+                doublePose,
                 spinning,
                 rotateSpinningGui,
                 spinningDefense,
                 poseStack
         );
+        float edgeRollYaw = doubleLightsaber ? DOUBLE_FIRST_PERSON_EDGE_ROLL_YAW : FIRST_PERSON_EDGE_ROLL_YAW;
         LightsaberBladeRenderer.bladeRoll = switch (displayContext) {
-            case FIRST_PERSON_RIGHT_HAND -> FIRST_PERSON_EDGE_ROLL_BASE - FIRST_PERSON_YAW;
-            case FIRST_PERSON_LEFT_HAND -> FIRST_PERSON_EDGE_ROLL_BASE + FIRST_PERSON_YAW;
+            case FIRST_PERSON_RIGHT_HAND -> FIRST_PERSON_EDGE_ROLL_BASE - edgeRollYaw;
+            case FIRST_PERSON_LEFT_HAND -> FIRST_PERSON_EDGE_ROLL_BASE + edgeRollYaw;
             default -> 0.0F;
         };
         if (partItem != null) {
@@ -249,23 +261,44 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                 / extent;
     }
 
-    private void applyFirstPersonTransform(PoseStack poseStack, int handSide, boolean doubleLightsaber) {
-        poseStack.translate(
-                FIRST_PERSON_HORIZONTAL_OFFSET * handSide,
-                doubleLightsaber ? DOUBLE_FIRST_PERSON_VERTICAL_OFFSET : FIRST_PERSON_VERTICAL_OFFSET,
-                doubleLightsaber ? DOUBLE_FIRST_PERSON_DEPTH_OFFSET : FIRST_PERSON_DEPTH_OFFSET
-        );
-        poseStack.mulPose(Axis.ZP.rotationDegrees(FIRST_PERSON_TILT * handSide));
-        if (doubleLightsaber) {
-            applyDoubleFirstPersonAnimation(poseStack, handSide);
+    private void applyFirstPersonTransform(PoseStack poseStack, int handSide, boolean doubleLightsaber, boolean spinning) {
+        if (spinning) {
+            applySpinningFirstPersonTransform(poseStack, handSide);
+            return;
         }
-        poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
-        poseStack.mulPose(Axis.YP.rotationDegrees(FIRST_PERSON_YAW * handSide));
+        if (doubleLightsaber) {
+            applyDoubleFirstPersonTransform(poseStack, handSide);
+            return;
+        }
+        poseStack.translate(
+                FIRST_PERSON_OFFSET_X * handSide,
+                FIRST_PERSON_OFFSET_Y,
+                FIRST_PERSON_OFFSET_Z
+        );
+        poseStack.mulPose(Axis.YP.rotationDegrees(FIRST_PERSON_ROT_Y1 * handSide));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(FIRST_PERSON_ROT_Z1 * handSide));
+        poseStack.mulPose(Axis.YP.rotationDegrees(FIRST_PERSON_ROT_Y2 * handSide));
+        poseStack.mulPose(Axis.XP.rotationDegrees(FIRST_PERSON_ROT_X));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(FIRST_PERSON_ROT_Z2 * handSide));
+        poseStack.scale(FIRST_PERSON_SCALE, FIRST_PERSON_SCALE, FIRST_PERSON_SCALE);
+    }
+
+    private void applyDoubleFirstPersonTransform(PoseStack poseStack, int handSide) {
+        poseStack.translate(
+                DOUBLE_FIRST_PERSON_OFFSET_X * handSide,
+                DOUBLE_FIRST_PERSON_OFFSET_Y,
+                DOUBLE_FIRST_PERSON_OFFSET_Z
+        );
+        poseStack.mulPose(Axis.YP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_Y1 * handSide));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_Z1 * handSide));
+        poseStack.mulPose(Axis.YP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_Y2 * handSide));
+        poseStack.mulPose(Axis.XP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_X));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_Z2 * handSide));
+        applyDoubleFirstPersonAnimation(poseStack, handSide);
         poseStack.scale(FIRST_PERSON_SCALE, FIRST_PERSON_SCALE, FIRST_PERSON_SCALE);
     }
 
     private void applyDoubleFirstPersonAnimation(PoseStack poseStack, int handSide) {
-        poseStack.mulPose(Axis.ZP.rotationDegrees(DOUBLE_FIRST_PERSON_ROLL * handSide));
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) {
             return;
@@ -282,6 +315,18 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
         );
         poseStack.mulPose(Axis.XP.rotationDegrees(DOUBLE_SWING_TILT * swingArc));
         poseStack.mulPose(Axis.ZP.rotationDegrees(DOUBLE_SWING_SPIN * swing * handSide));
+    }
+
+    private void applySpinningFirstPersonTransform(PoseStack poseStack, int handSide) {
+        poseStack.translate(
+                SPINNING_FP_OFFSET_X * handSide,
+                SPINNING_FP_OFFSET_Y,
+                SPINNING_FP_OFFSET_Z
+        );
+        poseStack.mulPose(Axis.ZP.rotationDegrees(SPINNING_FP_TILT * handSide));
+        poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
+        poseStack.mulPose(Axis.YP.rotationDegrees(SPINNING_FP_YAW * handSide));
+        poseStack.scale(SPINNING_FP_SCALE, SPINNING_FP_SCALE, SPINNING_FP_SCALE);
     }
 
     private float getHandSwingProgress(LocalPlayer player, int handSide, float partialTick) {
@@ -360,8 +405,8 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                     poseStack.scale(SPINNING_GUI_SCALE, SPINNING_GUI_SCALE, SPINNING_GUI_SCALE);
                 }
             }
-            case FIRST_PERSON_LEFT_HAND -> applyFirstPersonTransform(poseStack, -1, doubleLightsaber);
-            case FIRST_PERSON_RIGHT_HAND -> applyFirstPersonTransform(poseStack, 1, doubleLightsaber);
+            case FIRST_PERSON_LEFT_HAND -> applyFirstPersonTransform(poseStack, -1, doubleLightsaber, spinning);
+            case FIRST_PERSON_RIGHT_HAND -> applyFirstPersonTransform(poseStack, 1, doubleLightsaber, spinning);
             case THIRD_PERSON_LEFT_HAND -> {
                 applyThirdPersonTransform(
                         poseStack,

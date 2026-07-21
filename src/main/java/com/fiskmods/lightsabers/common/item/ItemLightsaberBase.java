@@ -8,11 +8,17 @@ import com.fiskmods.lightsabers.common.integration.epicfight.EpicFightIntegratio
 import com.fiskmods.lightsabers.common.lightsaber.FocusingCrystal;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.sound.ModSounds;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -32,6 +38,9 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
     private static final String ACTIVE_TAG = "active";
     private static final int ATTACK_DAMAGE_MODIFIER = 5;
     private static final float ATTACK_SPEED_MODIFIER = -2.4F;
+    private static final float PLAYER_BASE_ATTACK_DAMAGE = 1.0F;
+    private static final float SINGLE_ATTACK_DAMAGE = 13.0F;
+    private static final float SPINNING_ATTACK_DAMAGE = 20.0F;
     private static final Tier LIGHTSABER_TIER = new Tier() {
         @Override
         public int getUses() {
@@ -78,6 +87,33 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
         consumer.accept(LightsaberClientItemExtensions.INSTANCE);
     }
 
+    protected float getAttackDamage(ItemStack stack) {
+        return isSpinningLightsaber(stack) ? SPINNING_ATTACK_DAMAGE : SINGLE_ATTACK_DAMAGE;
+    }
+
+    @Override
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
+        if (slot != EquipmentSlot.MAINHAND) {
+            return super.getAttributeModifiers(slot, stack);
+        }
+        return ImmutableMultimap.of(
+                Attributes.ATTACK_DAMAGE,
+                new AttributeModifier(
+                        BASE_ATTACK_DAMAGE_UUID,
+                        "Weapon modifier",
+                        getAttackDamage(stack) - PLAYER_BASE_ATTACK_DAMAGE,
+                        AttributeModifier.Operation.ADDITION
+                ),
+                Attributes.ATTACK_SPEED,
+                new AttributeModifier(
+                        BASE_ATTACK_SPEED_UUID,
+                        "Weapon modifier",
+                        ATTACK_SPEED_MODIFIER,
+                        AttributeModifier.Operation.ADDITION
+                )
+        );
+    }
+
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         return InteractionResultHolder.pass(player.getItemInHand(hand));
@@ -87,15 +123,6 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
     public boolean onEntitySwing(ItemStack stack, LivingEntity entity) {
         if (!isActive(stack)) {
             return false;
-        }
-
-        if (Lightsabers.proxy.isClientPlayer(entity)) {
-            Lightsabers.proxy.playLocalSound(
-                    (Player) entity,
-                    ALSounds.player_lightsaber_swing,
-                    1.0F,
-                    1.0F
-            );
         }
 
         HitResult hitResult = entity.pick(5.0D, 1.0F, true);

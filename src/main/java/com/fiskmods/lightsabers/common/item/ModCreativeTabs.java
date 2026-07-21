@@ -5,6 +5,7 @@ import com.fiskmods.lightsabers.common.block.BlockForcestone;
 import com.fiskmods.lightsabers.common.block.BlockModSlab;
 import com.fiskmods.lightsabers.common.block.ModBlocks;
 import com.fiskmods.lightsabers.common.hilt.Hilt;
+import com.fiskmods.lightsabers.common.hilt.HiltManager;
 import com.fiskmods.lightsabers.common.lightsaber.CrystalColor;
 import com.fiskmods.lightsabers.common.lightsaber.FocusingCrystal;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
@@ -42,7 +43,10 @@ public final class ModCreativeTabs {
             CreativeModeTab.Output output
     ) {
         for (Hilt hilt : Hilt.REGISTRY) {
-            ItemStack lightsaber = hilt.createDefault().create();
+            LightsaberData data = hilt == HiltManager.SPINNING
+                    ? hilt.createDefault().set(CrystalColor.RED)
+                    : hilt.createDefault();
+            ItemStack lightsaber = data.create();
             output.accept(lightsaber);
             if (LightsaberData.get(lightsaber).supportsDoubleLightsaber()) {
                 output.accept(ItemDoubleLightsaber.create(lightsaber, lightsaber));

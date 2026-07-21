@@ -30,6 +30,12 @@ import java.util.Locale;
 
 public class ItemDoubleLightsaber extends ItemLightsaberBase {
     private static final String FLIPPED_TAG = "Flipped";
+    private static final float DOUBLE_ATTACK_DAMAGE = 20.0F;
+
+    @Override
+    protected float getAttackDamage(ItemStack stack) {
+        return DOUBLE_ATTACK_DAMAGE;
+    }
 
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {

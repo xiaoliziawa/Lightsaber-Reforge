@@ -1,8 +1,10 @@
 package com.fiskmods.lightsabers.common.event;
 
 import com.fiskmods.lightsabers.ALConstants;
+import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.client.input.ALKeyMappings;
 import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
+import com.fiskmods.lightsabers.client.sound.ALSounds;
 import com.fiskmods.lightsabers.common.config.ModConfig;
 import com.fiskmods.lightsabers.common.data.ALData;
 import com.fiskmods.lightsabers.common.data.ALEntityData;
@@ -13,6 +15,7 @@ import com.fiskmods.lightsabers.common.force.Power;
 import com.fiskmods.lightsabers.common.force.PowerManager;
 import com.fiskmods.lightsabers.common.force.PowerType;
 import com.fiskmods.lightsabers.common.force.effect.PowerEffectActive;
+import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import com.fiskmods.lightsabers.common.item.ModItems;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
@@ -32,6 +35,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -57,6 +62,30 @@ public final class ClientEventHandler {
         updateStoredLightsaber(player);
         updateContinuousPower(minecraft, player);
         updatePostEffect(minecraft, player);
+    }
+
+    @SubscribeEvent
+    public void onLeftClickEmpty(PlayerInteractEvent.LeftClickEmpty event) {
+        playLightsaberSwingSound(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public void onAttackEntity(AttackEntityEvent event) {
+        playLightsaberSwingSound(event.getEntity());
+    }
+
+    private static void playLightsaberSwingSound(Player player) {
+        ItemStack stack = player.getMainHandItem();
+        if (stack.getItem() instanceof ItemLightsaberBase
+                && ItemLightsaberBase.isActive(stack)
+                && Lightsabers.proxy.isClientPlayer(player)) {
+            Lightsabers.proxy.playLocalSound(
+                    player,
+                    ALSounds.player_lightsaber_swing,
+                    1.0F,
+                    1.0F
+            );
+        }
     }
 
     private static void updateStoredLightsaber(LocalPlayer player) {
