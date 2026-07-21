@@ -34,6 +34,10 @@ public final class GuiOverlay {
     );
     private static final int FORCE_BAR_WIDTH = 182;
     private static final int VANILLA_HUD_OFFSET = 9;
+    private static final ResourceLocation OVERFLOWING_BARS_TOUGHNESS = ResourceLocation.fromNamespaceAndPath(
+            "overflowingbars",
+            "toughness_level"
+    );
 
     private boolean hudOffsetActive;
 
@@ -76,7 +80,8 @@ public final class GuiOverlay {
                 || overlay == VanillaGuiOverlay.AIR_LEVEL.type()
                 || overlay == VanillaGuiOverlay.MOUNT_HEALTH.type()
                 || overlay == VanillaGuiOverlay.EXPERIENCE_BAR.type()
-                || overlay == VanillaGuiOverlay.JUMP_BAR.type();
+                || overlay == VanillaGuiOverlay.JUMP_BAR.type()
+                || overlay.id().equals(OVERFLOWING_BARS_TOUGHNESS);
     }
 
     @SubscribeEvent
