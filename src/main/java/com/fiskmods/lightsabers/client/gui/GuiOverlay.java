@@ -38,6 +38,14 @@ public final class GuiOverlay {
             "overflowingbars",
             "toughness_level"
     );
+    private static final ResourceLocation ASTEORBAR_MAIN = ResourceLocation.fromNamespaceAndPath(
+            "asteorbar",
+            "main"
+    );
+    private static final ResourceLocation CLASSIC_BAR = ResourceLocation.fromNamespaceAndPath(
+            "classicbar",
+            "classicbar"
+    );
 
     private boolean hudOffsetActive;
 
@@ -81,7 +89,9 @@ public final class GuiOverlay {
                 || overlay == VanillaGuiOverlay.MOUNT_HEALTH.type()
                 || overlay == VanillaGuiOverlay.EXPERIENCE_BAR.type()
                 || overlay == VanillaGuiOverlay.JUMP_BAR.type()
-                || overlay.id().equals(OVERFLOWING_BARS_TOUGHNESS);
+                || overlay.id().equals(OVERFLOWING_BARS_TOUGHNESS)
+                || overlay.id().equals(ASTEORBAR_MAIN)
+                || overlay.id().equals(CLASSIC_BAR);
     }
 
     @SubscribeEvent
