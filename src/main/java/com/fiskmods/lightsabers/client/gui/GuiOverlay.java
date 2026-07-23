@@ -8,17 +8,15 @@ import com.fiskmods.lightsabers.common.force.Power;
 import com.fiskmods.lightsabers.common.force.effect.PowerEffectActive;
 import com.fiskmods.lightsabers.helper.ALHelper;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.gui.overlay.NamedGuiOverlay;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.List;
@@ -32,67 +30,14 @@ public final class GuiOverlay {
             Lightsabers.MODID,
             "textures/gui/widgets.png"
     );
-    private static final int FORCE_BAR_WIDTH = 182;
-    private static final int VANILLA_HUD_OFFSET = 9;
-    private static final ResourceLocation OVERFLOWING_BARS_TOUGHNESS = ResourceLocation.fromNamespaceAndPath(
-            "overflowingbars",
-            "toughness_level"
-    );
-    private static final ResourceLocation ASTEORBAR_MAIN = ResourceLocation.fromNamespaceAndPath(
-            "asteorbar",
-            "main"
-    );
-    private static final ResourceLocation CLASSIC_BAR = ResourceLocation.fromNamespaceAndPath(
-            "classicbar",
-            "classicbar"
-    );
-
-    private boolean hudOffsetActive;
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onRenderOverlayPre(RenderGuiOverlayEvent.Pre event) {
-        popHudOffset(event.getGuiGraphics());
-
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null
-                || ALHelper.getForcePowerMax(player) <= 0
-                || !shouldOffsetVanillaHud(event.getOverlay())) {
-            return;
-        }
-        event.getGuiGraphics().pose().pushPose();
-        event.getGuiGraphics().pose().translate(0, -VANILLA_HUD_OFFSET, 0);
-        hudOffsetActive = true;
-    }
-
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void restoreOverlayPose(RenderGuiOverlayEvent.Post event) {
-        popHudOffset(event.getGuiGraphics());
-    }
-
-    @SubscribeEvent
-    public void onRenderGuiPost(RenderGuiEvent.Post event) {
-        popHudOffset(event.getGuiGraphics());
-    }
-
-    private void popHudOffset(GuiGraphics graphics) {
-        if (hudOffsetActive) {
-            graphics.pose().popPose();
-            hudOffsetActive = false;
-        }
-    }
-
-    private static boolean shouldOffsetVanillaHud(NamedGuiOverlay overlay) {
-        return overlay == VanillaGuiOverlay.PLAYER_HEALTH.type()
-                || overlay == VanillaGuiOverlay.ARMOR_LEVEL.type()
-                || overlay == VanillaGuiOverlay.FOOD_LEVEL.type()
-                || overlay == VanillaGuiOverlay.AIR_LEVEL.type()
-                || overlay == VanillaGuiOverlay.MOUNT_HEALTH.type()
-                || overlay == VanillaGuiOverlay.EXPERIENCE_BAR.type()
-                || overlay == VanillaGuiOverlay.JUMP_BAR.type()
-                || overlay.id().equals(OVERFLOWING_BARS_TOUGHNESS)
-                || overlay.id().equals(ASTEORBAR_MAIN)
-                || overlay.id().equals(CLASSIC_BAR);
-    }
+    private static final int FORCE_BAR_LENGTH = 182;
+    private static final int FORCE_BAR_THICKNESS = 5;
+    private static final int FORCE_BAR_RIGHT_MARGIN = 8;
+    private static final int TEXT_COLOR_FULL = 0xFF55FF55;
+    private static final int TEXT_COLOR_CONSUME = 0xFFFFAA00;
+    private static final int TEXT_COLOR_LOW = 0xFFFF5555;
+    private static final float TEXT_LOW_THRESHOLD = 0.3F;
+    private static final float TEXT_CONSUME_SENSITIVITY = 0.05F;
 
     @SubscribeEvent
     public void onRenderOverlayPost(RenderGuiOverlayEvent.Post event) {
@@ -137,39 +82,72 @@ public final class GuiOverlay {
             return;
         }
 
-        int left = width / 2 - 91;
-        int top = height - 29;
         int filled = Mth.clamp(
-                (int) (ALDataInterp.FORCE_POWER.interpolate(player) / cap * FORCE_BAR_WIDTH),
+                (int) (ALDataInterp.FORCE_POWER.interpolate(player) / cap * FORCE_BAR_LENGTH),
                 0,
-                FORCE_BAR_WIDTH
+                FORCE_BAR_LENGTH
         );
         int delayed = Mth.clamp(
-                (int) (ALDataInterp.FORCE_POWER_DIFF.interpolate(player) / cap * FORCE_BAR_WIDTH),
+                (int) (ALDataInterp.FORCE_POWER_DIFF.interpolate(player) / cap * FORCE_BAR_LENGTH),
                 0,
-                FORCE_BAR_WIDTH
+                FORCE_BAR_LENGTH
         );
 
+        int barX = width - FORCE_BAR_RIGHT_MARGIN - FORCE_BAR_THICKNESS;
+        int barBottom = (height + FORCE_BAR_LENGTH) / 2;
+        int barTop = (height - FORCE_BAR_LENGTH) / 2;
+
         RenderSystem.enableBlend();
-        graphics.blit(ICONS, left, top, 0, 74, FORCE_BAR_WIDTH, 5);
+        graphics.pose().pushPose();
+        graphics.pose().translate(barX, barBottom, 0);
+        graphics.pose().mulPose(Axis.ZP.rotationDegrees(-90));
+        graphics.blit(ICONS, 0, 0, 0, 74, FORCE_BAR_LENGTH, FORCE_BAR_THICKNESS);
         if (delayed > filled) {
-            graphics.blit(ICONS, left, top, 0, 79, delayed, 5);
+            graphics.blit(ICONS, 0, 0, 0, 79, delayed, FORCE_BAR_THICKNESS);
         }
         if (filled > 0) {
-            graphics.blit(ICONS, left, top, 0, 84, filled, 5);
+            graphics.blit(ICONS, 0, 0, 0, 84, filled, FORCE_BAR_THICKNESS);
         }
+        graphics.pose().popPose();
 
         Font font = Minecraft.getInstance().font;
-        String value = Mth.floor(ALDataInterp.FORCE_POWER.get(player)) + "/" + cap;
+        String current = String.valueOf(Mth.floor(ALDataInterp.FORCE_POWER.get(player)));
+        int barCenterX = barX + FORCE_BAR_THICKNESS / 2;
         graphics.drawString(
                 font,
-                value,
-                left + (FORCE_BAR_WIDTH - font.width(value)) / 2,
-                top - 2,
-                0xFFFFFFFF,
+                current,
+                barCenterX - font.width(current) / 2,
+                barTop - font.lineHeight - 1,
+                forceTextColor(filled, delayed),
                 true
         );
         RenderSystem.disableBlend();
+    }
+
+    private static int forceTextColor(int filled, int delayed) {
+        float ratio = filled / (float) FORCE_BAR_LENGTH;
+        float consumeStrength = Mth.clamp(
+                (delayed - filled) / (float) FORCE_BAR_LENGTH / TEXT_CONSUME_SENSITIVITY,
+                0F,
+                1F
+        );
+        int baseColor = ratio <= TEXT_LOW_THRESHOLD
+                ? TEXT_COLOR_LOW
+                : lerpColor(
+                        TEXT_COLOR_LOW,
+                        TEXT_COLOR_FULL,
+                        (ratio - TEXT_LOW_THRESHOLD) / (1F - TEXT_LOW_THRESHOLD)
+                );
+        return lerpColor(baseColor, TEXT_COLOR_CONSUME, consumeStrength);
+    }
+
+    private static int lerpColor(int from, int to, float t) {
+        t = Mth.clamp(t, 0F, 1F);
+        int a = (int) Mth.lerp(t, (from >> 24) & 0xFF, (to >> 24) & 0xFF);
+        int r = (int) Mth.lerp(t, (from >> 16) & 0xFF, (to >> 16) & 0xFF);
+        int g = (int) Mth.lerp(t, (from >> 8) & 0xFF, (to >> 8) & 0xFF);
+        int b = (int) Mth.lerp(t, from & 0xFF, to & 0xFF);
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
     private static void renderPowerSelector(
