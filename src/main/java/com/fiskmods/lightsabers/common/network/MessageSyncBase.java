@@ -54,11 +54,8 @@ public abstract class MessageSyncBase {
     }
 
     protected void apply(Player player) {
-        ALPlayerData playerCapability = ALPlayerData.getDataOrNull(player);
-        ALEntityData entityCapability = ALEntityData.getDataOrNull(player);
-        if (playerCapability == null || entityCapability == null) {
-            return;
-        }
+        ALPlayerData playerCapability = ALPlayerData.getData(player);
+        ALEntityData entityCapability = ALEntityData.getData(player);
 
         playerCapability.data.clear();
         for (Map.Entry<ALData<?>, Object> entry : playerData.entrySet()) {

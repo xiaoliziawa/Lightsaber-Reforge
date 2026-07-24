@@ -303,7 +303,9 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
         if (player == null) {
             return;
         }
-        float partialTick = Minecraft.getInstance().getPartialTick();
+        float partialTick = Minecraft.getInstance()
+                .getTimer()
+                .getGameTimeDeltaPartialTick(true);
         float walk = player.walkAnimation.speed(partialTick);
         float swing = getHandSwingProgress(player, handSide, partialTick);
         float swingArc = (swing > 0.5F ? 1.0F - swing : swing) * 2.0F;

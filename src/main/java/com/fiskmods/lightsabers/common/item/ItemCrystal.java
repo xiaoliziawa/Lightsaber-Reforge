@@ -2,6 +2,7 @@ package com.fiskmods.lightsabers.common.item;
 
 import com.fiskmods.lightsabers.common.block.ModBlocks;
 import com.fiskmods.lightsabers.common.lightsaber.CrystalColor;
+import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -41,14 +42,9 @@ public class ItemCrystal extends Item implements ILightsaberComponent {
     }
 
     @Override
-    public Rarity getRarity(ItemStack stack) {
-        return rarityMap.get(get(stack));
-    }
-
-    @Override
     public void appendHoverText(
             ItemStack stack,
-            Level level,
+            Item.TooltipContext context,
             List<Component> tooltip,
             TooltipFlag flag
     ) {
@@ -61,7 +57,7 @@ public class ItemCrystal extends Item implements ILightsaberComponent {
     }
 
     public static int getId(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
+        CompoundTag tag = ItemDataHelper.getCustomData(stack);
         if (tag != null) {
             if (tag.contains(CRYSTAL_ID_TAG)) {
                 return normalizeId(tag.getInt(CRYSTAL_ID_TAG));
@@ -70,6 +66,7 @@ public class ItemCrystal extends Item implements ILightsaberComponent {
                 int id = normalizeId(tag.getInt(LEGACY_CRYSTAL_ID_TAG));
                 tag.remove(LEGACY_CRYSTAL_ID_TAG);
                 tag.putInt(CRYSTAL_ID_TAG, id);
+                ItemDataHelper.setCustomData(stack, tag);
                 return id;
             }
         }
@@ -96,7 +93,7 @@ public class ItemCrystal extends Item implements ILightsaberComponent {
 
     public static ItemStack create(CrystalColor color, Item item) {
         ItemStack stack = new ItemStack(item);
-        stack.getOrCreateTag().putInt(CRYSTAL_ID_TAG, color.id);
+        ItemDataHelper.updateCustomData(stack, tag -> tag.putInt(CRYSTAL_ID_TAG, color.id));
         return stack;
     }
 

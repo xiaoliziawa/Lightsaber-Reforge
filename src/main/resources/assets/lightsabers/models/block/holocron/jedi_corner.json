@@ -1,5 +1,5 @@
 {
-  "loader": "forge:obj",
+  "loader": "neoforge:obj",
   "model": "lightsabers:models/block/holocron/jedi_corner.obj",
   "automatic_culling": false,
   "shade_quads": false,

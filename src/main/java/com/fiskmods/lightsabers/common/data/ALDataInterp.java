@@ -4,7 +4,7 @@ import com.fiskmods.lightsabers.Lightsabers;
 import fiskfille.utils.helper.FiskServerUtils;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.fml.LogicalSide;
 
 import java.lang.reflect.Field;
 import java.util.function.Predicate;

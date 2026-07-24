@@ -3,6 +3,7 @@ package com.fiskmods.lightsabers.client.integration.jei;
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.hilt.Hilt;
 import com.fiskmods.lightsabers.common.item.ItemDoubleLightsaber;
+import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.tileentity.TileEntityDisassemblyStation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -17,9 +18,10 @@ public record DisassemblyJeiRecipe(
         List<Output> outputs
 ) {
     public static DisassemblyJeiRecipe create(Hilt hilt, boolean doubleBladed) {
-        ItemStack single = hilt.createDefault().create();
+        LightsaberData data = hilt.createDefault();
+        ItemStack single = data.create();
         ItemStack input = doubleBladed
-                ? ItemDoubleLightsaber.create(single, single)
+                ? ItemDoubleLightsaber.create(new LightsaberData[] {data, data})
                 : single;
         String type = doubleBladed ? "double" : "single";
         return new DisassemblyJeiRecipe(

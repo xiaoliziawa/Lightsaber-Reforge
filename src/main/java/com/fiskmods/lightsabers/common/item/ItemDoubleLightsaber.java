@@ -5,22 +5,24 @@ import com.fiskmods.lightsabers.common.damage.ALDamageSources;
 import com.fiskmods.lightsabers.common.hilt.Hilt;
 import com.fiskmods.lightsabers.common.lightsaber.FocusingCrystal;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
-import fiskfille.utils.helper.NBTHelper;
+import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import fiskfille.utils.helper.VectorHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.LongArrayTag;
 import net.minecraft.nbt.LongTag;
+import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,14 +35,17 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
     private static final float DOUBLE_ATTACK_DAMAGE = 20.0F;
 
     @Override
-    protected float getAttackDamage(ItemStack stack) {
+    public float getAttackDamage(ItemStack stack) {
         return DOUBLE_ATTACK_DAMAGE;
     }
 
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
-        if (!level.isClientSide && stack.hasTag()) {
-            CompoundTag tag = stack.getTag();
+        if (!level.isClientSide) {
+            CompoundTag tag = ItemDataHelper.getCustomData(stack);
+            if (tag == null) {
+                return;
+            }
             if (tag.contains("UpperLightsaber", Tag.TAG_COMPOUND)
                     && tag.contains("LowerLightsaber", Tag.TAG_COMPOUND)) {
                 get(stack);
@@ -51,7 +56,7 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
     @Override
     public void appendHoverText(
             ItemStack stack,
-            @Nullable Level level,
+            Item.TooltipContext context,
             List<Component> tooltip,
             TooltipFlag flag
     ) {
@@ -146,12 +151,19 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
                 tag.remove(oldKeys[i]);
             }
             tag.put(ALConstants.TAG_LIGHTSABER, list);
-        } else if (tag.contains(ALConstants.TAG_LIGHTSABER, Tag.TAG_LIST)) {
-            ListTag list = tag.getList(ALConstants.TAG_LIGHTSABER, Tag.TAG_LONG);
-            for (int i = 0; i < Math.min(list.size(), sabers.length); i++) {
-                LightsaberData data = NBTHelper.readFromNBT(list.get(i), LightsaberData.class);
-                if (data != null) {
-                    sabers[i] = data.strip();
+        } else {
+            Tag lightsaberTag = tag.get(ALConstants.TAG_LIGHTSABER);
+            if (lightsaberTag instanceof ListTag list) {
+                for (int i = 0; i < Math.min(list.size(), sabers.length); i++) {
+                    Tag entry = list.get(i);
+                    if (entry instanceof NumericTag numericTag) {
+                        sabers[i] = new LightsaberData(numericTag.getAsLong()).strip();
+                    }
+                }
+            } else if (lightsaberTag instanceof LongArrayTag array) {
+                long[] hashes = array.getAsLongArray();
+                for (int i = 0; i < Math.min(hashes.length, sabers.length); i++) {
+                    sabers[i] = new LightsaberData(hashes[i]).strip();
                 }
             }
         }
@@ -159,13 +171,27 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
     }
 
     public static LightsaberData[] get(ItemStack stack) {
-        return !stack.isEmpty() && stack.hasTag()
-                ? readFromNBT(stack.getTag())
-                : new LightsaberData[] {LightsaberData.EMPTY, LightsaberData.EMPTY};
+        if (stack.isEmpty()) {
+            return new LightsaberData[] {LightsaberData.EMPTY, LightsaberData.EMPTY};
+        }
+
+        CompoundTag tag = ItemDataHelper.getCustomData(stack);
+        if (tag == null) {
+            return new LightsaberData[] {LightsaberData.EMPTY, LightsaberData.EMPTY};
+        }
+
+        boolean legacyFormat = tag.contains("UpperLightsaber", Tag.TAG_COMPOUND)
+                && tag.contains("LowerLightsaber", Tag.TAG_COMPOUND);
+        LightsaberData[] sabers = readFromNBT(tag);
+        if (legacyFormat) {
+            ItemDataHelper.setCustomData(stack, tag);
+        }
+        return sabers;
     }
 
     public static boolean isFlipped(ItemStack stack) {
-        return !stack.isEmpty() && stack.hasTag() && stack.getTag().getBoolean(FLIPPED_TAG);
+        CompoundTag tag = ItemDataHelper.getCustomData(stack);
+        return !stack.isEmpty() && tag != null && tag.getBoolean(FLIPPED_TAG);
     }
 
     public static void toggleOrientation(ItemStack stack) {
@@ -173,21 +199,25 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
             return;
         }
 
-        CompoundTag tag = stack.getOrCreateTag();
-        if (tag.getBoolean(FLIPPED_TAG)) {
-            tag.remove(FLIPPED_TAG);
-        } else {
-            tag.putBoolean(FLIPPED_TAG, true);
-        }
+        ItemDataHelper.updateCustomData(stack, tag -> {
+            if (tag.getBoolean(FLIPPED_TAG)) {
+                tag.remove(FLIPPED_TAG);
+            } else {
+                tag.putBoolean(FLIPPED_TAG, true);
+            }
+        });
     }
 
     public static ItemStack create(LightsaberData[] sabers) {
         ItemStack stack = new ItemStack(ModItems.DOUBLE_LIGHTSABER.get());
-        ListTag list = new ListTag();
-        for (LightsaberData saber : sabers) {
-            list.add(LongTag.valueOf(saber.hash));
+        long[] hashes = new long[Math.min(sabers.length, 2)];
+        for (int i = 0; i < hashes.length; i++) {
+            hashes[i] = sabers[i].hash;
         }
-        stack.getOrCreateTag().put(ALConstants.TAG_LIGHTSABER, list);
+        ItemDataHelper.updateCustomData(
+                stack,
+                tag -> tag.put(ALConstants.TAG_LIGHTSABER, new LongArrayTag(hashes))
+        );
         return stack;
     }
 

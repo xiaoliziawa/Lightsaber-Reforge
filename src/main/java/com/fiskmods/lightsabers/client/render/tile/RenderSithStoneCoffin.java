@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.phys.AABB;
 
 public class RenderSithStoneCoffin
         implements BlockEntityRenderer<TileEntitySithStoneCoffin> {
@@ -27,6 +28,11 @@ public class RenderSithStoneCoffin
         model = new ModelSithStoneCoffin(
                 context.bakeLayer(ModelSithStoneCoffin.LAYER)
         );
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(TileEntitySithStoneCoffin coffin) {
+        return new AABB(coffin.getBlockPos()).expandTowards(0.0D, 1.0D, 0.0D);
     }
 
     @Override

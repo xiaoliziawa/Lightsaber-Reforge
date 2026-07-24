@@ -250,15 +250,13 @@ public class EntitySithGhost extends Monster {
             ServerLevelAccessor level,
             DifficultyInstance difficulty,
             MobSpawnType reason,
-            @Nullable SpawnGroupData spawnData,
-            @Nullable CompoundTag dataTag
+            @Nullable SpawnGroupData spawnData
     ) {
         SpawnGroupData result = super.finalizeSpawn(
                 level,
                 difficulty,
                 reason,
-                spawnData,
-                dataTag
+                spawnData
         );
         if (getMainHandItem().isEmpty()) {
             Random random = new Random(getRandom().nextLong());
@@ -268,8 +266,7 @@ public class EntitySithGhost extends Monster {
             );
         }
         for (EquipmentSlot slot : EquipmentSlot.values()) {
-            if (slot.getType() == EquipmentSlot.Type.HAND
-                    || slot.getType() == EquipmentSlot.Type.ARMOR) {
+            if (slot.getType() == EquipmentSlot.Type.HAND || slot.isArmor()) {
                 setDropChance(slot, 0.0F);
             }
         }

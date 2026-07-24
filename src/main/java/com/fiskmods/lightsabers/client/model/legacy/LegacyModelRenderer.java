@@ -3,6 +3,7 @@ package com.fiskmods.lightsabers.client.model.legacy;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.core.Direction;
+import net.minecraft.util.FastColor;
 import org.joml.Quaternionf;
 
 import java.util.ArrayList;
@@ -142,10 +143,12 @@ public class LegacyModelRenderer {
                         context.consumer(),
                         context.packedLight(),
                         context.packedOverlay(),
-                        context.red(),
-                        context.green(),
-                        context.blue(),
-                        context.alpha()
+                        FastColor.ARGB32.colorFromFloat(
+                                context.alpha(),
+                                context.red(),
+                                context.green(),
+                                context.blue()
+                        )
                 );
             }
             poseStack.popPose();

@@ -10,7 +10,9 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.fml.common.asm.enumextension.EnumProxy;
+import net.neoforged.neoforge.client.IArmPoseTransformer;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 public final class LightsaberClientItemExtensions implements IClientItemExtensions {
     private static final float SABER_MAIN_ARM_X = -1.0F;
@@ -22,15 +24,15 @@ public final class LightsaberClientItemExtensions implements IClientItemExtensio
     private static final float DOUBLE_ARM_X = -Mth.PI / 2.5F;
     private static final float DOUBLE_ARM_Y = -Mth.PI / 15.0F;
 
-    private static final HumanoidModel.ArmPose SABER_POSE = HumanoidModel.ArmPose.create(
-            "lightsabers_saber",
+    public static final EnumProxy<HumanoidModel.ArmPose> SABER_POSE = new EnumProxy<>(
+            HumanoidModel.ArmPose.class,
             true,
-            LightsaberClientItemExtensions::applySaberPose
+            (IArmPoseTransformer) LightsaberClientItemExtensions::applySaberPose
     );
-    private static final HumanoidModel.ArmPose DOUBLE_SABER_POSE = HumanoidModel.ArmPose.create(
-            "lightsabers_double_saber",
+    public static final EnumProxy<HumanoidModel.ArmPose> DOUBLE_SABER_POSE = new EnumProxy<>(
+            HumanoidModel.ArmPose.class,
             true,
-            LightsaberClientItemExtensions::applyDoubleSaberPose
+            (IArmPoseTransformer) LightsaberClientItemExtensions::applyDoubleSaberPose
     );
 
     public static final LightsaberClientItemExtensions INSTANCE =
@@ -56,8 +58,8 @@ public final class LightsaberClientItemExtensions implements IClientItemExtensio
             return null;
         }
         return stack.getItem() instanceof ItemDoubleLightsaber
-                ? DOUBLE_SABER_POSE
-                : SABER_POSE;
+                ? DOUBLE_SABER_POSE.getValue()
+                : SABER_POSE.getValue();
     }
 
     private static void applySaberPose(

@@ -2,6 +2,8 @@ package com.fiskmods.lightsabers.common.block;
 
 import com.fiskmods.lightsabers.common.tileentity.ModBlockEntities;
 import com.fiskmods.lightsabers.common.tileentity.TileEntitySithStoneCoffin;
+import com.mojang.serialization.MapCodec;
+import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -34,6 +36,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockSithStoneCoffin extends BaseEntityBlock {
+    public static final MapCodec<BlockSithStoneCoffin> CODEC =
+            simpleCodec(BlockSithStoneCoffin::new);
     public static final EnumProperty<Part> PART = EnumProperty.create("part", Part.class);
 
     private static final String EQUIPMENT_TAG = "Equipment";
@@ -99,6 +103,11 @@ public class BlockSithStoneCoffin extends BaseEntityBlock {
         registerDefaultState(defaultBlockState()
                 .setValue(HorizontalDirectionalBlock.FACING, Direction.SOUTH)
                 .setValue(PART, Part.BASE));
+    }
+
+    @Override
+    protected MapCodec<? extends BlockSithStoneCoffin> codec() {
+        return CODEC;
     }
 
     @Nullable
@@ -203,8 +212,11 @@ public class BlockSithStoneCoffin extends BaseEntityBlock {
                 ItemStack equipment = coffin.getEquipment();
                 if (!equipment.isEmpty()) {
                     CompoundTag equipmentTag = new CompoundTag();
-                    equipment.save(equipmentTag);
-                    droppedStack.getOrCreateTag().put(EQUIPMENT_TAG, equipmentTag);
+                    equipment.save(level.registryAccess(), equipmentTag);
+                    ItemDataHelper.updateCustomData(
+                            droppedStack,
+                            tag -> tag.put(EQUIPMENT_TAG, equipmentTag)
+                    );
                 }
 
                 BlockState baseState = level.getBlockState(basePos);

@@ -8,7 +8,7 @@ import com.fiskmods.lightsabers.common.force.Power;
 import com.fiskmods.lightsabers.common.force.PowerManager;
 import com.fiskmods.lightsabers.common.force.PowerType;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.fml.LogicalSide;
 
 public final class ForcePowerInput {
     private ForcePowerInput() {

@@ -6,8 +6,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.event.sound.PlaySoundEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.sound.PlaySoundEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 public enum ClientSoundHandler {
     INSTANCE;

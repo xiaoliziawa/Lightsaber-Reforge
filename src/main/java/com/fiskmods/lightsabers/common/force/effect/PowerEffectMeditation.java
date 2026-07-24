@@ -7,7 +7,7 @@ import static com.fiskmods.lightsabers.common.force.PowerDesc.Unit.*;
 import com.fiskmods.lightsabers.common.data.effect.Effect;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.fml.LogicalSide;
 
 public class PowerEffectMeditation extends PowerEffectInstant
 {

@@ -1,6 +1,7 @@
 package com.fiskmods.lightsabers.common.tileentity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.util.Mth;
@@ -69,8 +70,8 @@ public class TileEntityHolocron extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         if (tag.contains(PLAYERS_USING_TAG)) {
             playersUsing = Math.max(tag.getInt(PLAYERS_USING_TAG), 0);
         }
@@ -82,7 +83,7 @@ public class TileEntityHolocron extends BlockEntity {
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
         tag.putInt(PLAYERS_USING_TAG, playersUsing);
         return tag;

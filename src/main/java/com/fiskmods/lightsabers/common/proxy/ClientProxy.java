@@ -24,6 +24,9 @@ import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.DeferredGlowRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.SpinningLightsaberObjRenderer;
 import com.fiskmods.lightsabers.client.render.item.LightsaberItemDecorator;
+import com.fiskmods.lightsabers.client.render.item.CrystalClientItemExtensions;
+import com.fiskmods.lightsabers.client.render.item.HolocronClientItemExtensions;
+import com.fiskmods.lightsabers.client.render.item.LightsaberClientItemExtensions;
 import com.fiskmods.lightsabers.client.render.tile.RenderCrystal;
 import com.fiskmods.lightsabers.client.render.tile.RenderLightsaberStand;
 import com.fiskmods.lightsabers.client.render.tile.RenderCrystalDisplayStand;
@@ -45,7 +48,6 @@ import com.fiskmods.lightsabers.common.item.ModItems;
 import com.fiskmods.lightsabers.common.tileentity.TileEntityCrystal;
 import com.fiskmods.lightsabers.common.tileentity.ModBlockEntities;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -53,20 +55,24 @@ import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.RegisterColorHandlersEvent;
-import net.minecraftforge.client.event.RegisterItemDecorationsEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.event.RegisterItemDecorationsEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 public final class ClientProxy extends CommonProxy {
+    private static final int OPAQUE_WHITE = 0xFFFFFFFF;
     private static final ResourceLocation FORCESTONE_VARIANT_PROPERTY =
             ResourceLocation.fromNamespaceAndPath(Lightsabers.MODID, "forcestone_variant");
     private static final ResourceLocation FORCESTONE_SLAB_VARIANT_PROPERTY =
@@ -82,14 +88,16 @@ public final class ClientProxy extends CommonProxy {
         modEventBus.addListener(this::registerItemColors);
         modEventBus.addListener(this::registerBlockColors);
         modEventBus.addListener(this::registerItemDecorations);
+        modEventBus.addListener(this::registerClientExtensions);
+        modEventBus.addListener(this::registerMenuScreens);
         modEventBus.addListener(ALKeyMappings::register);
-        MinecraftForge.EVENT_BUS.register(ClientInputHandler.INSTANCE);
-        MinecraftForge.EVENT_BUS.register(ClientSoundHandler.INSTANCE);
-        MinecraftForge.EVENT_BUS.register(ClientForceEffectRenderer.INSTANCE);
-        MinecraftForge.EVENT_BUS.register(DeferredGlowRenderer.INSTANCE);
-        MinecraftForge.EVENT_BUS.register(new GuiOverlay());
-        MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
-        MinecraftForge.EVENT_BUS.register(new CommandExportIcon());
+        NeoForge.EVENT_BUS.register(ClientInputHandler.INSTANCE);
+        NeoForge.EVENT_BUS.register(ClientSoundHandler.INSTANCE);
+        NeoForge.EVENT_BUS.register(ClientForceEffectRenderer.INSTANCE);
+        NeoForge.EVENT_BUS.register(DeferredGlowRenderer.INSTANCE);
+        NeoForge.EVENT_BUS.register(new GuiOverlay());
+        NeoForge.EVENT_BUS.register(new ClientEventHandler());
+        NeoForge.EVENT_BUS.register(new CommandExportIcon());
         if (Lightsabers.isEpicFightLoaded) {
             EpicFightClientIntegration.register();
         }
@@ -102,7 +110,7 @@ public final class ClientProxy extends CommonProxy {
 
     @Override
     public float getRenderTick() {
-        return Minecraft.getInstance().getFrameTime();
+        return Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
     }
 
     @Override
@@ -218,17 +226,17 @@ public final class ClientProxy extends CommonProxy {
 
     private void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
-            MenuScreens.register(ModMenus.CRYSTAL_POUCH.get(), GuiCrystalPouch::new);
-            MenuScreens.register(ModMenus.LIGHTSABER_FORGE.get(), GuiLightsaberForge::new);
-            MenuScreens.register(
-                    ModMenus.DISASSEMBLY_STATION.get(),
-                    GuiDisassemblyStation::new
-            );
-            MenuScreens.register(ModMenus.HOLOCRON.get(), GuiForcePowers::new);
-            MenuScreens.register(ModMenus.SITH_COFFIN.get(), GuiSithCoffin::new);
             HiltModelRenderer.registerModels();
             registerItemProperties();
         });
+    }
+
+    private void registerMenuScreens(RegisterMenuScreensEvent event) {
+        event.register(ModMenus.CRYSTAL_POUCH.get(), GuiCrystalPouch::new);
+        event.register(ModMenus.LIGHTSABER_FORGE.get(), GuiLightsaberForge::new);
+        event.register(ModMenus.DISASSEMBLY_STATION.get(), GuiDisassemblyStation::new);
+        event.register(ModMenus.HOLOCRON.get(), GuiForcePowers::new);
+        event.register(ModMenus.SITH_COFFIN.get(), GuiSithCoffin::new);
     }
 
     private void registerItemProperties() {
@@ -256,17 +264,38 @@ public final class ClientProxy extends CommonProxy {
         event.register(ModItems.DOUBLE_LIGHTSABER.get(), decorator);
     }
 
+    private void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerItem(
+                LightsaberClientItemExtensions.INSTANCE,
+                ModItems.LIGHTSABER.get(),
+                ModItems.DOUBLE_LIGHTSABER.get(),
+                ModItems.EMITTER.get(),
+                ModItems.SWITCH_SECTION.get(),
+                ModItems.GRIP.get(),
+                ModItems.POMMEL.get()
+        );
+        event.registerItem(
+                CrystalClientItemExtensions.INSTANCE,
+                ModBlocks.LIGHTSABER_CRYSTAL_BLOCK_ITEM.get()
+        );
+        event.registerItem(
+                HolocronClientItemExtensions.INSTANCE,
+                ModBlocks.JEDI_HOLOCRON_ITEM.get(),
+                ModBlocks.HOLOCRON_ITEM.get()
+        );
+    }
+
     private void registerItemColors(RegisterColorHandlersEvent.Item event) {
         event.register(
                 (stack, tintIndex) -> tintIndex == 0
-                        ? ItemCrystal.get(stack).getRenderColor()
-                        : 0xFFFFFF,
+                        ? FastColor.ARGB32.opaque(ItemCrystal.get(stack).getRenderColor())
+                        : OPAQUE_WHITE,
                 ModBlocks.LIGHTSABER_CRYSTAL_ITEM.get()
         );
         event.register(
                 (stack, tintIndex) -> tintIndex == 1
-                        ? ItemCrystal.get(stack).getRenderColor()
-                        : 0xFFFFFF,
+                        ? FastColor.ARGB32.opaque(ItemCrystal.get(stack).getRenderColor())
+                        : OPAQUE_WHITE,
                 ModItems.CRYSTAL_POUCH.get()
         );
     }

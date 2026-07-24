@@ -15,10 +15,11 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -27,11 +28,11 @@ public final class SpinningLightsaberObjRenderer {
     public static final float MODEL_UNITS_PER_BLOCK = 8.0F;
     public static final int BLADE_LENGTH = 80;
 
-    private static final ResourceLocation GRIP_MODEL = model("grip");
-    private static final ResourceLocation OUTER_MODEL = model("outer");
-    private static final ResourceLocation UPPER_EMITTER_MODEL = model("upper_emitter");
-    private static final ResourceLocation LOWER_EMITTER_MODEL = model("lower_emitter");
-    private static final ResourceLocation SWITCH_MODEL = model("switch");
+    private static final ModelResourceLocation GRIP_MODEL = model("grip");
+    private static final ModelResourceLocation OUTER_MODEL = model("outer");
+    private static final ModelResourceLocation UPPER_EMITTER_MODEL = model("upper_emitter");
+    private static final ModelResourceLocation LOWER_EMITTER_MODEL = model("lower_emitter");
+    private static final ModelResourceLocation SWITCH_MODEL = model("switch");
 
     private static final float OBJ_SCALE = 1.0F / MODEL_UNITS_PER_BLOCK;
     private static final float DISPLAY_SCALE = 1.35F;
@@ -206,7 +207,7 @@ public final class SpinningLightsaberObjRenderer {
         Minecraft minecraft = Minecraft.getInstance();
         ModelManager modelManager = minecraft.getModelManager();
         ItemRenderer itemRenderer = minecraft.getItemRenderer();
-        ResourceLocation model = switch (type) {
+        ModelResourceLocation model = switch (type) {
             case EMITTER -> UPPER_EMITTER_MODEL;
             case SWITCH_SECTION -> SWITCH_MODEL;
             case BODY -> GRIP_MODEL;
@@ -269,7 +270,8 @@ public final class SpinningLightsaberObjRenderer {
             ANIMATION_STATES.put(stack, state);
         }
 
-        double animationTime = minecraft.level.getGameTime() + minecraft.getFrameTime();
+        double animationTime = minecraft.level.getGameTime()
+                + minecraft.getTimer().getGameTimeDeltaPartialTick(true);
         state.update(animationTime, active);
         float rotation = state.rotationAngle;
         if (state.isFinished()) {
@@ -380,10 +382,10 @@ public final class SpinningLightsaberObjRenderer {
         }
     }
 
-    private static ResourceLocation model(String name) {
-        return ResourceLocation.fromNamespaceAndPath(
+    private static ModelResourceLocation model(String name) {
+        return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(
                 Lightsabers.MODID,
                 "item/spinning/" + name
-        );
+        ));
     }
 }

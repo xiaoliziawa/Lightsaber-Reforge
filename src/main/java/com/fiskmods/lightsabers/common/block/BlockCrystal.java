@@ -3,6 +3,7 @@ package com.fiskmods.lightsabers.common.block;
 import com.fiskmods.lightsabers.common.item.ItemCrystal;
 import com.fiskmods.lightsabers.common.lightsaber.CrystalColor;
 import com.fiskmods.lightsabers.common.tileentity.TileEntityCrystal;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
@@ -30,10 +31,10 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.TierSortingRegistry;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockCrystal extends BaseEntityBlock {
+    public static final MapCodec<BlockCrystal> CODEC = simpleCodec(BlockCrystal::new);
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
 
     private static final double CRYSTAL_WIDTH = 6.0D;
@@ -132,6 +133,11 @@ public class BlockCrystal extends BaseEntityBlock {
     }
 
     @Override
+    protected MapCodec<? extends BlockCrystal> codec() {
+        return CODEC;
+    }
+
+    @Override
     public void setPlacedBy(
             Level level,
             BlockPos pos,
@@ -145,7 +151,7 @@ public class BlockCrystal extends BaseEntityBlock {
     }
 
     @Override
-    public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
         if (level.getBlockEntity(pos) instanceof TileEntityCrystal crystal) {
             return ItemCrystal.createBlock(crystal.getColor());
         }
@@ -208,10 +214,7 @@ public class BlockCrystal extends BaseEntityBlock {
         }
 
         Tier tier = tieredItem.getTier();
-        if (!TierSortingRegistry.isTierSorted(tier)) {
-            return tier.getLevel() >= Tiers.NETHERITE.getLevel();
-        }
         return tier == Tiers.NETHERITE
-                || TierSortingRegistry.getTiersLowerThan(tier).contains(Tiers.NETHERITE);
+                || tier.getAttackDamageBonus() >= Tiers.NETHERITE.getAttackDamageBonus();
     }
 }

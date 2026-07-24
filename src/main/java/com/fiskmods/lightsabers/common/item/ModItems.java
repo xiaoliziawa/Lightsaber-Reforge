@@ -1,41 +1,42 @@
 package com.fiskmods.lightsabers.common.item;
 
+import java.util.function.Supplier;
+
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class ModItems {
     public static final DeferredRegister<Item> ITEMS =
-            DeferredRegister.create(ForgeRegistries.ITEMS, Lightsabers.MODID);
+            DeferredRegister.create(Registries.ITEM, Lightsabers.MODID);
 
-    public static final RegistryObject<ItemLightsaber> LIGHTSABER =
+    public static final Supplier<ItemLightsaber> LIGHTSABER =
             ITEMS.register("lightsaber", ItemLightsaber::new);
-    public static final RegistryObject<ItemDoubleLightsaber> DOUBLE_LIGHTSABER =
+    public static final Supplier<ItemDoubleLightsaber> DOUBLE_LIGHTSABER =
             ITEMS.register("double_lightsaber", ItemDoubleLightsaber::new);
-    public static final RegistryObject<ItemCircuitry> CIRCUITRY =
+    public static final Supplier<ItemCircuitry> CIRCUITRY =
             ITEMS.register("lightsaber_circuitry", ItemCircuitry::new);
-    public static final RegistryObject<ItemFocusingCrystal> FOCUSING_CRYSTAL =
+    public static final Supplier<ItemFocusingCrystal> FOCUSING_CRYSTAL =
             ITEMS.register("focusing_crystal", ItemFocusingCrystal::new);
-    public static final RegistryObject<ItemCrystalPouch> CRYSTAL_POUCH =
+    public static final Supplier<ItemCrystalPouch> CRYSTAL_POUCH =
             ITEMS.register("crystal_pouch", ItemCrystalPouch::new);
-    public static final RegistryObject<ItemLightsaberPart> EMITTER = ITEMS.register(
+    public static final Supplier<ItemLightsaberPart> EMITTER = ITEMS.register(
             "lightsaber_blade_emitter",
             () -> new ItemLightsaberPart(PartType.EMITTER)
     );
-    public static final RegistryObject<ItemLightsaberPart> SWITCH_SECTION = ITEMS.register(
+    public static final Supplier<ItemLightsaberPart> SWITCH_SECTION = ITEMS.register(
             "lightsaber_switch_module",
             () -> new ItemLightsaberPart(PartType.SWITCH_SECTION)
     );
-    public static final RegistryObject<ItemLightsaberPart> GRIP = ITEMS.register(
+    public static final Supplier<ItemLightsaberPart> GRIP = ITEMS.register(
             "lightsaber_grip",
             () -> new ItemLightsaberPart(PartType.BODY)
     );
-    public static final RegistryObject<ItemLightsaberPart> POMMEL = ITEMS.register(
+    public static final Supplier<ItemLightsaberPart> POMMEL = ITEMS.register(
             "lightsaber_pommel",
             () -> new ItemLightsaberPart(PartType.POMMEL)
     );

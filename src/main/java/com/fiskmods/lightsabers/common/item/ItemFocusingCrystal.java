@@ -1,6 +1,8 @@
 package com.fiskmods.lightsabers.common.item;
 
 import com.fiskmods.lightsabers.common.lightsaber.FocusingCrystal;
+import com.fiskmods.lightsabers.helper.ItemDataHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
@@ -32,14 +34,10 @@ public class ItemFocusingCrystal extends Item implements ILightsaberComponent {
                 + get(stack).name().toLowerCase(Locale.ROOT);
     }
 
-    @Override
-    public Rarity getRarity(ItemStack stack) {
-        return Rarity.EPIC;
-    }
-
     public static FocusingCrystal get(ItemStack stack) {
-        int id = stack.hasTag() && stack.getTag().contains(CRYSTAL_ID_TAG)
-                ? stack.getTag().getInt(CRYSTAL_ID_TAG)
+        CompoundTag tag = ItemDataHelper.getCustomData(stack);
+        int id = tag != null && tag.contains(CRYSTAL_ID_TAG)
+                ? tag.getInt(CRYSTAL_ID_TAG)
                 : stack.getDamageValue();
         return get(id);
     }
@@ -58,7 +56,10 @@ public class ItemFocusingCrystal extends Item implements ILightsaberComponent {
 
     public static ItemStack create(FocusingCrystal crystal) {
         ItemStack stack = new ItemStack(ModItems.FOCUSING_CRYSTAL.get());
-        stack.getOrCreateTag().putInt(CRYSTAL_ID_TAG, crystal.ordinal());
+        ItemDataHelper.updateCustomData(
+                stack,
+                tag -> tag.putInt(CRYSTAL_ID_TAG, crystal.ordinal())
+        );
         return stack;
     }
 }

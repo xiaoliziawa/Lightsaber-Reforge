@@ -9,7 +9,7 @@ import com.fiskmods.lightsabers.common.force.PowerDesc.Unit;
 import com.fiskmods.lightsabers.helper.ALHelper;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.fml.LogicalSide;
 
 import java.util.ArrayList;
 import java.util.List;

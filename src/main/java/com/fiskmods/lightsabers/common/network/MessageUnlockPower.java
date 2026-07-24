@@ -4,12 +4,17 @@ import com.fiskmods.lightsabers.common.data.ALData;
 import com.fiskmods.lightsabers.common.force.Power;
 import com.fiskmods.lightsabers.common.force.PowerManager;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public final class MessageUnlockPower implements ALPayload {
+    public static final CustomPacketPayload.Type<MessageUnlockPower> TYPE =
+            ALPayload.registerType(MessageUnlockPower.class, "unlock_power");
+    public static final StreamCodec<FriendlyByteBuf, MessageUnlockPower> STREAM_CODEC =
+            StreamCodec.ofMember(MessageUnlockPower::encode, MessageUnlockPower::decode);
 
-public final class MessageUnlockPower {
     private final String powerName;
 
     public MessageUnlockPower(Power power) {
@@ -30,9 +35,11 @@ public final class MessageUnlockPower {
 
     public static void handle(
             MessageUnlockPower message,
-            Supplier<NetworkEvent.Context> contextSupplier
+            IPayloadContext context
     ) {
-        ServerPlayer sender = contextSupplier.get().getSender();
+        ServerPlayer sender = context.player() instanceof ServerPlayer serverPlayer
+                ? serverPlayer
+                : null;
         Power power = Power.getPowerFromName(message.powerName);
         if (sender == null || power == null) {
             return;

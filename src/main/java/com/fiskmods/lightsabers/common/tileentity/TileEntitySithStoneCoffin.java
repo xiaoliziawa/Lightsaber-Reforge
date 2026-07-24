@@ -4,7 +4,9 @@ import com.fiskmods.lightsabers.common.block.BlockSithStoneCoffin;
 import com.fiskmods.lightsabers.common.entity.EntitySithGhost;
 import com.fiskmods.lightsabers.common.entity.ModEntities;
 import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
+import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -103,7 +105,6 @@ public class TileEntitySithStoneCoffin extends BlockEntity {
                 serverLevel,
                 serverLevel.getCurrentDifficultyAt(worldPosition),
                 MobSpawnType.TRIGGERED,
-                null,
                 null
         );
         ghost.tickCount = -ghost.getRandom().nextInt(20);
@@ -183,20 +184,17 @@ public class TileEntitySithStoneCoffin extends BlockEntity {
         return taskFinished;
     }
 
-    @Override
-    public AABB getRenderBoundingBox() {
-        return new AABB(worldPosition).expandTowards(0.0D, 1.0D, 0.0D);
-    }
-
     public void setTaskFinished(boolean taskFinished) {
         this.taskFinished = taskFinished;
         setChangedAndSync();
     }
 
     public void loadEquipmentFromItem(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        equipment = tag != null && tag.contains(EQUIPMENT_TAG, Tag.TAG_COMPOUND)
-                ? ItemStack.of(tag.getCompound(EQUIPMENT_TAG))
+        CompoundTag tag = ItemDataHelper.getCustomData(stack);
+        equipment = tag != null
+                && tag.contains(EQUIPMENT_TAG, Tag.TAG_COMPOUND)
+                && level != null
+                ? ItemStack.parseOptional(level.registryAccess(), tag.getCompound(EQUIPMENT_TAG))
                 : ItemStack.EMPTY;
         setChanged();
     }
@@ -210,8 +208,8 @@ public class TileEntitySithStoneCoffin extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         if (tag.contains(COFFIN_X_TAG, Tag.TAG_INT)
                 && tag.contains(COFFIN_Y_TAG, Tag.TAG_INT)
                 && tag.contains(COFFIN_Z_TAG, Tag.TAG_INT)) {
@@ -224,32 +222,30 @@ public class TileEntitySithStoneCoffin extends BlockEntity {
             mainCoffinPos = null;
         }
         equipment = tag.contains(EQUIPMENT_TAG, Tag.TAG_COMPOUND)
-                ? ItemStack.of(tag.getCompound(EQUIPMENT_TAG))
+                ? ItemStack.parseOptional(registries, tag.getCompound(EQUIPMENT_TAG))
                 : ItemStack.EMPTY;
         baseplateOnly = tag.getBoolean(BASEPLATE_ONLY_TAG);
         taskFinished = tag.getBoolean(TASK_FINISHED_TAG);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         if (mainCoffinPos != null) {
             tag.putInt(COFFIN_X_TAG, mainCoffinPos.getX());
             tag.putInt(COFFIN_Y_TAG, mainCoffinPos.getY());
             tag.putInt(COFFIN_Z_TAG, mainCoffinPos.getZ());
         }
         if (!equipment.isEmpty()) {
-            CompoundTag equipmentTag = new CompoundTag();
-            equipment.save(equipmentTag);
-            tag.put(EQUIPMENT_TAG, equipmentTag);
+            tag.put(EQUIPMENT_TAG, equipment.save(registries, new CompoundTag()));
         }
         tag.putBoolean(BASEPLATE_ONLY_TAG, baseplateOnly);
         tag.putBoolean(TASK_FINISHED_TAG, taskFinished);
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     @Nullable
@@ -261,11 +257,12 @@ public class TileEntitySithStoneCoffin extends BlockEntity {
     @Override
     public void onDataPacket(
             Connection connection,
-            ClientboundBlockEntityDataPacket packet
+            ClientboundBlockEntityDataPacket packet,
+            HolderLookup.Provider registries
     ) {
         CompoundTag tag = packet.getTag();
-        if (tag != null) {
-            load(tag);
+        if (!tag.isEmpty()) {
+            loadWithComponents(tag, registries);
         }
     }
 }

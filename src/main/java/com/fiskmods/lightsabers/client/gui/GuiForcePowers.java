@@ -23,7 +23,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -133,7 +133,6 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
         renderPowerTooltip(guiGraphics, mouseX, mouseY);
@@ -269,14 +268,19 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (!isInsideTree(mouseX, mouseY) || delta == 0.0D) {
-            return super.mouseScrolled(mouseX, mouseY, delta);
+    public boolean mouseScrolled(
+            double mouseX,
+            double mouseY,
+            double scrollXAmount,
+            double scrollYAmount
+    ) {
+        if (!isInsideTree(mouseX, mouseY) || scrollYAmount == 0.0D) {
+            return super.mouseScrolled(mouseX, mouseY, scrollXAmount, scrollYAmount);
         }
 
         float previousZoom = zoom;
         zoom = Mth.clamp(
-                zoom - (float) Math.signum(delta) * ZOOM_STEP,
+                zoom - (float) Math.signum(scrollYAmount) * ZOOM_STEP,
                 MIN_ZOOM,
                 MAX_ZOOM
         );
@@ -502,7 +506,7 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
             };
             lines.add(Component.translatable(
                     translationKey,
-                    ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(stats.useCost)
+                    ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(stats.useCost)
             ).withStyle(ChatFormatting.GRAY));
         }
         if (stats.baseBonus != 0) {

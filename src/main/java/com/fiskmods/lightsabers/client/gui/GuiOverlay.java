@@ -15,9 +15,9 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import net.neoforged.bus.api.SubscribeEvent;
 
 import java.util.List;
 
@@ -40,8 +40,8 @@ public final class GuiOverlay {
     private static final float TEXT_CONSUME_SENSITIVITY = 0.05F;
 
     @SubscribeEvent
-    public void onRenderOverlayPost(RenderGuiOverlayEvent.Post event) {
-        if (event.getOverlay() != VanillaGuiOverlay.HOTBAR.type()) {
+    public void onRenderOverlayPost(RenderGuiLayerEvent.Post event) {
+        if (!event.getName().equals(VanillaGuiLayers.HOTBAR)) {
             return;
         }
 
@@ -52,9 +52,12 @@ public final class GuiOverlay {
         }
 
         GuiGraphics graphics = event.getGuiGraphics();
-        int width = event.getWindow().getGuiScaledWidth();
-        int height = event.getWindow().getGuiScaledHeight();
-        renderActiveEffects(player, event.getPartialTick());
+        int width = graphics.guiWidth();
+        int height = graphics.guiHeight();
+        renderActiveEffects(
+                player,
+                event.getPartialTick().getGameTimeDeltaPartialTick(true)
+        );
         renderForceBar(graphics, width, height, player);
         renderPowerSelector(graphics, width, height, player);
         renderStatusEffects(graphics, width, height, player);

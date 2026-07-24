@@ -6,6 +6,8 @@ import fiskfille.utils.DimensionalCoords;
 import fiskfille.utils.registry.FiskRegistryEntry;
 import fiskfille.utils.registry.FiskSimpleRegistry;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.ByteTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
@@ -19,6 +21,7 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
@@ -28,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 
 public final class NBTHelper {
+    private static final RegistryAccess.Frozen BUILT_IN_REGISTRIES =
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final Map<Class<? extends ISerializableObject<?>>, ISaveAdapter<?>> ADAPTERS =
             new HashMap<>();
 
@@ -77,7 +82,7 @@ public final class NBTHelper {
             return result;
         }
         if (obj instanceof ItemStack itemStack) {
-            return itemStack.save(new CompoundTag());
+            return itemStack.save(BUILT_IN_REGISTRIES, new CompoundTag());
         }
         if (obj instanceof DimensionalCoords coords) {
             CompoundTag tag = new CompoundTag();
@@ -125,7 +130,7 @@ public final class NBTHelper {
         }
         if (tag instanceof CompoundTag compoundTag) {
             if (type == ItemStack.class) {
-                return (T) ItemStack.of(compoundTag);
+                return (T) ItemStack.parseOptional(BUILT_IN_REGISTRIES, compoundTag);
             }
             if (type == DimensionalCoords.class) {
                 ResourceLocation dimension = compoundTag.contains("dimension", Tag.TAG_STRING)
@@ -180,7 +185,10 @@ public final class NBTHelper {
                 buffer.writeInt(values.size());
                 values.forEach(value -> toBytes(buffer, value));
             } else if (obj instanceof ItemStack itemStack) {
-                friendlyBuffer.writeItem(itemStack);
+                ItemStack.OPTIONAL_STREAM_CODEC.encode(
+                        registryBuffer(friendlyBuffer),
+                        itemStack
+                );
             } else if (obj instanceof DimensionalCoords coords) {
                 buffer.writeInt(coords.posX);
                 buffer.writeInt(coords.posY);
@@ -225,7 +233,9 @@ public final class NBTHelper {
             }
             return (T) values;
         }
-        if (type == ItemStack.class) return (T) friendlyBuffer.readItem();
+        if (type == ItemStack.class) {
+            return (T) ItemStack.OPTIONAL_STREAM_CODEC.decode(registryBuffer(friendlyBuffer));
+        }
         if (type == DimensionalCoords.class) {
             return (T) new DimensionalCoords(
                     buffer.readInt(),
@@ -278,6 +288,13 @@ public final class NBTHelper {
 
     private static FriendlyByteBuf friendly(ByteBuf buffer) {
         return buffer instanceof FriendlyByteBuf friendly ? friendly : new FriendlyByteBuf(buffer);
+    }
+
+    private static RegistryFriendlyByteBuf registryBuffer(FriendlyByteBuf buffer) {
+        if (buffer instanceof RegistryFriendlyByteBuf registryBuffer) {
+            return registryBuffer;
+        }
+        throw new IllegalArgumentException("ItemStack serialization requires registry-aware buffer");
     }
 
     public interface ISerializableObject<T extends ISerializableObject<T>> {

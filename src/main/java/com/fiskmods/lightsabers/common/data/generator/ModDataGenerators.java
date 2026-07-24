@@ -1,7 +1,7 @@
 package com.fiskmods.lightsabers.common.data.generator;
 
 import net.minecraft.data.DataGenerator;
-import net.minecraftforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 public final class ModDataGenerators {
     private ModDataGenerators() {

@@ -4,7 +4,7 @@ import com.fiskmods.lightsabers.client.sound.ALSounds;
 import com.fiskmods.lightsabers.common.force.ForceSide;
 import com.fiskmods.lightsabers.common.force.Power;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.fml.LogicalSide;
 
 import java.util.Random;
 

@@ -44,8 +44,7 @@ public final class EnergyBeamRenderer {
             Vec3 color,
             float alpha
     ) {
-        consumer.vertex(matrix, (float) position.x, (float) position.y, (float) position.z)
-                .color((float) color.x, (float) color.y, (float) color.z, alpha)
-                .endVertex();
+        consumer.addVertex(matrix, (float) position.x, (float) position.y, (float) position.z)
+                .setColor((float) color.x, (float) color.y, (float) color.z, alpha);
     }
 }

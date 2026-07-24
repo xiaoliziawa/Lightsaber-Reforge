@@ -31,6 +31,7 @@ import com.fiskmods.lightsabers.common.network.MessagePlayerJoin;
 import com.fiskmods.lightsabers.common.network.MessageUpdateEffects;
 import fiskfille.utils.helper.FiskServerUtils;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -43,22 +44,20 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.living.LivingFallEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.LogicalSide;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
 
 public final class CommonEventHandler {
     private static final int STATUS_DAMAGE_INTERVAL = 5;
@@ -66,23 +65,25 @@ public final class CommonEventHandler {
     private static final double SPINNING_DEFLECT_RADIUS = 1.25D;
     private static final double SPINNING_DEFLECT_MIN_SPEED = 1.0D;
 
-    private static final UUID STUN_SPEED_MODIFIER_ID = UUID.fromString(
-            "B2AB4DE3-8276-4B86-A448-230FA6FDC689"
-    );
-    private static final UUID FORCE_SPEED_MODIFIER_ID = UUID.fromString(
-            "A1AB4DE3-8276-4B86-A448-480FA6DDB389"
-    );
+    private static final ResourceLocation STUN_SPEED_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath(
+                    Lightsabers.MODID,
+                    "stun_movement_lock"
+            );
+    private static final ResourceLocation FORCE_SPEED_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath(
+                    Lightsabers.MODID,
+                    "force_speed_boost"
+            );
     private static final AttributeModifier STUN_SPEED_MODIFIER = new AttributeModifier(
             STUN_SPEED_MODIFIER_ID,
-            "Stun movement lock",
             -1.0D,
-            AttributeModifier.Operation.MULTIPLY_BASE
+            AttributeModifier.Operation.ADD_MULTIPLIED_BASE
     );
     private static final AttributeModifier FORCE_SPEED_MODIFIER = new AttributeModifier(
             FORCE_SPEED_MODIFIER_ID,
-            "Force speed boost",
             1.0D,
-            AttributeModifier.Operation.MULTIPLY_BASE
+            AttributeModifier.Operation.ADD_MULTIPLIED_BASE
     );
 
     @SubscribeEvent
@@ -126,26 +127,33 @@ public final class CommonEventHandler {
     }
 
     @SubscribeEvent
-    public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        Player player = event.player;
-        if (event.phase == TickEvent.Phase.END && event.side == LogicalSide.SERVER) {
+    public void onPlayerTickPre(EntityTickEvent.Pre event) {
+        if (!(event.getEntity() instanceof Player player) || !ALPlayerData.hasData(player)) {
+            return;
+        }
+        ALData.onUpdate(player);
+    }
+
+    @SubscribeEvent
+    public void onPlayerTickPost(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+        LogicalSide side = player.level().isClientSide ? LogicalSide.CLIENT : LogicalSide.SERVER;
+        if (side == LogicalSide.SERVER) {
             handleSpinningLightsaber(player);
         }
         if (!ALPlayerData.hasData(player)) {
             return;
         }
-        if (event.phase == TickEvent.Phase.START) {
-            ALData.onUpdate(player);
-            return;
-        }
 
         validateSelectedPowers(player);
-        updatePowerUsage(player, event.side);
+        updatePowerUsage(player, side);
         updateInterpolationTimers(player);
         updateDrain(player);
         updateChoke(player);
         updateArmTimers(player);
-        updateActivePowerTransition(player, event.side);
+        updateActivePowerTransition(player, side);
         updateExperienceRewards(player);
         ensureBasePowersUnlocked(player);
 
@@ -196,8 +204,11 @@ public final class CommonEventHandler {
     }
 
     @SubscribeEvent
-    public void onLivingTick(LivingEvent.LivingTickEvent event) {
-        LivingEntity entity = event.getEntity();
+    public void onLivingTick(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof LivingEntity entity)
+                || entity instanceof Player) {
+            return;
+        }
         if (!ALEntityData.hasData(entity)) {
             return;
         }
@@ -243,7 +254,7 @@ public final class CommonEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onLivingAttack(LivingAttackEvent event) {
+    public void onLivingAttack(LivingIncomingDamageEvent event) {
         if (event.getSource().getEntity() instanceof LivingEntity attacker
                 && StatusEffect.has(attacker, Effect.STUN)) {
             event.setCanceled(true);
@@ -251,7 +262,7 @@ public final class CommonEventHandler {
     }
 
     @SubscribeEvent
-    public void onLivingHurt(LivingHurtEvent event) {
+    public void onLivingHurt(LivingIncomingDamageEvent event) {
         LivingEntity entity = event.getEntity();
         if (event.getSource().getEntity() instanceof LivingEntity attacker) {
             StatusEffect meditation = StatusEffect.get(attacker, Effect.MEDITATION);
@@ -303,9 +314,9 @@ public final class CommonEventHandler {
     }
 
     @SubscribeEvent
-    public void onEntityItemPickup(EntityItemPickupEvent event) {
-        Player player = event.getEntity();
-        ItemStack crystalStack = event.getItem().getItem();
+    public void onEntityItemPickup(ItemEntityPickupEvent.Pre event) {
+        Player player = event.getPlayer();
+        ItemStack crystalStack = event.getItemEntity().getItem();
         if (crystalStack.isEmpty()
                 || !crystalStack.is(ModBlocks.LIGHTSABER_CRYSTAL_ITEM.get())) {
             return;

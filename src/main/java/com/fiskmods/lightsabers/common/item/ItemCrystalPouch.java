@@ -3,6 +3,7 @@ package com.fiskmods.lightsabers.common.item;
 import com.fiskmods.lightsabers.ALConstants;
 import com.fiskmods.lightsabers.common.container.ContainerCrystalPouch;
 import com.fiskmods.lightsabers.common.container.InventoryCrystalPouch;
+import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -17,7 +18,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 
 import java.util.List;
 import java.util.UUID;
@@ -46,8 +46,7 @@ public class ItemCrystalPouch extends Item {
         int itemSlot = player.getInventory().selected;
         getOrCreateUUID(stack);
         ServerPlayer serverPlayer = (ServerPlayer) player;
-        NetworkHooks.openScreen(
-                serverPlayer,
+        serverPlayer.openMenu(
                 new SimpleMenuProvider(
                         (containerId, playerInventory, menuPlayer) ->
                                 new ContainerCrystalPouch(
@@ -76,14 +75,9 @@ public class ItemCrystalPouch extends Item {
     }
 
     @Override
-    public Rarity getRarity(ItemStack stack) {
-        return ItemCrystal.rarityMap.get(ItemCrystal.get(stack));
-    }
-
-    @Override
     public void appendHoverText(
             ItemStack stack,
-            Level level,
+            Item.TooltipContext context,
             List<Component> tooltip,
             TooltipFlag flag
     ) {
@@ -96,11 +90,14 @@ public class ItemCrystalPouch extends Item {
     }
 
     public static UUID getUUID(ItemStack stack) {
-        if (!isPouch(stack) || !stack.hasTag()) {
+        if (!isPouch(stack)) {
             return NULL_UUID;
         }
 
-        CompoundTag tag = stack.getTag();
+        CompoundTag tag = ItemDataHelper.getCustomData(stack);
+        if (tag == null) {
+            return NULL_UUID;
+        }
         String value = tag.getString(ALConstants.TAG_POUCH_UUID);
         if (value.isEmpty()) {
             return NULL_UUID;
@@ -119,8 +116,11 @@ public class ItemCrystalPouch extends Item {
             return uuid;
         }
 
-        uuid = UUID.randomUUID();
-        stack.getOrCreateTag().putString(ALConstants.TAG_POUCH_UUID, uuid.toString());
-        return uuid;
+        UUID createdUuid = UUID.randomUUID();
+        ItemDataHelper.updateCustomData(
+                stack,
+                tag -> tag.putString(ALConstants.TAG_POUCH_UUID, createdUuid.toString())
+        );
+        return createdUuid;
     }
 }

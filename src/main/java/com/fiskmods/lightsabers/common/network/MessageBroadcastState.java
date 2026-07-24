@@ -4,15 +4,21 @@ import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.data.ALData;
 import com.fiskmods.lightsabers.common.data.effect.StatusEffect;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
-public final class MessageBroadcastState extends MessageSyncBase {
+public final class MessageBroadcastState extends MessageSyncBase implements ALPayload {
+    public static final CustomPacketPayload.Type<MessageBroadcastState> TYPE =
+            ALPayload.registerType(MessageBroadcastState.class, "broadcast_state");
+    public static final StreamCodec<FriendlyByteBuf, MessageBroadcastState> STREAM_CODEC =
+            StreamCodec.ofMember(MessageBroadcastState::encode, MessageBroadcastState::decode);
+
     private final int playerId;
 
     public MessageBroadcastState(Player player) {
@@ -46,7 +52,7 @@ public final class MessageBroadcastState extends MessageSyncBase {
 
     public static void handle(
             MessageBroadcastState message,
-            Supplier<NetworkEvent.Context> contextSupplier
+            IPayloadContext context
     ) {
         Player clientPlayer = Lightsabers.proxy.getPlayer();
         if (clientPlayer == null) {

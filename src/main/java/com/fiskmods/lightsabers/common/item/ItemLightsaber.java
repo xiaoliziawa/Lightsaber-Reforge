@@ -4,13 +4,17 @@ import com.fiskmods.lightsabers.ALConstants;
 import com.fiskmods.lightsabers.common.hilt.Hilt;
 import com.fiskmods.lightsabers.common.lightsaber.FocusingCrystal;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
+import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
@@ -40,7 +44,7 @@ public class ItemLightsaber extends ItemLightsaberBase {
     }
 
     @Override
-    public int getUseDuration(ItemStack stack) {
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
         return isSpinningLightsaber(stack) ? SPINNING_USE_DURATION : 0;
     }
 
@@ -51,25 +55,19 @@ public class ItemLightsaber extends ItemLightsaberBase {
 
     @Override
     public Component getName(ItemStack stack) {
-        if (stack.hasTag()
-                && stack.getTag().contains(ALConstants.TAG_LIGHTSABER_SPECIAL, Tag.TAG_STRING)) {
+        CompoundTag tag = ItemDataHelper.getCustomData(stack);
+        if (tag != null
+                && tag.contains(ALConstants.TAG_LIGHTSABER_SPECIAL, Tag.TAG_STRING)) {
             return Component.literal("FISHSTICKS!!").withStyle(ChatFormatting.LIGHT_PURPLE);
         }
         return super.getName(stack);
     }
 
     @Override
-    public Rarity getRarity(ItemStack stack) {
-        return stack.hasTag()
-                && stack.getTag().contains(ALConstants.TAG_LIGHTSABER_SPECIAL, Tag.TAG_STRING)
-                ? Rarity.RARE
-                : Rarity.COMMON;
-    }
-
-    @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
-        if (!level.isClientSide && stack.hasTag()
-                && stack.getTag().contains("Lightsaber", Tag.TAG_COMPOUND)) {
+        CompoundTag tag = ItemDataHelper.getCustomData(stack);
+        if (!level.isClientSide && tag != null
+                && tag.contains("Lightsaber", Tag.TAG_COMPOUND)) {
             LightsaberData.get(stack);
         }
     }
@@ -77,7 +75,7 @@ public class ItemLightsaber extends ItemLightsaberBase {
     @Override
     public void appendHoverText(
             ItemStack stack,
-            @Nullable Level level,
+            Item.TooltipContext context,
             List<Component> tooltip,
             TooltipFlag flag
     ) {

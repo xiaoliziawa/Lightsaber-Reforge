@@ -14,6 +14,8 @@ import com.fiskmods.lightsabers.common.item.ModItems;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
+import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
@@ -21,13 +23,18 @@ import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @JeiPlugin
 @OnlyIn(Dist.CLIENT)
@@ -62,53 +69,88 @@ public final class LightsabersJeiPlugin implements IModPlugin {
 
     @Override
     public void registerItemSubtypes(ISubtypeRegistration registration) {
-        registration.registerSubtypeInterpreter(
+        registerSubtype(
+                registration,
                 ModItems.LIGHTSABER.get(),
-                (stack, context) -> Long.toUnsignedString(LightsaberData.get(stack).hash)
+                stack -> Long.toUnsignedString(LightsaberData.get(stack).hash)
         );
-        registration.registerSubtypeInterpreter(
+        registerSubtype(
+                registration,
                 ModItems.DOUBLE_LIGHTSABER.get(),
-                (stack, context) -> {
+                stack -> {
                     LightsaberData[] data = ItemDoubleLightsaber.get(stack);
                     return Long.toUnsignedString(data[0].hash)
                             + ':' + Long.toUnsignedString(data[1].hash);
                 }
         );
-        registration.registerSubtypeInterpreter(
+        registerSubtype(
+                registration,
                 ModItems.FOCUSING_CRYSTAL.get(),
-                (stack, context) -> ItemFocusingCrystal.get(stack).name()
+                stack -> ItemFocusingCrystal.get(stack).name()
         );
-        registration.registerSubtypeInterpreter(
+        registerSubtype(
+                registration,
                 ModItems.EMITTER.get(),
-                (stack, context) -> Integer.toString(
+                stack -> Integer.toString(
                         Hilt.getIdFromHilt(ItemLightsaberPart.get(stack))
                 )
         );
-        registration.registerSubtypeInterpreter(
+        registerSubtype(
+                registration,
                 ModItems.SWITCH_SECTION.get(),
-                (stack, context) -> Integer.toString(
+                stack -> Integer.toString(
                         Hilt.getIdFromHilt(ItemLightsaberPart.get(stack))
                 )
         );
-        registration.registerSubtypeInterpreter(
+        registerSubtype(
+                registration,
                 ModItems.GRIP.get(),
-                (stack, context) -> Integer.toString(
+                stack -> Integer.toString(
                         Hilt.getIdFromHilt(ItemLightsaberPart.get(stack))
                 )
         );
-        registration.registerSubtypeInterpreter(
+        registerSubtype(
+                registration,
                 ModItems.POMMEL.get(),
-                (stack, context) -> Integer.toString(
+                stack -> Integer.toString(
                         Hilt.getIdFromHilt(ItemLightsaberPart.get(stack))
                 )
         );
-        registration.useNbtForSubtypes(
-                ModBlocks.LIGHTSABER_CRYSTAL_ITEM.get(),
-                ModItems.CRYSTAL_POUCH.get(),
-                ModBlocks.LIGHT_FORCESTONE_ITEM.get(),
-                ModBlocks.DARK_FORCESTONE_ITEM.get(),
-                ModBlocks.FORCESTONE_SLAB_ITEM.get()
+        registerCustomDataSubtype(registration, ModBlocks.LIGHTSABER_CRYSTAL_ITEM.get());
+        registerCustomDataSubtype(registration, ModItems.CRYSTAL_POUCH.get());
+        registerCustomDataSubtype(registration, ModBlocks.LIGHT_FORCESTONE_ITEM.get());
+        registerCustomDataSubtype(registration, ModBlocks.DARK_FORCESTONE_ITEM.get());
+        registerCustomDataSubtype(registration, ModBlocks.FORCESTONE_SLAB_ITEM.get());
+    }
+
+    private static void registerCustomDataSubtype(
+            ISubtypeRegistration registration,
+            Item item
+    ) {
+        registerSubtype(
+                registration,
+                item,
+                stack -> stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)
         );
+    }
+
+    private static void registerSubtype(
+            ISubtypeRegistration registration,
+            Item item,
+            Function<ItemStack, ?> subtypeData
+    ) {
+        registration.registerSubtypeInterpreter(item, new ISubtypeInterpreter<>() {
+            @Override
+            public Object getSubtypeData(ItemStack stack, UidContext context) {
+                return subtypeData.apply(stack);
+            }
+
+            @Override
+            public String getLegacyStringSubtypeInfo(ItemStack stack, UidContext context) {
+                Object data = subtypeData.apply(stack);
+                return data == null ? "" : data.toString();
+            }
+        });
     }
 
     @Override

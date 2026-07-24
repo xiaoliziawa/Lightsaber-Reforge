@@ -1,7 +1,7 @@
 package com.fiskmods.lightsabers.common.generator.worldgen;
 
 import com.fiskmods.lightsabers.common.generator.structure.EnumStructure;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -15,7 +15,7 @@ import net.minecraft.world.level.levelgen.structure.StructureType;
 import java.util.Optional;
 
 public final class LegacyDataStructure extends Structure {
-    public static final Codec<LegacyDataStructure> CODEC = RecordCodecBuilder.create(instance ->
+    public static final MapCodec<LegacyDataStructure> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
                     settingsCodec(instance),
                     EnumStructure.CODEC.fieldOf("structure").forGetter(

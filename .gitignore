@@ -21,7 +21,7 @@ build
 eclipse
 run
 saves/
-config/
+/config/
 options.txt
 usercache.json
 usernamecache.json

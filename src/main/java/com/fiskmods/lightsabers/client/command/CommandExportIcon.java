@@ -5,13 +5,13 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexSorting;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
@@ -22,10 +22,10 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.event.RegisterClientCommandsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fStack;
 
 import java.io.File;
 import java.util.Arrays;
@@ -105,7 +105,7 @@ public final class CommandExportIcon {
 
         Matrix4f previousProjection = RenderSystem.getProjectionMatrix();
         VertexSorting previousSorting = RenderSystem.getVertexSorting();
-        PoseStack modelView = RenderSystem.getModelViewStack();
+        Matrix4fStack modelView = RenderSystem.getModelViewStack();
 
         try {
             target.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
@@ -117,8 +117,8 @@ public final class CommandExportIcon {
             );
             RenderSystem.setProjectionMatrix(projection, VertexSorting.ORTHOGRAPHIC_Z);
 
-            modelView.pushPose();
-            modelView.setIdentity();
+            modelView.pushMatrix();
+            modelView.identity();
             modelView.translate(0.0F, 0.0F, GUI_NEAR_PLANE - GUI_FAR_PLANE);
             RenderSystem.applyModelViewMatrix();
             Lighting.setupFor3DItems();
@@ -141,7 +141,7 @@ public final class CommandExportIcon {
             image.downloadTexture(0, false);
             image.flipY();
         } finally {
-            modelView.popPose();
+            modelView.popMatrix();
             RenderSystem.applyModelViewMatrix();
             RenderSystem.setProjectionMatrix(previousProjection, previousSorting);
             target.unbindWrite();
@@ -173,7 +173,7 @@ public final class CommandExportIcon {
     }
 
     private static String fileName(ItemStack stack) {
-        ResourceLocation id = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         String base = id == null ? "item" : id.getNamespace() + "_" + id.getPath();
         return base + "_" + Util.getFilenameFormattedDateTime() + ".png";
     }

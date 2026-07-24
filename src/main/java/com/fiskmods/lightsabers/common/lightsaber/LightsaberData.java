@@ -8,6 +8,7 @@ import com.fiskmods.lightsabers.common.hilt.HiltManager;
 import com.fiskmods.lightsabers.common.item.ItemDoubleLightsaber;
 import com.fiskmods.lightsabers.common.item.ItemFocusingCrystal;
 import com.fiskmods.lightsabers.common.item.ModItems;
+import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import com.fiskmods.lightsabers.saberbuilder.AbstractLightsaberData;
 import fiskfille.utils.helper.FiskComparators;
 import fiskfille.utils.helper.NBTHelper.ISaveAdapter;
@@ -262,7 +263,10 @@ public class LightsaberData extends AbstractLightsaberData implements ISerializa
     public ItemStack create()
     {
         ItemStack itemstack = new ItemStack(ModItems.LIGHTSABER.get());
-        itemstack.getOrCreateTag().putLong(ALConstants.TAG_LIGHTSABER, strip().hash);
+        ItemDataHelper.updateCustomData(
+                itemstack,
+                tag -> tag.putLong(ALConstants.TAG_LIGHTSABER, strip().hash)
+        );
 
         return itemstack;
     }
@@ -359,9 +363,13 @@ public class LightsaberData extends AbstractLightsaberData implements ISerializa
      */
     public static LightsaberData get(ItemStack itemstack)
     {
-        if (itemstack != null && !itemstack.isEmpty() && itemstack.hasTag())
+        if (itemstack != null && !itemstack.isEmpty())
         {
-            return readFromNBT(itemstack.getTag());
+            CompoundTag tag = ItemDataHelper.getCustomData(itemstack);
+            if (tag != null)
+            {
+                return readFromNBT(tag);
+            }
         }
 
         return EMPTY;

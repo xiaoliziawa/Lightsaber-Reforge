@@ -2,6 +2,7 @@ package com.fiskmods.lightsabers.common.tileentity;
 
 import com.fiskmods.lightsabers.common.sound.ModSounds;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleTypes;
@@ -22,7 +23,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 public class TileEntitySithCoffin extends BlockEntity implements Container {
@@ -164,20 +164,6 @@ public class TileEntitySithCoffin extends BlockEntity implements Container {
     }
 
     @Override
-    public AABB getRenderBoundingBox() {
-        Direction facing = getBlockState().getValue(HorizontalDirectionalBlock.FACING);
-        BlockPos frontPos = worldPosition.relative(facing);
-        return new AABB(
-                Math.min(worldPosition.getX(), frontPos.getX()),
-                worldPosition.getY(),
-                Math.min(worldPosition.getZ(), frontPos.getZ()),
-                Math.max(worldPosition.getX(), frontPos.getX()) + 1.0D,
-                worldPosition.getY() + 1.0D,
-                Math.max(worldPosition.getZ(), frontPos.getZ()) + 1.0D
-        );
-    }
-
-    @Override
     public int getContainerSize() {
         return items.size();
     }
@@ -232,10 +218,10 @@ public class TileEntitySithCoffin extends BlockEntity implements Container {
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         items.clear();
-        ContainerHelper.loadAllItems(tag, items);
+        ContainerHelper.loadAllItems(tag, items, registries);
         hasBeenOpened = tag.getBoolean(HAS_BEEN_OPENED_TAG);
         lidOpen = tag.getBoolean(IS_LID_OPEN_TAG);
         lidOpenTimer = tag.getInt(LID_OPEN_TIMER_TAG);
@@ -243,17 +229,17 @@ public class TileEntitySithCoffin extends BlockEntity implements Container {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        ContainerHelper.saveAllItems(tag, items);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        ContainerHelper.saveAllItems(tag, items, registries);
         tag.putBoolean(HAS_BEEN_OPENED_TAG, hasBeenOpened);
         tag.putBoolean(IS_LID_OPEN_TAG, lidOpen);
         tag.putInt(LID_OPEN_TIMER_TAG, lidOpenTimer);
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     @Nullable
@@ -265,11 +251,12 @@ public class TileEntitySithCoffin extends BlockEntity implements Container {
     @Override
     public void onDataPacket(
             Connection connection,
-            ClientboundBlockEntityDataPacket packet
+            ClientboundBlockEntityDataPacket packet,
+            HolderLookup.Provider registries
     ) {
         CompoundTag tag = packet.getTag();
-        if (tag != null) {
-            load(tag);
+        if (!tag.isEmpty()) {
+            loadWithComponents(tag, registries);
         }
     }
 }

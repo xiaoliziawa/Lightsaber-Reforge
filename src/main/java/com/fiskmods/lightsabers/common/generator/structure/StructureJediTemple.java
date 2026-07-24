@@ -9,9 +9,9 @@ import com.fiskmods.lightsabers.common.block.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
-import net.minecraft.world.level.block.AbstractGlassBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.TransparentBlock;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.phys.Vec3;
 
@@ -35,7 +35,7 @@ public class StructureJediTemple extends Structure
             {
                 return;
             }
-            else if (block instanceof AbstractGlassBlock
+            else if (block instanceof TransparentBlock
                     && rand.nextFloat() * rand.nextFloat() <= ruination)
             {
                 return;

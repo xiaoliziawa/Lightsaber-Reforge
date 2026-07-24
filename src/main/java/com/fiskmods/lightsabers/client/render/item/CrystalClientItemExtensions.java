@@ -1,7 +1,7 @@
 package com.fiskmods.lightsabers.client.render.item;
 
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 public final class CrystalClientItemExtensions implements IClientItemExtensions {
     public static final CrystalClientItemExtensions INSTANCE =

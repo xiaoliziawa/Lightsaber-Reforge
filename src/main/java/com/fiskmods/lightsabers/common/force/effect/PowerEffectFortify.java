@@ -6,7 +6,7 @@ import com.fiskmods.lightsabers.common.data.effect.Effect;
 import com.fiskmods.lightsabers.common.force.PowerDesc;
 import com.fiskmods.lightsabers.common.force.PowerDesc.Unit;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.fml.LogicalSide;
 
 public class PowerEffectFortify extends PowerEffectStatus {
     public PowerEffectFortify(int amplifier) {

@@ -30,6 +30,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -204,7 +205,7 @@ public class Power implements Comparable<Power>, ISerializableObject<Power>
             description.append("\n")
                     .append(Component.translatable(
                             key,
-                            ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(powerStats.useCost)
+                            ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(powerStats.useCost)
                     ).withStyle(ChatFormatting.GRAY))
                     .append("\n");
         }

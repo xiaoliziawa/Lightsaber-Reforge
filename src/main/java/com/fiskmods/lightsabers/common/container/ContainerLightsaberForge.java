@@ -5,7 +5,9 @@ import com.fiskmods.lightsabers.common.block.ModBlocks;
 import com.fiskmods.lightsabers.common.item.ILightsaberComponent;
 import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
+import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
@@ -18,8 +20,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.event.EventHooks;
 
 import java.util.Objects;
 
@@ -74,11 +75,12 @@ public class ContainerLightsaberForge extends AbstractContainerMenu {
             resultStack = ItemLightsaberBase.setActive(resultData.create(), true);
             ItemStack specialStack = craftMatrix.getItem(5);
             if (!specialStack.isEmpty() && specialStack.is(ItemTags.FISHES)) {
-                resultStack.getOrCreateTag().putString(
-                        ALConstants.TAG_LIGHTSABER_SPECIAL,
-                        Objects.requireNonNull(
-                                ForgeRegistries.ITEMS.getKey(specialStack.getItem())
-                        ).toString()
+                String specialItem = Objects.requireNonNull(
+                        BuiltInRegistries.ITEM.getKey(specialStack.getItem())
+                ).toString();
+                ItemDataHelper.updateCustomData(
+                        resultStack,
+                        tag -> tag.putString(ALConstants.TAG_LIGHTSABER_SPECIAL, specialItem)
                 );
             }
         }
@@ -240,7 +242,7 @@ public class ContainerLightsaberForge extends AbstractContainerMenu {
             for (int otherSlot = 0; otherSlot < craftMatrix.getContainerSize(); otherSlot++) {
                 ItemStack existingStack = craftMatrix.getItem(otherSlot);
                 if (!existingStack.isEmpty()
-                        && ItemStack.isSameItemSameTags(existingStack, stack)) {
+                        && ItemStack.isSameItemSameComponents(existingStack, stack)) {
                     return false;
                 }
             }
@@ -268,7 +270,7 @@ public class ContainerLightsaberForge extends AbstractContainerMenu {
         public void onTake(Player player, ItemStack stack) {
             ItemLightsaberBase.setActive(stack, false);
             stack.onCraftedBy(level, player, 1);
-            ForgeEventFactory.firePlayerCraftingEvent(player, stack, craftMatrix);
+            EventHooks.firePlayerCraftingEvent(player, stack, craftMatrix);
             for (int slot = 0; slot < craftMatrix.getContainerSize(); slot++) {
                 if (!craftMatrix.getItem(slot).isEmpty()) {
                     craftMatrix.removeItem(slot, 1);

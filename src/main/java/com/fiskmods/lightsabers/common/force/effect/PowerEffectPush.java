@@ -10,7 +10,7 @@ import fiskfille.utils.helper.VectorHelper;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.fml.LogicalSide;
 
 public class PowerEffectPush extends PowerEffect {
     private static final double RANGE = 16.0D;

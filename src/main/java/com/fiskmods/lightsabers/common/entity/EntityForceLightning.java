@@ -31,8 +31,8 @@ public final class EntityForceLightning extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(CASTER_ID, -1);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(CASTER_ID, -1);
     }
 
     @Override

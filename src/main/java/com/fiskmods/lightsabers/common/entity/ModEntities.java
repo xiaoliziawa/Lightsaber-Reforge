@@ -1,19 +1,20 @@
 package com.fiskmods.lightsabers.common.entity;
 
+import java.util.function.Supplier;
+
 import com.fiskmods.lightsabers.Lightsabers;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class ModEntities {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
-            DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, Lightsabers.MODID);
+            DeferredRegister.create(Registries.ENTITY_TYPE, Lightsabers.MODID);
 
-    public static final RegistryObject<EntityType<EntityLightsaber>> LIGHTSABER = ENTITY_TYPES.register(
+    public static final Supplier<EntityType<EntityLightsaber>> LIGHTSABER = ENTITY_TYPES.register(
             "lightsaber",
             () -> EntityType.Builder.<EntityLightsaber>of(EntityLightsaber::new, MobCategory.MISC)
                     .sized(1.0F, 0.125F)
@@ -21,7 +22,7 @@ public final class ModEntities {
                     .updateInterval(1)
                     .build("lightsabers:lightsaber")
     );
-    public static final RegistryObject<EntityType<EntitySithGhost>> SITH_GHOST =
+    public static final Supplier<EntityType<EntitySithGhost>> SITH_GHOST =
             ENTITY_TYPES.register(
                     "sith_ghost",
                     () -> EntityType.Builder.of(EntitySithGhost::new, MobCategory.MONSTER)
@@ -30,7 +31,7 @@ public final class ModEntities {
                             .updateInterval(3)
                             .build("lightsabers:sith_ghost")
             );
-    public static final RegistryObject<EntityType<EntityForceLightning>> FORCE_LIGHTNING =
+    public static final Supplier<EntityType<EntityForceLightning>> FORCE_LIGHTNING =
             ENTITY_TYPES.register(
                     "force_lightning",
                     () -> EntityType.Builder.<EntityForceLightning>of(

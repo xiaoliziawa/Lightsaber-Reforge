@@ -16,9 +16,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 import org.joml.Matrix4f;
 
 public enum ClientForceEffectRenderer {
@@ -46,10 +46,7 @@ public enum ClientForceEffectRenderer {
     private static final double FIELD_ROTATION_SPEED = 0.035D;
 
     @SubscribeEvent
-    public void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
+    public void onClientTick(ClientTickEvent.Post event) {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) {
             return;
@@ -73,7 +70,7 @@ public enum ClientForceEffectRenderer {
             return;
         }
 
-        float partialTick = event.getPartialTick();
+        float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
         Vec3 camera = event.getCamera().getPosition();
         MultiBufferSource.BufferSource buffer = minecraft.renderBuffers().bufferSource();
         PoseStack poseStack = event.getPoseStack();

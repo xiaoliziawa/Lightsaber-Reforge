@@ -4,16 +4,22 @@ import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.data.ALEntityData;
 import com.fiskmods.lightsabers.common.data.effect.StatusEffect;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
-public final class MessageUpdateEffects {
+public final class MessageUpdateEffects implements ALPayload {
+    public static final CustomPacketPayload.Type<MessageUpdateEffects> TYPE =
+            ALPayload.registerType(MessageUpdateEffects.class, "update_effects");
+    public static final StreamCodec<FriendlyByteBuf, MessageUpdateEffects> STREAM_CODEC =
+            StreamCodec.ofMember(MessageUpdateEffects::encode, MessageUpdateEffects::decode);
+
     private final int entityId;
     private final List<StatusEffect> activeEffects;
 
@@ -48,7 +54,7 @@ public final class MessageUpdateEffects {
         return new MessageUpdateEffects(entityId, effects);
     }
 
-    public static void handle(MessageUpdateEffects message, Supplier<NetworkEvent.Context> contextSupplier) {
+    public static void handle(MessageUpdateEffects message, IPayloadContext context) {
         Player player = Lightsabers.proxy.getPlayer();
         if (player == null) {
             return;

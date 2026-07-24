@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.phys.AABB;
 
 public class RenderSithCoffin implements BlockEntityRenderer<TileEntitySithCoffin> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
@@ -24,6 +25,21 @@ public class RenderSithCoffin implements BlockEntityRenderer<TileEntitySithCoffi
 
     public RenderSithCoffin(BlockEntityRendererProvider.Context context) {
         model = new ModelSithCoffin(context.bakeLayer(ModelSithCoffin.LAYER));
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(TileEntitySithCoffin coffin) {
+        Direction facing = coffin.getBlockState().getValue(HorizontalDirectionalBlock.FACING);
+        var pos = coffin.getBlockPos();
+        var frontPos = pos.relative(facing);
+        return new AABB(
+                Math.min(pos.getX(), frontPos.getX()),
+                pos.getY(),
+                Math.min(pos.getZ(), frontPos.getZ()),
+                Math.max(pos.getX(), frontPos.getX()) + 1.0D,
+                pos.getY() + 1.0D,
+                Math.max(pos.getZ(), frontPos.getZ()) + 1.0D
+        );
     }
 
     @Override

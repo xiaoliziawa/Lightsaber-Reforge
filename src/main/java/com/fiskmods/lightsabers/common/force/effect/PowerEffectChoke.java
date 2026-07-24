@@ -8,7 +8,7 @@ import com.fiskmods.lightsabers.common.force.PowerDesc.Unit;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.fml.LogicalSide;
 
 public class PowerEffectChoke extends PowerEffect {
     public static final int DURATION = 60;

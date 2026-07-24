@@ -1,5 +1,5 @@
 {
-  "loader": "forge:obj",
+  "loader": "neoforge:obj",
   "model": "lightsabers:models/item/spinning/outer.obj",
   "automatic_culling": false,
   "shade_quads": false,

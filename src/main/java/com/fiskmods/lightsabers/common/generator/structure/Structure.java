@@ -204,7 +204,7 @@ public abstract class Structure {
                 Block.UPDATE_CLIENTS
         );
         if (worldObj.getBlockEntity(pos) instanceof Container container) {
-            ModChestGen.fill(container, category, random);
+            ModChestGen.fill(container, category, random, worldObj.registryAccess());
             container.setChanged();
         }
         return true;
@@ -229,7 +229,7 @@ public abstract class Structure {
             return false;
         }
         if (worldObj.getBlockEntity(pos) instanceof Container container) {
-            ModChestGen.fill(container, category, random);
+            ModChestGen.fill(container, category, random, worldObj.registryAccess());
             container.setChanged();
         }
         return true;

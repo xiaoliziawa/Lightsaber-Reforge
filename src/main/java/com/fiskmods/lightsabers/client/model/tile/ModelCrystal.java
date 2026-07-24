@@ -11,6 +11,7 @@ import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 
 public final class ModelCrystal {
     public static final ModelLayerLocation LAYER = new ModelLayerLocation(
@@ -129,10 +130,7 @@ public final class ModelCrystal {
                 consumer,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                FastColor.ARGB32.colorFromFloat(alpha, red, green, blue)
         );
     }
 }

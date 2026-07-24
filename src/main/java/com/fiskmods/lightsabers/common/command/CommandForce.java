@@ -31,8 +31,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.commands.PlaceCommand;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.Structure;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 import java.util.Arrays;
 import java.util.List;

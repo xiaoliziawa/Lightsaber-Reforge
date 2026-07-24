@@ -8,7 +8,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.IItemDecorator;
+import net.neoforged.neoforge.client.IItemDecorator;
 import org.joml.Matrix4f;
 
 public class LightsaberItemDecorator implements IItemDecorator {
@@ -94,8 +94,7 @@ public class LightsaberItemDecorator implements IItemDecorator {
             float y,
             float[] rgb
     ) {
-        consumer.vertex(matrix, x, y, 0.0F)
-                .color(rgb[0], rgb[1], rgb[2], 1.0F)
-                .endVertex();
+        consumer.addVertex(matrix, x, y, 0.0F)
+                .setColor(rgb[0], rgb[1], rgb[2], 1.0F);
     }
 }

@@ -10,7 +10,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.fml.LogicalSide;
 
 public class PowerEffectLightning extends PowerEffectStatus {
     private static final double TARGET_RANGE = 7.0D;

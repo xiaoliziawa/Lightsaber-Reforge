@@ -1,5 +1,7 @@
 package com.fiskmods.lightsabers.common.block;
 
+import java.util.function.Supplier;
+
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.item.ItemForcestone;
 import com.fiskmods.lightsabers.common.item.ItemForcestoneSlab;
@@ -12,6 +14,7 @@ import com.fiskmods.lightsabers.common.item.ItemDisassemblyTable;
 import com.fiskmods.lightsabers.common.item.ItemSithCoffin;
 import com.fiskmods.lightsabers.common.item.ItemSithStoneCoffin;
 import com.fiskmods.lightsabers.common.item.ModItems;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -19,11 +22,9 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class ModBlocks {
     private static final int FULL_LIGHT_LEVEL = 15;
@@ -44,13 +45,13 @@ public final class ModBlocks {
     private static final float CRYSTAL_DISPLAY_STAND_EXPLOSION_RESISTANCE = 6.0F;
 
     public static final DeferredRegister<Block> BLOCKS =
-            DeferredRegister.create(ForgeRegistries.BLOCKS, Lightsabers.MODID);
+            DeferredRegister.create(Registries.BLOCK, Lightsabers.MODID);
 
-    public static final RegistryObject<BlockForcestone> LIGHT_FORCESTONE = BLOCKS.register(
+    public static final Supplier<BlockForcestone> LIGHT_FORCESTONE = BLOCKS.register(
             "light_forcestone",
             () -> new BlockForcestone(forcestoneProperties())
     );
-    public static final RegistryObject<BlockCrystal> LIGHTSABER_CRYSTAL = BLOCKS.register(
+    public static final Supplier<BlockCrystal> LIGHTSABER_CRYSTAL = BLOCKS.register(
             "lightsaber_crystal",
             () -> new BlockCrystal(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_LIGHT_BLUE)
@@ -62,7 +63,7 @@ public final class ModBlocks {
                     .noOcclusion()
                     .noLootTable())
     );
-    public static final RegistryObject<BlockLightsaberStand> LIGHTSABER_STAND = BLOCKS.register(
+    public static final Supplier<BlockLightsaberStand> LIGHTSABER_STAND = BLOCKS.register(
             "lightsaber_stand",
             () -> new BlockLightsaberStand(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
@@ -74,7 +75,7 @@ public final class ModBlocks {
                     .requiresCorrectToolForDrops()
                     .noOcclusion())
     );
-    public static final RegistryObject<BlockCrystalDisplayStand> CRYSTAL_DISPLAY_STAND =
+    public static final Supplier<BlockCrystalDisplayStand> CRYSTAL_DISPLAY_STAND =
             BLOCKS.register(
                     "crystal_display_stand",
                     () -> new BlockCrystalDisplayStand(BlockBehaviour.Properties.of()
@@ -87,12 +88,12 @@ public final class ModBlocks {
                             .requiresCorrectToolForDrops()
                             .noOcclusion())
             );
-    public static final RegistryObject<BlockLightsaberForge> LIGHTSABER_FORGE =
+    public static final Supplier<BlockLightsaberForge> LIGHTSABER_FORGE =
             BLOCKS.register(
                     "lightsaber_forge",
                     () -> new BlockLightsaberForge(lightsaberForgeProperties())
             );
-    public static final RegistryObject<BlockDisassemblyStation> DISASSEMBLY_STATION =
+    public static final Supplier<BlockDisassemblyStation> DISASSEMBLY_STATION =
             BLOCKS.register(
                     "disassembly_station",
                     () -> new BlockDisassemblyStation(BlockBehaviour.Properties.of()
@@ -106,126 +107,126 @@ public final class ModBlocks {
                             .pushReaction(PushReaction.BLOCK)
                             .noOcclusion())
             );
-    public static final RegistryObject<BlockHolocron> JEDI_HOLOCRON = BLOCKS.register(
+    public static final Supplier<BlockHolocron> JEDI_HOLOCRON = BLOCKS.register(
             "jedi_holocron",
             () -> new BlockHolocron(
                     holocronProperties(MapColor.COLOR_LIGHT_BLUE),
                     HolocronType.JEDI
             )
     );
-    public static final RegistryObject<BlockHolocron> HOLOCRON = BLOCKS.register(
+    public static final Supplier<BlockHolocron> HOLOCRON = BLOCKS.register(
             "holocron",
             () -> new BlockHolocron(
                     holocronProperties(MapColor.COLOR_PURPLE),
                     HolocronType.SITH
             )
     );
-    public static final RegistryObject<BlockSithCoffin> SITH_COFFIN = BLOCKS.register(
+    public static final Supplier<BlockSithCoffin> SITH_COFFIN = BLOCKS.register(
             "sith_coffin",
             () -> new BlockSithCoffin(coffinProperties(MapColor.COLOR_BLACK))
     );
-    public static final RegistryObject<BlockSithStoneCoffin> SITH_STONE_COFFIN =
+    public static final Supplier<BlockSithStoneCoffin> SITH_STONE_COFFIN =
             BLOCKS.register(
                     "sith_stone_coffin",
                     () -> new BlockSithStoneCoffin(coffinProperties(MapColor.TERRACOTTA_BLACK))
             );
-    public static final RegistryObject<BlockForcestone> DARK_FORCESTONE = BLOCKS.register(
+    public static final Supplier<BlockForcestone> DARK_FORCESTONE = BLOCKS.register(
             "dark_forcestone",
             () -> new BlockForcestone(forcestoneProperties())
     );
-    public static final RegistryObject<BlockPillar> LIGHT_ACTIVATED_FORCESTONE = BLOCKS.register(
+    public static final Supplier<BlockPillar> LIGHT_ACTIVATED_FORCESTONE = BLOCKS.register(
             "light_activated_forcestone_pillar",
             () -> new BlockPillar(forcestoneProperties().lightLevel(state -> FULL_LIGHT_LEVEL))
     );
-    public static final RegistryObject<BlockPillar> DARK_ACTIVATED_FORCESTONE = BLOCKS.register(
+    public static final Supplier<BlockPillar> DARK_ACTIVATED_FORCESTONE = BLOCKS.register(
             "dark_activated_forcestone_pillar",
             () -> new BlockPillar(forcestoneProperties().lightLevel(state -> FULL_LIGHT_LEVEL))
     );
-    public static final RegistryObject<BlockModStairs> LIGHT_FORCESTONE_STAIRS = BLOCKS.register(
+    public static final Supplier<BlockModStairs> LIGHT_FORCESTONE_STAIRS = BLOCKS.register(
             "light_forcestone_stairs",
             () -> new BlockModStairs(
-                    () -> LIGHT_FORCESTONE.get().defaultBlockState(),
+                    LIGHT_FORCESTONE.get().defaultBlockState(),
                     forcestoneProperties()
             )
     );
-    public static final RegistryObject<BlockModStairs> DARK_FORCESTONE_STAIRS = BLOCKS.register(
+    public static final Supplier<BlockModStairs> DARK_FORCESTONE_STAIRS = BLOCKS.register(
             "dark_forcestone_stairs",
             () -> new BlockModStairs(
-                    () -> DARK_FORCESTONE.get().defaultBlockState(),
+                    DARK_FORCESTONE.get().defaultBlockState(),
                     forcestoneProperties()
             )
     );
-    public static final RegistryObject<BlockModSlab> FORCESTONE_SLAB = BLOCKS.register(
+    public static final Supplier<BlockModSlab> FORCESTONE_SLAB = BLOCKS.register(
             "forcestone_slab",
             () -> new BlockModSlab(forcestoneProperties())
     );
 
-    public static final RegistryObject<ItemForcestone> LIGHT_FORCESTONE_ITEM =
+    public static final Supplier<ItemForcestone> LIGHT_FORCESTONE_ITEM =
             ModItems.ITEMS.register(
                     "light_forcestone",
                     () -> new ItemForcestone(LIGHT_FORCESTONE.get())
             );
-    public static final RegistryObject<ItemCrystal> LIGHTSABER_CRYSTAL_ITEM =
+    public static final Supplier<ItemCrystal> LIGHTSABER_CRYSTAL_ITEM =
             ModItems.ITEMS.register(
                     "lightsaber_crystal",
                     ItemCrystal::new
             );
-    public static final RegistryObject<ItemCrystalBlock> LIGHTSABER_CRYSTAL_BLOCK_ITEM =
+    public static final Supplier<ItemCrystalBlock> LIGHTSABER_CRYSTAL_BLOCK_ITEM =
             ModItems.ITEMS.register(
                     "lightsaber_crystal_block",
                     () -> new ItemCrystalBlock(LIGHTSABER_CRYSTAL.get())
             );
-    public static final RegistryObject<ItemLightsaberStand> LIGHTSABER_STAND_ITEM =
+    public static final Supplier<ItemLightsaberStand> LIGHTSABER_STAND_ITEM =
             ModItems.ITEMS.register(
                     "lightsaber_stand",
                     () -> new ItemLightsaberStand(LIGHTSABER_STAND.get())
             );
-    public static final RegistryObject<BlockItem> CRYSTAL_DISPLAY_STAND_ITEM =
+    public static final Supplier<BlockItem> CRYSTAL_DISPLAY_STAND_ITEM =
             registerBlockItem("crystal_display_stand", CRYSTAL_DISPLAY_STAND);
-    public static final RegistryObject<ItemLightsaberForge> LIGHTSABER_FORGE_ITEM =
+    public static final Supplier<ItemLightsaberForge> LIGHTSABER_FORGE_ITEM =
             ModItems.ITEMS.register(
                     "lightsaber_forge",
                     () -> new ItemLightsaberForge(LIGHTSABER_FORGE.get())
             );
-    public static final RegistryObject<ItemDisassemblyTable> DISASSEMBLY_STATION_ITEM =
+    public static final Supplier<ItemDisassemblyTable> DISASSEMBLY_STATION_ITEM =
             ModItems.ITEMS.register(
                     "disassembly_station",
                     () -> new ItemDisassemblyTable(DISASSEMBLY_STATION.get())
             );
-    public static final RegistryObject<ItemHolocron> JEDI_HOLOCRON_ITEM =
+    public static final Supplier<ItemHolocron> JEDI_HOLOCRON_ITEM =
             ModItems.ITEMS.register(
                     "jedi_holocron",
                     () -> new ItemHolocron(JEDI_HOLOCRON.get())
             );
-    public static final RegistryObject<ItemHolocron> HOLOCRON_ITEM =
+    public static final Supplier<ItemHolocron> HOLOCRON_ITEM =
             ModItems.ITEMS.register(
                     "holocron",
                     () -> new ItemHolocron(HOLOCRON.get())
             );
-    public static final RegistryObject<ItemSithCoffin> SITH_COFFIN_ITEM =
+    public static final Supplier<ItemSithCoffin> SITH_COFFIN_ITEM =
             ModItems.ITEMS.register(
                     "sith_coffin",
                     () -> new ItemSithCoffin(SITH_COFFIN.get())
             );
-    public static final RegistryObject<ItemSithStoneCoffin> SITH_STONE_COFFIN_ITEM =
+    public static final Supplier<ItemSithStoneCoffin> SITH_STONE_COFFIN_ITEM =
             ModItems.ITEMS.register(
                     "sith_stone_coffin",
                     () -> new ItemSithStoneCoffin(SITH_STONE_COFFIN.get())
             );
-    public static final RegistryObject<ItemForcestone> DARK_FORCESTONE_ITEM =
+    public static final Supplier<ItemForcestone> DARK_FORCESTONE_ITEM =
             ModItems.ITEMS.register(
                     "dark_forcestone",
                     () -> new ItemForcestone(DARK_FORCESTONE.get())
             );
-    public static final RegistryObject<BlockItem> LIGHT_ACTIVATED_FORCESTONE_ITEM =
+    public static final Supplier<BlockItem> LIGHT_ACTIVATED_FORCESTONE_ITEM =
             registerBlockItem("light_activated_forcestone_pillar", LIGHT_ACTIVATED_FORCESTONE);
-    public static final RegistryObject<BlockItem> DARK_ACTIVATED_FORCESTONE_ITEM =
+    public static final Supplier<BlockItem> DARK_ACTIVATED_FORCESTONE_ITEM =
             registerBlockItem("dark_activated_forcestone_pillar", DARK_ACTIVATED_FORCESTONE);
-    public static final RegistryObject<BlockItem> LIGHT_FORCESTONE_STAIRS_ITEM =
+    public static final Supplier<BlockItem> LIGHT_FORCESTONE_STAIRS_ITEM =
             registerBlockItem("light_forcestone_stairs", LIGHT_FORCESTONE_STAIRS);
-    public static final RegistryObject<BlockItem> DARK_FORCESTONE_STAIRS_ITEM =
+    public static final Supplier<BlockItem> DARK_FORCESTONE_STAIRS_ITEM =
             registerBlockItem("dark_forcestone_stairs", DARK_FORCESTONE_STAIRS);
-    public static final RegistryObject<ItemForcestoneSlab> FORCESTONE_SLAB_ITEM =
+    public static final Supplier<ItemForcestoneSlab> FORCESTONE_SLAB_ITEM =
             ModItems.ITEMS.register(
                     "forcestone_slab",
                     () -> new ItemForcestoneSlab(FORCESTONE_SLAB.get())
@@ -291,9 +292,9 @@ public final class ModBlocks {
                 .noLootTable();
     }
 
-    private static <T extends Block> RegistryObject<BlockItem> registerBlockItem(
+    private static <T extends Block> Supplier<BlockItem> registerBlockItem(
             String name,
-            RegistryObject<T> block
+            Supplier<T> block
     ) {
         return ModItems.ITEMS.register(
                 name,

@@ -103,7 +103,7 @@ public class Effect extends FiskRegistryEntry<Effect>
             return "**:**";
         }
 
-        return StringUtil.formatTickDuration(effect.duration);
+        return StringUtil.formatTickDuration(effect.duration, 20.0F);
     }
 
     public Power getPower(int i)

@@ -1,13 +1,9 @@
 package com.fiskmods.lightsabers.common.item;
 
-import com.fiskmods.lightsabers.client.render.item.HolocronClientItemExtensions;
 import com.fiskmods.lightsabers.common.block.BlockHolocron;
 import com.fiskmods.lightsabers.common.block.HolocronType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-
-import java.util.function.Consumer;
 
 public final class ItemHolocron extends BlockItem {
     private final HolocronType type;
@@ -21,8 +17,4 @@ public final class ItemHolocron extends BlockItem {
         return type;
     }
 
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(HolocronClientItemExtensions.INSTANCE);
-    }
 }

@@ -10,7 +10,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -98,7 +98,7 @@ public final class GuiSelectPowers extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics);
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.blit(
                 BACKGROUND,
                 leftPos,
@@ -135,7 +135,16 @@ public final class GuiSelectPowers extends Screen {
         if (grabbedPower != null) {
             drawPower(guiGraphics, grabbedPower, mouseX - 8, mouseY - 8);
         }
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+    }
+
+    @Override
+    public void renderBackground(
+            GuiGraphics guiGraphics,
+            int mouseX,
+            int mouseY,
+            float partialTick
+    ) {
+        renderTransparentBackground(guiGraphics);
     }
 
     @Override
@@ -276,7 +285,7 @@ public final class GuiSelectPowers extends Screen {
             };
             Component useCost = Component.translatable(
                     translationKey,
-                    ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(power.powerStats.useCost)
+                    ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(power.powerStats.useCost)
             );
             textY = drawWrappedDetailsLine(
                     guiGraphics,

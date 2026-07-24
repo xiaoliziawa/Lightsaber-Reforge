@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public final class CrystalRenderHelper {
     private static final ResourceLocation WHITE_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath("forge", "textures/white.png");
+            ResourceLocation.fromNamespaceAndPath("neoforge", "textures/white.png");
     private static final RenderType RENDER_TYPE =
             RenderType.entityTranslucentEmissive(WHITE_TEXTURE);
 

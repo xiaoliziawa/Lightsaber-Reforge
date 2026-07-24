@@ -2,12 +2,17 @@ package com.fiskmods.lightsabers.common.network;
 
 import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public record MessageToggleLightsaber(boolean active) implements ALPayload {
+    public static final CustomPacketPayload.Type<MessageToggleLightsaber> TYPE =
+            ALPayload.registerType(MessageToggleLightsaber.class, "toggle_lightsaber");
+    public static final StreamCodec<FriendlyByteBuf, MessageToggleLightsaber> STREAM_CODEC =
+            StreamCodec.ofMember(MessageToggleLightsaber::encode, MessageToggleLightsaber::decode);
 
-public record MessageToggleLightsaber(boolean active) {
     public static void encode(MessageToggleLightsaber message, FriendlyByteBuf buffer) {
         buffer.writeBoolean(message.active);
     }
@@ -18,10 +23,9 @@ public record MessageToggleLightsaber(boolean active) {
 
     public static void handle(
             MessageToggleLightsaber message,
-            Supplier<NetworkEvent.Context> contextSupplier
+            IPayloadContext context
     ) {
-        ServerPlayer sender = contextSupplier.get().getSender();
-        if (sender != null) {
+        if (context.player() instanceof ServerPlayer sender) {
             ItemLightsaberBase.ignite(sender, message.active);
         }
     }

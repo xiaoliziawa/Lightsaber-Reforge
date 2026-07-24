@@ -13,17 +13,18 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 
 public final class HolocronObjRenderer {
-    private static final ResourceLocation SITH_BOTTOM_MODEL = model("sith_bottom");
-    private static final ResourceLocation SITH_SIDE_MODEL = model("sith_side");
-    private static final ResourceLocation JEDI_FACE_MODEL = model("jedi_face");
-    private static final ResourceLocation JEDI_FRAME_MODEL = model("jedi_frame");
-    private static final ResourceLocation JEDI_CORNER_MODEL = model("jedi_corner");
+    private static final ModelResourceLocation SITH_BOTTOM_MODEL = model("sith_bottom");
+    private static final ModelResourceLocation SITH_SIDE_MODEL = model("sith_side");
+    private static final ModelResourceLocation JEDI_FACE_MODEL = model("jedi_face");
+    private static final ModelResourceLocation JEDI_FRAME_MODEL = model("jedi_frame");
+    private static final ModelResourceLocation JEDI_CORNER_MODEL = model("jedi_corner");
     private static final ResourceLocation SITH_ITEM_TEXTURE = texture("sith_holocron");
     private static final ResourceLocation JEDI_ITEM_TEXTURE = texture("jedi_holocron");
     private static final RenderType MODEL_RENDER_TYPE = RenderType.entityTranslucent(
@@ -229,20 +230,19 @@ public final class HolocronObjRenderer {
             float v,
             int packedOverlay
     ) {
-        consumer.vertex(pose.pose(), x, y, z)
-                .color(255, 255, 255, 255)
-                .uv(u, v)
-                .overlayCoords(packedOverlay)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(pose.normal(), 0, 0, 1)
-                .endVertex();
+        consumer.addVertex(pose.pose(), x, y, z)
+                .setColor(255, 255, 255, 255)
+                .setUv(u, v)
+                .setOverlay(packedOverlay)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(pose, 0, 0, 1);
     }
 
-    private static ResourceLocation model(String name) {
-        return ResourceLocation.fromNamespaceAndPath(
+    private static ModelResourceLocation model(String name) {
+        return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(
                 Lightsabers.MODID,
                 "block/holocron/" + name
-        );
+        ));
     }
 
     private static ResourceLocation texture(String name) {

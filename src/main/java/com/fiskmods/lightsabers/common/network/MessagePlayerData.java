@@ -4,15 +4,20 @@ import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.data.ALData;
 import fiskfille.utils.helper.NBTHelper;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.fml.LogicalSide;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public final class MessagePlayerData implements ALPayload {
+    public static final CustomPacketPayload.Type<MessagePlayerData> TYPE =
+            ALPayload.registerType(MessagePlayerData.class, "player_data");
+    public static final StreamCodec<FriendlyByteBuf, MessagePlayerData> STREAM_CODEC =
+            StreamCodec.ofMember(MessagePlayerData::encode, MessagePlayerData::decode);
 
-public final class MessagePlayerData {
     private final int playerId;
     private final ALData<?> type;
     private final Object value;
@@ -42,9 +47,10 @@ public final class MessagePlayerData {
         return new MessagePlayerData(playerId, type, NBTHelper.fromBytes(buffer, type.typeClass));
     }
 
-    public static void handle(MessagePlayerData message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        LogicalSide senderSide = context.getDirection().getOriginationSide();
+    public static void handle(MessagePlayerData message, IPayloadContext context) {
+        LogicalSide senderSide = context.flow().isServerbound()
+                ? LogicalSide.CLIENT
+                : LogicalSide.SERVER;
         Player player = senderSide == LogicalSide.CLIENT
                 ? getServerPlayer(message, context)
                 : getClientPlayer(message);
@@ -62,16 +68,16 @@ public final class MessagePlayerData {
             return;
         }
 
-        if (context.getDirection().getReceptionSide() == LogicalSide.CLIENT) {
+        if (context.flow().isClientbound()) {
             setWithoutNotify(message.type, player, message.value);
         } else {
             setAndSync(message.type, player, message.value);
         }
     }
 
-    private static Player getServerPlayer(MessagePlayerData message, NetworkEvent.Context context) {
-        ServerPlayer sender = context.getSender();
-        if (sender == null || sender.getId() != message.playerId) {
+    private static Player getServerPlayer(MessagePlayerData message, IPayloadContext context) {
+        if (!(context.player() instanceof ServerPlayer sender)
+                || sender.getId() != message.playerId) {
             Lightsabers.LOGGER.warn("Rejected player data packet with mismatched sender entity id");
             return null;
         }

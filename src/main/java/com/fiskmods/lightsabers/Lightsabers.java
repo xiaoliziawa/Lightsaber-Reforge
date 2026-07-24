@@ -7,6 +7,7 @@ import com.fiskmods.lightsabers.common.container.ModMenus;
 import com.fiskmods.lightsabers.common.data.ALData;
 import com.fiskmods.lightsabers.common.data.ALEntityData;
 import com.fiskmods.lightsabers.common.data.ALPlayerData;
+import com.fiskmods.lightsabers.common.data.ModAttachments;
 import com.fiskmods.lightsabers.common.data.generator.ModDataGenerators;
 import com.fiskmods.lightsabers.common.data.effect.Effect;
 import com.fiskmods.lightsabers.common.entity.ModEntities;
@@ -28,14 +29,13 @@ import com.fiskmods.lightsabers.common.sound.ModSounds;
 import com.fiskmods.lightsabers.common.tileentity.ModBlockEntities;
 import com.mojang.logging.LogUtils;
 import fiskfille.utils.helper.NBTHelper;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig.Type;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig.Type;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.slf4j.Logger;
 
 @Mod(Lightsabers.MODID)
@@ -44,18 +44,16 @@ public final class Lightsabers {
     public static final String MODID = "lightsabers";
     public static final String VERSION = "1.2.2";
     public static final Logger LOGGER = LogUtils.getLogger();
-    public static final CommonProxy proxy = DistExecutor.unsafeRunForDist(
-            () -> ClientProxy::new,
-            () -> CommonProxy::new
-    );
+    public static CommonProxy proxy;
 
     public static Lightsabers instance;
     public static boolean isBattlegearLoaded;
     public static boolean isDynamicLightsLoaded;
     public static boolean isEpicFightLoaded;
 
-    public Lightsabers() {
+    public Lightsabers(IEventBus modEventBus, ModContainer modContainer) {
         instance = this;
+        proxy = FMLEnvironment.dist.isClient() ? new ClientProxy() : new CommonProxy();
         isBattlegearLoaded = false;
         isDynamicLightsLoaded = ModList.get().isLoaded(ALConstants.DYNAMIC_LIGHTS);
         isEpicFightLoaded = ModList.get().isLoaded(ALConstants.EPIC_FIGHT);
@@ -67,10 +65,10 @@ public final class Lightsabers {
         NBTHelper.registerAdapter(Power.class, Power.Adapter.class);
         NBTHelper.registerAdapter(PowerData.class, PowerData.Adapter.class);
         NBTHelper.registerAdapter(PowerData.Container.class, PowerData.Container.Adapter.class);
-        ALNetworkManager.register();
+        ALNetworkManager.register(modEventBus);
 
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         ModEntities.register(modEventBus);
+        ModAttachments.register(modEventBus);
         ModBlocks.register(modEventBus);
         ModBlockEntities.register(modEventBus);
         ModItems.register(modEventBus);
@@ -83,15 +81,12 @@ public final class Lightsabers {
             EpicFightIntegration.register(modEventBus);
         }
         modEventBus.addListener(ModDataGenerators::gatherData);
-        ModLoadingContext.get().registerConfig(Type.CLIENT, ModConfig.SPEC);
+        modContainer.registerConfig(Type.CLIENT, ModConfig.SPEC);
         proxy.registerModEvents(modEventBus);
-        MinecraftForge.EVENT_BUS.register(new ALEntityData.EntityCapabilityEvents());
-        MinecraftForge.EVENT_BUS.register(new ALPlayerData.PlayerCapabilityEvents());
-        MinecraftForge.EVENT_BUS.register(new CommonEventHandler());
-        MinecraftForge.EVENT_BUS.register(new CommandForce());
+        NeoForge.EVENT_BUS.register(new CommonEventHandler());
+        NeoForge.EVENT_BUS.register(new CommandForce());
         if (isDynamicLightsLoaded) {
-            MinecraftForge.EVENT_BUS.register(new CommonEventHandlerDL());
+            NeoForge.EVENT_BUS.register(new CommonEventHandlerDL());
         }
-        MinecraftForge.EVENT_BUS.register(proxy);
     }
 }

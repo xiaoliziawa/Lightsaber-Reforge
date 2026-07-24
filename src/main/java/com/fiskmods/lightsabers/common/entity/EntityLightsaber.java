@@ -20,7 +20,6 @@ import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
@@ -57,10 +56,10 @@ public class EntityLightsaber extends ThrowableItemProjectile {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        entityData.define(RETURNING, false);
-        entityData.define(AMPLIFIER, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(RETURNING, false);
+        builder.define(AMPLIFIER, 0);
     }
 
     public boolean isReturning() {
@@ -92,8 +91,8 @@ public class EntityLightsaber extends ThrowableItemProjectile {
     }
 
     @Override
-    protected float getGravity() {
-        return 0.01F;
+    protected double getDefaultGravity() {
+        return 0.01;
     }
 
     @Override
@@ -154,8 +153,12 @@ public class EntityLightsaber extends ThrowableItemProjectile {
         }
 
         ItemStack stack = getItem();
-        float damage = stack.getItem() instanceof SwordItem swordItem ? swordItem.getDamage() : 1.0F;
-        target.hurt(ALDamageSources.causeLightsaberDamage(owner), damage);
+        if (stack.getItem() instanceof ItemLightsaberBase lightsaber) {
+            target.hurt(
+                    ALDamageSources.causeLightsaberDamage(owner),
+                    lightsaber.getAttackDamage(stack)
+            );
+        }
     }
 
     @Override

@@ -368,7 +368,7 @@ public final class LightsaberBladeRenderer {
     ) {
         Minecraft minecraft = Minecraft.getInstance();
         long tick = minecraft.level == null ? 0L : minecraft.level.getGameTime();
-        float partialTick = minecraft.getFrameTime();
+        float partialTick = minecraft.getTimer().getGameTimeDeltaPartialTick(true);
         for (int copy = 1; copy < 4; copy++) {
             float currentX = randomSigned(tick, copy * 2) / 120.0F;
             float previousX = randomSigned(tick - 1L, copy * 2) / 120.0F;
@@ -748,8 +748,7 @@ public final class LightsaberBladeRenderer {
                 + matrix.m12() * y
                 + matrix.m22() * z
                 + matrix.m32();
-        consumer.vertex(transformedX, transformedY, transformedZ)
-                .color(red, green, blue, alpha)
-                .endVertex();
+        consumer.addVertex((float) transformedX, (float) transformedY, (float) transformedZ)
+                .setColor(red, green, blue, alpha);
     }
 }

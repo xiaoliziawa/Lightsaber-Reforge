@@ -1,5 +1,7 @@
 package com.fiskmods.lightsabers.common.item;
 
+import java.util.function.Supplier;
+
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.block.BlockForcestone;
 import com.fiskmods.lightsabers.common.block.BlockModSlab;
@@ -14,15 +16,14 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class ModCreativeTabs {
     public static final DeferredRegister<CreativeModeTab> TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Lightsabers.MODID);
 
-    public static final RegistryObject<CreativeModeTab> LIGHTSABERS = TABS.register(
+    public static final Supplier<CreativeModeTab> LIGHTSABERS = TABS.register(
             "lightsabers",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.lightsabers"))
@@ -48,8 +49,8 @@ public final class ModCreativeTabs {
                     : hilt.createDefault();
             ItemStack lightsaber = data.create();
             output.accept(lightsaber);
-            if (LightsaberData.get(lightsaber).supportsDoubleLightsaber()) {
-                output.accept(ItemDoubleLightsaber.create(lightsaber, lightsaber));
+            if (data.supportsDoubleLightsaber()) {
+                output.accept(ItemDoubleLightsaber.create(new LightsaberData[] {data, data}));
             }
         }
 

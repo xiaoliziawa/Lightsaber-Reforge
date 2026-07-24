@@ -3,14 +3,18 @@ package com.fiskmods.lightsabers.common.block;
 import com.fiskmods.lightsabers.common.container.ContainerHolocron;
 import com.fiskmods.lightsabers.common.tileentity.ModBlockEntities;
 import com.fiskmods.lightsabers.common.tileentity.TileEntityHolocron;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -24,10 +28,19 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockHolocron extends BaseEntityBlock {
+    public static final MapCodec<BlockHolocron> CODEC = RecordCodecBuilder.mapCodec(
+            instance -> instance.group(
+                    Codec.STRING.fieldOf("holocron_type")
+                            .forGetter(block -> block.type.name()),
+                    propertiesCodec()
+            ).apply(instance, (type, properties) -> new BlockHolocron(
+                    properties,
+                    HolocronType.valueOf(type)
+            ))
+    );
     private static final int SHAPE_STEPS = 100;
     private static final VoxelShape[] SHAPES = createShapes();
 
@@ -38,12 +51,18 @@ public class BlockHolocron extends BaseEntityBlock {
         this.type = type;
     }
 
+    @Override
+    protected MapCodec<? extends BlockHolocron> codec() {
+        return CODEC;
+    }
+
     public HolocronType getType() {
         return type;
     }
 
     @Override
-    public InteractionResult use(
+    protected ItemInteractionResult useItemOn(
+            ItemStack stack,
             BlockState state,
             Level level,
             BlockPos pos,
@@ -52,18 +71,17 @@ public class BlockHolocron extends BaseEntityBlock {
             BlockHitResult hitResult
     ) {
         if (player.isShiftKeyDown()) {
-            return InteractionResult.PASS;
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
+            return ItemInteractionResult.SUCCESS;
         }
         if (!(player instanceof ServerPlayer serverPlayer)
                 || !(level.getBlockEntity(pos) instanceof TileEntityHolocron holocron)) {
-            return InteractionResult.CONSUME;
+            return ItemInteractionResult.CONSUME;
         }
 
-        NetworkHooks.openScreen(
-                serverPlayer,
+        serverPlayer.openMenu(
                 new SimpleMenuProvider(
                         (containerId, inventory, menuPlayer) ->
                                 new ContainerHolocron(containerId, inventory, holocron),
@@ -71,7 +89,7 @@ public class BlockHolocron extends BaseEntityBlock {
                 ),
                 buffer -> buffer.writeBlockPos(pos)
         );
-        return InteractionResult.CONSUME;
+        return ItemInteractionResult.CONSUME;
     }
 
     @Override

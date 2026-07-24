@@ -4,6 +4,7 @@ import com.fiskmods.lightsabers.common.data.effect.Effect;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 import java.util.Locale;
 
@@ -48,7 +49,7 @@ public class PowerDesc
     {
         if (obj instanceof Float || obj instanceof Double)
         {
-            return ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(obj);
+            return ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(obj);
         }
         else if (obj instanceof Effect)
         {

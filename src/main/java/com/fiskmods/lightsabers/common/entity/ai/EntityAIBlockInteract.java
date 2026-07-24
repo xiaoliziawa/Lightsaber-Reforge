@@ -6,7 +6,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Path;
-import net.minecraftforge.common.ForgeHooks;
+import net.neoforged.neoforge.common.CommonHooks;
 
 import java.util.EnumSet;
 
@@ -80,7 +80,7 @@ public abstract class EntityAIBlockInteract extends Goal {
         BlockState state = entity.level().getBlockState(pos);
         if (state.isAir()
                 || state.getDestroySpeed(entity.level(), pos) < 0.0F
-                || !ForgeHooks.canEntityDestroy(entity.level(), pos, entity)) {
+                || !CommonHooks.canEntityDestroy(entity.level(), pos, entity)) {
             return false;
         }
         interactionPos = pos.immutable();

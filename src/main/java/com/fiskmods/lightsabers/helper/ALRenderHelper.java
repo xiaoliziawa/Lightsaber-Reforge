@@ -55,7 +55,8 @@ public final class ALRenderHelper {
 
     public static float median(double current, double previous) {
         return (float) (previous
-                + (current - previous) * Minecraft.getInstance().getFrameTime());
+                + (current - previous)
+                * Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
     }
 
     public static void startGlScissor(int x, int y, int width, int height) {

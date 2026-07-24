@@ -3,6 +3,7 @@ package com.fiskmods.lightsabers.common.block;
 import com.fiskmods.lightsabers.common.container.ContainerSithCoffin;
 import com.fiskmods.lightsabers.common.tileentity.ModBlockEntities;
 import com.fiskmods.lightsabers.common.tileentity.TileEntitySithCoffin;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -11,7 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -35,10 +36,10 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockSithCoffin extends BaseEntityBlock {
+    public static final MapCodec<BlockSithCoffin> CODEC = simpleCodec(BlockSithCoffin::new);
     public static final EnumProperty<Part> PART = EnumProperty.create("part", Part.class);
 
     private static final double HEIGHT = 15.0D;
@@ -80,6 +81,11 @@ public class BlockSithCoffin extends BaseEntityBlock {
         registerDefaultState(defaultBlockState()
                 .setValue(HorizontalDirectionalBlock.FACING, Direction.SOUTH)
                 .setValue(PART, Part.BASE));
+    }
+
+    @Override
+    protected MapCodec<? extends BlockSithCoffin> codec() {
+        return CODEC;
     }
 
     @Nullable
@@ -124,7 +130,8 @@ public class BlockSithCoffin extends BaseEntityBlock {
     }
 
     @Override
-    public InteractionResult use(
+    protected ItemInteractionResult useItemOn(
+            ItemStack stack,
             BlockState state,
             Level level,
             BlockPos pos,
@@ -133,25 +140,24 @@ public class BlockSithCoffin extends BaseEntityBlock {
             BlockHitResult hitResult
     ) {
         if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
+            return ItemInteractionResult.SUCCESS;
         }
 
         BlockPos basePos = getBasePos(state, pos);
         if (!(level.getBlockEntity(basePos) instanceof TileEntitySithCoffin coffin)) {
-            return InteractionResult.CONSUME;
+            return ItemInteractionResult.CONSUME;
         }
 
         if (!coffin.hasBeenOpened()
                 || coffin.getLidOpenTimer() == 0
                 || player.isShiftKeyDown()) {
             coffin.toggleLid();
-            return InteractionResult.CONSUME;
+            return ItemInteractionResult.CONSUME;
         }
 
         if (coffin.getLidOpenTimer() == TileEntitySithCoffin.LID_OPEN_MAX
                 && player instanceof ServerPlayer serverPlayer) {
-            NetworkHooks.openScreen(
-                    serverPlayer,
+            serverPlayer.openMenu(
                     new SimpleMenuProvider(
                             (containerId, inventory, menuPlayer) ->
                                     new ContainerSithCoffin(
@@ -164,7 +170,7 @@ public class BlockSithCoffin extends BaseEntityBlock {
                     buffer -> buffer.writeBlockPos(basePos)
             );
         }
-        return InteractionResult.CONSUME;
+        return ItemInteractionResult.CONSUME;
     }
 
     @Override
@@ -189,7 +195,7 @@ public class BlockSithCoffin extends BaseEntityBlock {
     }
 
     @Override
-    public void playerWillDestroy(
+    public BlockState playerWillDestroy(
             Level level,
             BlockPos pos,
             BlockState state,
@@ -198,7 +204,7 @@ public class BlockSithCoffin extends BaseEntityBlock {
         if (!level.isClientSide && !player.isCreative()) {
             popResource(level, pos, new ItemStack(this));
         }
-        super.playerWillDestroy(level, pos, state, player);
+        return super.playerWillDestroy(level, pos, state, player);
     }
 
     @Override

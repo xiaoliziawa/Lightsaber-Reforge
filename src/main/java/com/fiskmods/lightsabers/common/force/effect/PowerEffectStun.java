@@ -8,7 +8,7 @@ import com.fiskmods.lightsabers.helper.ALHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.fml.LogicalSide;
 
 import java.util.List;
 

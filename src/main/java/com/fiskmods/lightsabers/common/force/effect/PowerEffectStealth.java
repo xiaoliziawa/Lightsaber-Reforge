@@ -8,7 +8,7 @@ import com.fiskmods.lightsabers.common.force.PowerDesc.Target;
 import com.fiskmods.lightsabers.common.force.PowerDesc.Unit;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.fml.LogicalSide;
 
 public class PowerEffectStealth extends PowerEffectStatus {
     public PowerEffectStealth() {

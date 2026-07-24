@@ -11,9 +11,11 @@ import com.fiskmods.lightsabers.common.item.ModItems;
 import com.fiskmods.lightsabers.common.lightsaber.CrystalColor;
 import com.fiskmods.lightsabers.common.lightsaber.FocusingCrystal;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
+import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -206,9 +208,10 @@ public class TileEntityDisassemblyStation extends BlockEntity implements Worldly
             drops.putAll(getOutput(data[1], true));
             return drops;
         }
+        CompoundTag tag = ItemDataHelper.getCustomData(stack);
         return getOutput(
                 LightsaberData.get(stack),
-                !stack.hasTag() || !stack.getTag().contains(ALConstants.TAG_LIGHTSABER_SPECIAL)
+                tag == null || !tag.contains(ALConstants.TAG_LIGHTSABER_SPECIAL)
         );
     }
 
@@ -336,21 +339,21 @@ public class TileEntityDisassemblyStation extends BlockEntity implements Worldly
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         items.clear();
-        ContainerHelper.loadAllItems(tag, items);
+        ContainerHelper.loadAllItems(tag, items, registries);
         fuelTicks = tag.getShort(BURN_TIME_TAG);
         progress = tag.getShort(DISASSEMBLY_TIME_TAG);
         maxFuelTicks = getItemBurnTime(items.get(FUEL));
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         tag.putShort(BURN_TIME_TAG, (short) fuelTicks);
         tag.putShort(DISASSEMBLY_TIME_TAG, (short) progress);
-        ContainerHelper.saveAllItems(tag, items);
+        ContainerHelper.saveAllItems(tag, items, registries);
     }
 
     public static int getItemBurnTime(ItemStack stack) {

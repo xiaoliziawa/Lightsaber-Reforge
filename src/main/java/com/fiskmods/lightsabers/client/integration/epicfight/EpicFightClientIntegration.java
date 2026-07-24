@@ -11,11 +11,12 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.MinecraftForge;
 import yesman.epicfight.api.animation.LivingMotions;
 import yesman.epicfight.api.client.animation.ClientAnimator;
 import yesman.epicfight.api.client.animation.property.TrailInfo;
-import yesman.epicfight.api.client.forgeevent.UpdatePlayerMotionEvent;
+import yesman.epicfight.api.client.event.EpicFightClientEventHooks;
+import yesman.epicfight.api.client.event.types.entity.ModifyPlayerLivingMotionEvent;
+import yesman.epicfight.api.event.IdentifierProvider;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.AbstractClientPlayerPatch;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
@@ -27,11 +28,11 @@ import java.util.WeakHashMap;
 
 public final class EpicFightClientIntegration {
     private static final int MAX_BLOCK_LIGHT = 15;
-    private static final ResourceLocation LIGHTSABER_TRAIL_MODIFIER =
-            ResourceLocation.fromNamespaceAndPath(
+    private static final IdentifierProvider LIGHTSABER_TRAIL_MODIFIER =
+            IdentifierProvider.constant(ResourceLocation.fromNamespaceAndPath(
                     Lightsabers.MODID,
                     "lightsaber_trail_modifier"
-            );
+            ));
     private static final Set<AbstractClientPlayerPatch<?>> TRAIL_MODIFIER_PLAYERS =
             Collections.newSetFromMap(new WeakHashMap<>());
 
@@ -39,9 +40,8 @@ public final class EpicFightClientIntegration {
     }
 
     public static void register() {
-        MinecraftForge.EVENT_BUS.addListener(
-                EpicFightClientIntegration::onCompositeMotionUpdate
-        );
+        EpicFightClientEventHooks.Entity.MODIFY_PLAYER_LIVING_MOTION_COMPOSITE
+                .registerEvent(EpicFightClientIntegration::onCompositeMotionUpdate);
     }
 
     public static boolean isBattleModeHeldStack(ItemStack stack) {
@@ -72,7 +72,7 @@ public final class EpicFightClientIntegration {
     }
 
     private static void onCompositeMotionUpdate(
-            UpdatePlayerMotionEvent.CompositeLayer event
+            ModifyPlayerLivingMotionEvent.CompositeLayer event
     ) {
         AbstractClientPlayerPatch<?> playerPatch = event.getPlayerPatch();
         registerLightsaberTrailModifier(playerPatch);

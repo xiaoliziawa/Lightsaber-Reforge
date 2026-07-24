@@ -1,5 +1,7 @@
 package com.fiskmods.lightsabers.common.generator.worldgen;
 
+import java.util.function.Supplier;
+
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.generator.structure.EnumStructure;
 import net.minecraft.core.registries.Registries;
@@ -9,9 +11,8 @@ import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceType;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class ModWorldgen {
     public static final ResourceKey<Structure> JEDI_TEMPLE = structureKey("jedi_temple");
@@ -25,14 +26,14 @@ public final class ModWorldgen {
     private static final DeferredRegister<Feature<?>> FEATURES =
             DeferredRegister.create(Registries.FEATURE, Lightsabers.MODID);
 
-    public static final RegistryObject<StructureType<LegacyDataStructure>> LEGACY_STRUCTURE =
+    public static final Supplier<StructureType<LegacyDataStructure>> LEGACY_STRUCTURE =
             STRUCTURE_TYPES.register("legacy", () -> () -> LegacyDataStructure.CODEC);
-    public static final RegistryObject<StructurePieceType> LEGACY_PIECE =
+    public static final Supplier<StructurePieceType> LEGACY_PIECE =
             STRUCTURE_PIECE_TYPES.register(
                     "legacy",
                     () -> (StructurePieceType.ContextlessType) LegacyStructurePiece::new
             );
-    public static final RegistryObject<Feature<CrystalCaveConfiguration>> CRYSTAL_CAVE_FEATURE =
+    public static final Supplier<Feature<CrystalCaveConfiguration>> CRYSTAL_CAVE_FEATURE =
             FEATURES.register("crystal_cave", CrystalCaveFeature::new);
 
     private ModWorldgen() {

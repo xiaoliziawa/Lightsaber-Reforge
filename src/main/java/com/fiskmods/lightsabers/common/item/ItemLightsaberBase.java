@@ -2,21 +2,21 @@ package com.fiskmods.lightsabers.common.item;
 
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.client.sound.ALSounds;
-import com.fiskmods.lightsabers.client.render.item.LightsaberClientItemExtensions;
 import com.fiskmods.lightsabers.common.entity.EntityLightsaber;
 import com.fiskmods.lightsabers.common.integration.epicfight.EpicFightIntegration;
 import com.fiskmods.lightsabers.common.lightsaber.FocusingCrystal;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.sound.ModSounds;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
+import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
@@ -25,16 +25,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.common.extensions.IForgeItem;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 
-import java.util.function.Consumer;
-
-public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem {
+public abstract class ItemLightsaberBase extends SwordItem {
     private static final String ACTIVE_TAG = "active";
     private static final int ATTACK_DAMAGE_MODIFIER = 5;
     private static final float ATTACK_SPEED_MODIFIER = -2.4F;
@@ -58,8 +56,8 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
         }
 
         @Override
-        public int getLevel() {
-            return 3;
+        public TagKey<Block> getIncorrectBlocksForDrops() {
+            return BlockTags.INCORRECT_FOR_NETHERITE_TOOL;
         }
 
         @Override
@@ -74,44 +72,35 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
     };
 
     protected ItemLightsaberBase() {
-        super(
-                LIGHTSABER_TIER,
-                ATTACK_DAMAGE_MODIFIER,
-                ATTACK_SPEED_MODIFIER,
-                new Item.Properties().stacksTo(1)
-        );
+        super(LIGHTSABER_TIER, new Item.Properties().stacksTo(1).setNoRepair());
     }
 
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(LightsaberClientItemExtensions.INSTANCE);
-    }
-
-    protected float getAttackDamage(ItemStack stack) {
+    public float getAttackDamage(ItemStack stack) {
         return isSpinningLightsaber(stack) ? SPINNING_ATTACK_DAMAGE : SINGLE_ATTACK_DAMAGE;
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        if (slot != EquipmentSlot.MAINHAND) {
-            return super.getAttributeModifiers(slot, stack);
-        }
-        return ImmutableMultimap.of(
-                Attributes.ATTACK_DAMAGE,
-                new AttributeModifier(
-                        BASE_ATTACK_DAMAGE_UUID,
-                        "Weapon modifier",
-                        getAttackDamage(stack) - PLAYER_BASE_ATTACK_DAMAGE,
-                        AttributeModifier.Operation.ADDITION
-                ),
-                Attributes.ATTACK_SPEED,
-                new AttributeModifier(
-                        BASE_ATTACK_SPEED_UUID,
-                        "Weapon modifier",
-                        ATTACK_SPEED_MODIFIER,
-                        AttributeModifier.Operation.ADDITION
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        return ItemAttributeModifiers.builder()
+                .add(
+                        Attributes.ATTACK_DAMAGE,
+                        new AttributeModifier(
+                                BASE_ATTACK_DAMAGE_ID,
+                                getAttackDamage(stack) - PLAYER_BASE_ATTACK_DAMAGE,
+                                AttributeModifier.Operation.ADD_VALUE
+                        ),
+                        EquipmentSlotGroup.MAINHAND
                 )
-        );
+                .add(
+                        Attributes.ATTACK_SPEED,
+                        new AttributeModifier(
+                                BASE_ATTACK_SPEED_ID,
+                                ATTACK_SPEED_MODIFIER,
+                                AttributeModifier.Operation.ADD_VALUE
+                        ),
+                        EquipmentSlotGroup.MAINHAND
+                )
+                .build();
     }
 
     @Override
@@ -120,7 +109,11 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
     }
 
     @Override
-    public boolean onEntitySwing(ItemStack stack, LivingEntity entity) {
+    public boolean onEntitySwing(
+            ItemStack stack,
+            LivingEntity entity,
+            InteractionHand hand
+    ) {
         if (!isActive(stack)) {
             return false;
         }
@@ -180,7 +173,8 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
     }
 
     public static boolean isActive(ItemStack stack) {
-        return !stack.isEmpty() && stack.hasTag() && stack.getTag().getBoolean(ACTIVE_TAG);
+        CompoundTag tag = ItemDataHelper.getCustomData(stack);
+        return !stack.isEmpty() && tag != null && tag.getBoolean(ACTIVE_TAG);
     }
 
     public static boolean isSpinningLightsaber(ItemStack stack) {
@@ -199,7 +193,7 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
 
     public static ItemStack setActive(ItemStack stack, boolean active) {
         if (!stack.isEmpty()) {
-            stack.getOrCreateTag().putBoolean(ACTIVE_TAG, active);
+            ItemDataHelper.updateCustomData(stack, tag -> tag.putBoolean(ACTIVE_TAG, active));
         }
         return stack;
     }

@@ -3,27 +3,26 @@ package com.fiskmods.lightsabers.common.recipe;
 import com.fiskmods.lightsabers.common.item.ItemDoubleLightsaber;
 import com.fiskmods.lightsabers.common.item.ModItems;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
 public class RecipesDoubleLightsaber extends CustomRecipe {
-    public RecipesDoubleLightsaber(ResourceLocation id, CraftingBookCategory category) {
-        super(id, category);
+    public RecipesDoubleLightsaber(CraftingBookCategory category) {
+        super(category);
     }
 
     @Override
-    public boolean matches(CraftingContainer crafting, Level level) {
+    public boolean matches(CraftingInput crafting, Level level) {
         return findUpperSlot(crafting) >= 0;
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer crafting, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput crafting, HolderLookup.Provider registries) {
         int upperSlot = findUpperSlot(crafting);
         if (upperSlot < 0) {
             return ItemStack.EMPTY;
@@ -31,12 +30,12 @@ public class RecipesDoubleLightsaber extends CustomRecipe {
 
         return ItemDoubleLightsaber.create(
                 crafting.getItem(upperSlot),
-                crafting.getItem(upperSlot + crafting.getWidth())
+                crafting.getItem(upperSlot + crafting.width())
         );
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
+    public ItemStack getResultItem(HolderLookup.Provider registries) {
         return new ItemStack(ModItems.DOUBLE_LIGHTSABER.get());
     }
 
@@ -50,11 +49,11 @@ public class RecipesDoubleLightsaber extends CustomRecipe {
         return ModRecipeSerializers.DOUBLE_LIGHTSABER.get();
     }
 
-    private static int findUpperSlot(CraftingContainer crafting) {
+    private static int findUpperSlot(CraftingInput crafting) {
         int upperSlot = -1;
         int filledSlots = 0;
 
-        for (int slot = 0; slot < crafting.getContainerSize(); slot++) {
+        for (int slot = 0; slot < crafting.size(); slot++) {
             ItemStack stack = crafting.getItem(slot);
             if (stack.isEmpty()) {
                 continue;
@@ -75,8 +74,8 @@ public class RecipesDoubleLightsaber extends CustomRecipe {
             return -1;
         }
 
-        int lowerSlot = upperSlot + crafting.getWidth();
-        return lowerSlot < crafting.getContainerSize()
+        int lowerSlot = upperSlot + crafting.width();
+        return lowerSlot < crafting.size()
                 && crafting.getItem(lowerSlot).is(ModItems.LIGHTSABER.get())
                 ? upperSlot
                 : -1;

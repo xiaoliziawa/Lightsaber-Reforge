@@ -2,18 +2,19 @@ package com.fiskmods.lightsabers.common.generator;
 
 import com.fiskmods.lightsabers.common.block.ModBlocks;
 import com.fiskmods.lightsabers.common.item.ModItems;
+import com.fiskmods.lightsabers.helper.ItemDataHelper;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.world.Container;
-import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentInstance;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 import java.util.Random;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public final class ModChestGen {
@@ -51,7 +52,10 @@ public final class ModChestGen {
             entry(() -> ModItems.focusingCrystal, 1, 1, 4),
             crystal(SITH_TOMB_COFFIN, 3),
             tagged(() -> ModItems.lightsaber, 1, 1, 6, stack ->
-                    stack.getOrCreateTag().putBoolean("SithTombLoot", true))
+                    ItemDataHelper.updateCustomData(
+                            stack,
+                            tag -> tag.putBoolean("SithTombLoot", true)
+                    ))
     ));
     private static final LootTable TEMPLE = new LootTable(4, 8, List.of(
             entry(Items.COOKED_CHICKEN, 1, 4, 4),
@@ -62,7 +66,10 @@ public final class ModChestGen {
             entry(() -> ModItems.circuitry, 1, 2, 3),
             entry(() -> ModItems.emitter, 1, 1, 9),
             tagged(() -> ModItems.lightsaber, 1, 1, 1, stack ->
-                    stack.getOrCreateTag().putBoolean("JediTempleLoot", true))
+                    ItemDataHelper.updateCustomData(
+                            stack,
+                            tag -> tag.putBoolean("JediTempleLoot", true)
+                    ))
     ));
 
     private ModChestGen() {
@@ -78,13 +85,18 @@ public final class ModChestGen {
         };
     }
 
-    public static void fill(Container container, String category, Random random) {
+    public static void fill(
+            Container container,
+            String category,
+            Random random,
+            HolderLookup.Provider registries
+    ) {
         LootTable table = get(category);
         int rolls = nextIntInclusive(random, table.minRolls(), table.maxRolls());
         int totalWeight = table.entries().stream().mapToInt(LootEntry::weight).sum();
         for (int roll = 0; roll < rolls; roll++) {
             LootEntry selected = select(table.entries(), totalWeight, random);
-            ItemStack stack = selected.create(random);
+            ItemStack stack = selected.create(random, registries);
             insertRandomly(container, stack, random);
         }
     }
@@ -112,11 +124,11 @@ public final class ModChestGen {
     }
 
     private static LootEntry entry(Item item, int min, int max, int weight) {
-        return new LootEntry(() -> item, min, max, weight, (stack, random) -> { });
+        return new LootEntry(() -> item, min, max, weight, (stack, random, registries) -> { });
     }
 
     private static LootEntry entry(ItemSupplier item, int min, int max, int weight) {
-        return new LootEntry(item, min, max, weight, (stack, random) -> { });
+        return new LootEntry(item, min, max, weight, (stack, random, registries) -> { });
     }
 
     private static LootEntry tagged(
@@ -131,7 +143,7 @@ public final class ModChestGen {
                 min,
                 max,
                 weight,
-                (stack, random) -> tagger.accept(stack)
+                (stack, random, registries) -> tagger.accept(stack)
         );
     }
 
@@ -145,22 +157,27 @@ public final class ModChestGen {
         );
     }
 
-    private static void addRandomBookEnchantment(ItemStack stack, Random random) {
-        List<Enchantment> enchantments = DiscoverableEnchantments.VALUES;
+    private static void addRandomBookEnchantment(
+            ItemStack stack,
+            Random random,
+            HolderLookup.Provider registries
+    ) {
+        List<Holder<Enchantment>> enchantments = registries
+                .lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(EnchantmentTags.ON_RANDOM_LOOT)
+                .stream()
+                .toList();
         if (enchantments.isEmpty()) {
             return;
         }
 
-        Enchantment enchantment = enchantments.get(random.nextInt(enchantments.size()));
+        Holder<Enchantment> enchantment = enchantments.get(random.nextInt(enchantments.size()));
         int level = nextIntInclusive(
                 random,
-                enchantment.getMinLevel(),
-                enchantment.getMaxLevel()
+                enchantment.value().getMinLevel(),
+                enchantment.value().getMaxLevel()
         );
-        EnchantedBookItem.addEnchantment(
-                stack,
-                new EnchantmentInstance(enchantment, level)
-        );
+        stack.enchant(enchantment, level);
     }
 
     private static LootEntry crystal(String category, int weight) {
@@ -169,7 +186,10 @@ public final class ModChestGen {
                 1,
                 1,
                 weight,
-                stack -> stack.getOrCreateTag().putString("ChestGenCategory", category)
+                stack -> ItemDataHelper.updateCustomData(
+                        stack,
+                        tag -> tag.putString("ChestGenCategory", category)
+                )
         );
     }
 
@@ -185,31 +205,25 @@ public final class ModChestGen {
             int minCount,
             int maxCount,
             int weight,
-            BiConsumer<ItemStack, Random> modifier
+            LootModifier modifier
     ) {
-        ItemStack create(Random random) {
+        ItemStack create(Random random, HolderLookup.Provider registries) {
             ItemStack stack = new ItemStack(
                     item.get(),
                     nextIntInclusive(random, minCount, maxCount)
             );
-            modifier.accept(stack, random);
+            modifier.apply(stack, random, registries);
             return stack;
-        }
-    }
-
-    private static final class DiscoverableEnchantments {
-        private static final List<Enchantment> VALUES = ForgeRegistries.ENCHANTMENTS
-                .getValues()
-                .stream()
-                .filter(Enchantment::isDiscoverable)
-                .toList();
-
-        private DiscoverableEnchantments() {
         }
     }
 
     @FunctionalInterface
     public interface ItemSupplier {
         Item get();
+    }
+
+    @FunctionalInterface
+    public interface LootModifier {
+        void apply(ItemStack stack, Random random, HolderLookup.Provider registries);
     }
 }
