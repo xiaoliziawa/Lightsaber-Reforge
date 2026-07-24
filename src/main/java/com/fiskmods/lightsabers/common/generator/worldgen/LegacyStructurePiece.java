@@ -86,6 +86,7 @@ public final class LegacyStructurePiece extends StructurePiece {
         Random structureRandom = new Random(seed);
         Structure legacyStructure = createStructure(level, generator, structureRandom);
         legacyStructure.setGenerationBounds(chunkBounds);
+        legacyStructure.setGenerationSeed(seed);
         legacyStructure.spawnStructure(structureRandom);
     }
 

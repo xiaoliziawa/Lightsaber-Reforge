@@ -1,7 +1,12 @@
 package com.fiskmods.lightsabers.common.generator;
 
-import com.fiskmods.lightsabers.common.block.ModBlocks;
+import com.fiskmods.lightsabers.common.hilt.Hilt;
+import com.fiskmods.lightsabers.common.item.ItemCrystal;
+import com.fiskmods.lightsabers.common.item.ItemFocusingCrystal;
+import com.fiskmods.lightsabers.common.item.ItemLightsaberPart;
 import com.fiskmods.lightsabers.common.item.ModItems;
+import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
+import com.fiskmods.lightsabers.common.lightsaber.PartType;
 import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -23,12 +28,16 @@ public final class ModChestGen {
     public static final String SITH_TOMB_COFFIN = "sithTombCoffin";
     public static final String JEDI_TEMPLE = "jediTemple";
 
+    private static final String CHEST_GEN_CATEGORY_TAG = "ChestGenCategory";
+    private static final String SITH_TOMB_LOOT_TAG = "SithTombLoot";
+    private static final String JEDI_TEMPLE_LOOT_TAG = "JediTempleLoot";
+
     private static final LootTable ANNEX = new LootTable(3, 7, List.of(
             entry(Items.BONE, 4, 6, 4),
             entry(Items.ROTTEN_FLESH, 3, 7, 3),
             entry(Items.IRON_INGOT, 2, 7, 3),
             entry(() -> ModItems.circuitry, 1, 1, 2),
-            entry(() -> ModItems.emitter, 1, 1, 3),
+            randomPart(PartType.EMITTER, 3),
             crystal(SITH_TOMB_ANNEX, 1)
     ));
     private static final LootTable TREASURY = new LootTable(5, 7, List.of(
@@ -37,8 +46,8 @@ public final class ModChestGen {
             entry(Items.GOLD_INGOT, 2, 7, 12),
             entry(Items.DIAMOND, 1, 2, 5),
             enchantedBook(5),
-            entry(() -> ModItems.emitter, 1, 1, 6),
-            entry(() -> ModItems.focusingCrystal, 1, 1, 4),
+            randomPart(PartType.EMITTER, 6),
+            randomFocusingCrystal(4),
             crystal(SITH_TOMB_TREASURY, 12)
     ));
     private static final LootTable COFFIN = new LootTable(6, 14, List.of(
@@ -48,13 +57,13 @@ public final class ModChestGen {
             entry(Items.DIAMOND, 1, 2, 5),
             enchantedBook(5),
             entry(() -> ModItems.circuitry, 1, 1, 3),
-            entry(() -> ModItems.emitter, 1, 1, 3),
-            entry(() -> ModItems.focusingCrystal, 1, 1, 4),
+            randomPart(PartType.EMITTER, 3),
+            randomFocusingCrystal(4),
             crystal(SITH_TOMB_COFFIN, 3),
-            tagged(() -> ModItems.lightsaber, 1, 1, 6, stack ->
+            tagged(random -> LightsaberData.createRandom(random), 1, 1, 6, stack ->
                     ItemDataHelper.updateCustomData(
                             stack,
-                            tag -> tag.putBoolean("SithTombLoot", true)
+                            tag -> tag.putBoolean(SITH_TOMB_LOOT_TAG, true)
                     ))
     ));
     private static final LootTable TEMPLE = new LootTable(4, 8, List.of(
@@ -64,11 +73,11 @@ public final class ModChestGen {
             entry(Items.LEATHER, 1, 8, 4),
             entry(Items.WHITE_WOOL, 1, 9, 10),
             entry(() -> ModItems.circuitry, 1, 2, 3),
-            entry(() -> ModItems.emitter, 1, 1, 9),
-            tagged(() -> ModItems.lightsaber, 1, 1, 1, stack ->
+            randomPart(PartType.EMITTER, 9),
+            tagged(random -> LightsaberData.createRandom(random), 1, 1, 1, stack ->
                     ItemDataHelper.updateCustomData(
                             stack,
-                            tag -> tag.putBoolean("JediTempleLoot", true)
+                            tag -> tag.putBoolean(JEDI_TEMPLE_LOOT_TAG, true)
                     ))
     ));
 
@@ -124,15 +133,42 @@ public final class ModChestGen {
     }
 
     private static LootEntry entry(Item item, int min, int max, int weight) {
-        return new LootEntry(() -> item, min, max, weight, (stack, random, registries) -> { });
+        return new LootEntry(
+                random -> new ItemStack(item),
+                min,
+                max,
+                weight,
+                (stack, random, registries) -> { }
+        );
     }
 
     private static LootEntry entry(ItemSupplier item, int min, int max, int weight) {
-        return new LootEntry(item, min, max, weight, (stack, random, registries) -> { });
+        return new LootEntry(
+                random -> new ItemStack(item.get()),
+                min,
+                max,
+                weight,
+                (stack, random, registries) -> { }
+        );
+    }
+
+    private static LootEntry stackEntry(
+            StackSupplier item,
+            int min,
+            int max,
+            int weight
+    ) {
+        return new LootEntry(
+                item,
+                min,
+                max,
+                weight,
+                (stack, random, registries) -> { }
+        );
     }
 
     private static LootEntry tagged(
-            ItemSupplier item,
+            StackSupplier item,
             int min,
             int max,
             int weight,
@@ -149,7 +185,7 @@ public final class ModChestGen {
 
     private static LootEntry enchantedBook(int weight) {
         return new LootEntry(
-                () -> Items.ENCHANTED_BOOK,
+                random -> new ItemStack(Items.ENCHANTED_BOOK),
                 1,
                 1,
                 weight,
@@ -182,14 +218,32 @@ public final class ModChestGen {
 
     private static LootEntry crystal(String category, int weight) {
         return tagged(
-                () -> ModBlocks.LIGHTSABER_CRYSTAL_ITEM.get(),
+                random -> ItemCrystal.create(ItemCrystal.getRandomGen(random)),
                 1,
                 1,
                 weight,
                 stack -> ItemDataHelper.updateCustomData(
                         stack,
-                        tag -> tag.putString("ChestGenCategory", category)
+                        tag -> tag.putString(CHEST_GEN_CATEGORY_TAG, category)
                 )
+        );
+    }
+
+    private static LootEntry randomPart(PartType type, int weight) {
+        return stackEntry(
+                random -> ItemLightsaberPart.create(type, Hilt.REGISTRY.getRandom(random)),
+                1,
+                1,
+                weight
+        );
+    }
+
+    private static LootEntry randomFocusingCrystal(int weight) {
+        return stackEntry(
+                random -> ItemFocusingCrystal.create(ItemFocusingCrystal.getRandom(random)),
+                1,
+                1,
+                weight
         );
     }
 
@@ -201,17 +255,16 @@ public final class ModChestGen {
     }
 
     public record LootEntry(
-            ItemSupplier item,
+            StackSupplier stackSupplier,
             int minCount,
             int maxCount,
             int weight,
             LootModifier modifier
     ) {
         ItemStack create(Random random, HolderLookup.Provider registries) {
-            ItemStack stack = new ItemStack(
-                    item.get(),
-                    nextIntInclusive(random, minCount, maxCount)
-            );
+            int count = nextIntInclusive(random, minCount, maxCount);
+            ItemStack stack = stackSupplier.get(random);
+            stack.setCount(count);
             modifier.apply(stack, random, registries);
             return stack;
         }
@@ -220,6 +273,11 @@ public final class ModChestGen {
     @FunctionalInterface
     public interface ItemSupplier {
         Item get();
+    }
+
+    @FunctionalInterface
+    public interface StackSupplier {
+        ItemStack get(Random random);
     }
 
     @FunctionalInterface

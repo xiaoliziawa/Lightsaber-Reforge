@@ -2,7 +2,6 @@ package com.fiskmods.lightsabers.common.recipe;
 
 import com.fiskmods.lightsabers.common.item.ItemDoubleLightsaber;
 import com.fiskmods.lightsabers.common.item.ModItems;
-import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -59,9 +58,6 @@ public class RecipesDoubleLightsaber extends CustomRecipe {
                 continue;
             }
             if (!stack.is(ModItems.LIGHTSABER.get())) {
-                return -1;
-            }
-            if (!LightsaberData.get(stack).supportsDoubleLightsaber()) {
                 return -1;
             }
             if (upperSlot < 0) {
