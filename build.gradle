@@ -107,6 +107,8 @@ dependencies {
     implementation "curse.maven:epic-fight-mod-405076:${epic_fight_file_id}"
 
     runtimeOnly "curse.maven:neat-238372:7774002"
+
+    runtimeOnly "curse.maven:torohealth-continued-1412542:7488493"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

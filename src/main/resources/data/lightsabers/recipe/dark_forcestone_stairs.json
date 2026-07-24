@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "#  ",
+    "## ",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "type": "neoforge:components",
+      "components": {
+        "minecraft:block_state": {
+          "variant": "default"
+        }
+      },
+      "items": "lightsabers:dark_forcestone"
+    }
+  },
+  "result": {
+    "count": 4,
+    "id": "lightsabers:dark_forcestone_stairs"
+  }
+}

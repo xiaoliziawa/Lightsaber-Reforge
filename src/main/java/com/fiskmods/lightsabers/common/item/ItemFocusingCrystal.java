@@ -2,19 +2,22 @@ package com.fiskmods.lightsabers.common.item;
 
 import com.fiskmods.lightsabers.common.lightsaber.FocusingCrystal;
 import com.fiskmods.lightsabers.helper.ItemDataHelper;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.TooltipFlag;
 
-import java.util.Locale;
+import java.util.List;
 import java.util.Random;
 
 public class ItemFocusingCrystal extends Item implements ILightsaberComponent {
     private static final String CRYSTAL_ID_TAG = "FocusingCrystalId";
 
     public ItemFocusingCrystal() {
-        super(new Item.Properties());
+        super(new Item.Properties().rarity(Rarity.EPIC));
     }
 
     @Override
@@ -28,10 +31,14 @@ public class ItemFocusingCrystal extends Item implements ILightsaberComponent {
     }
 
     @Override
-    public String getDescriptionId(ItemStack stack) {
-        return super.getDescriptionId(stack)
-                + "."
-                + get(stack).name().toLowerCase(Locale.ROOT);
+    public void appendHoverText(
+            ItemStack stack,
+            Item.TooltipContext context,
+            List<Component> tooltip,
+            TooltipFlag flag
+    ) {
+        tooltip.add(Component.translatable(get(stack).getUnlocalizedName())
+                .withStyle(ChatFormatting.GRAY));
     }
 
     public static FocusingCrystal get(ItemStack stack) {

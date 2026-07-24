@@ -107,10 +107,7 @@ public class StatusEffect implements Comparable<StatusEffect> {
             int duration,
             int amplifier
     ) {
-        ALEntityData data = ALEntityData.getDataOrNull(entity);
-        if (data == null) {
-            return;
-        }
+        ALEntityData data = ALEntityData.getData(entity);
         List<StatusEffect> effects = data.activeEffects;
         int clampedDuration = Mth.clamp(duration, Short.MIN_VALUE, Short.MAX_VALUE);
 

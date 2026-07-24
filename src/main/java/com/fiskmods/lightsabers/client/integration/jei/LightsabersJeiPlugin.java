@@ -27,6 +27,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.BlockItemStateProperties;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.api.distmarker.Dist;
@@ -118,9 +119,9 @@ public final class LightsabersJeiPlugin implements IModPlugin {
         );
         registerCustomDataSubtype(registration, ModBlocks.LIGHTSABER_CRYSTAL_ITEM.get());
         registerCustomDataSubtype(registration, ModItems.CRYSTAL_POUCH.get());
-        registerCustomDataSubtype(registration, ModBlocks.LIGHT_FORCESTONE_ITEM.get());
-        registerCustomDataSubtype(registration, ModBlocks.DARK_FORCESTONE_ITEM.get());
-        registerCustomDataSubtype(registration, ModBlocks.FORCESTONE_SLAB_ITEM.get());
+        registerBlockStateSubtype(registration, ModBlocks.LIGHT_FORCESTONE_ITEM.get());
+        registerBlockStateSubtype(registration, ModBlocks.DARK_FORCESTONE_ITEM.get());
+        registerBlockStateSubtype(registration, ModBlocks.FORCESTONE_SLAB_ITEM.get());
     }
 
     private static void registerCustomDataSubtype(
@@ -131,6 +132,20 @@ public final class LightsabersJeiPlugin implements IModPlugin {
                 registration,
                 item,
                 stack -> stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)
+        );
+    }
+
+    private static void registerBlockStateSubtype(
+            ISubtypeRegistration registration,
+            Item item
+    ) {
+        registerSubtype(
+                registration,
+                item,
+                stack -> stack.getOrDefault(
+                        DataComponents.BLOCK_STATE,
+                        BlockItemStateProperties.EMPTY
+                )
         );
     }
 

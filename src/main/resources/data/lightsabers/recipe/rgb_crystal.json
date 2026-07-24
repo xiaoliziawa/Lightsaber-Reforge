@@ -1,0 +1,40 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "type": "neoforge:components",
+      "components": {
+        "minecraft:custom_data": {
+          "CrystalColorId": 9
+        }
+      },
+      "items": "lightsabers:lightsaber_crystal"
+    },
+    {
+      "type": "neoforge:components",
+      "components": {
+        "minecraft:custom_data": {
+          "CrystalColorId": 15
+        }
+      },
+      "items": "lightsabers:lightsaber_crystal"
+    },
+    {
+      "type": "neoforge:components",
+      "components": {
+        "minecraft:custom_data": {
+          "CrystalColorId": 0
+        }
+      },
+      "items": "lightsabers:lightsaber_crystal"
+    }
+  ],
+  "result": {
+    "id": "lightsabers:lightsaber_crystal",
+    "components": {
+      "minecraft:custom_data": {
+        "CrystalColorId": 18
+      }
+    }
+  }
+}

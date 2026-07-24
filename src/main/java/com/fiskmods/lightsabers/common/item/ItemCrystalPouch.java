@@ -26,7 +26,7 @@ public class ItemCrystalPouch extends Item {
     public static final UUID NULL_UUID = new UUID(0, 0);
 
     public ItemCrystalPouch() {
-        super(new Item.Properties().stacksTo(1));
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
     }
 
     @Override

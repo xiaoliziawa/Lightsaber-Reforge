@@ -28,7 +28,7 @@ public class ItemCrystal extends Item implements ILightsaberComponent {
     private static int generationTotalWeight;
 
     public ItemCrystal() {
-        super(new Item.Properties());
+        super(new Item.Properties().rarity(Rarity.UNCOMMON));
     }
 
     @Override

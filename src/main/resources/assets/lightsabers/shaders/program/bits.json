@@ -4,8 +4,8 @@
         "srcrgb": "one",
         "dstrgb": "zero"
     },
-    "vertex": "sobel",
-    "fragment": "bits",
+    "vertex": "lightsabers:sobel",
+    "fragment": "lightsabers:bits",
     "attributes": [ "Position" ],
     "samplers": [
         { "name": "DiffuseSampler" }

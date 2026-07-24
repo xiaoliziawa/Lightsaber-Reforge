@@ -176,10 +176,10 @@ public final class RenderForceLightning extends EntityRenderer<EntityForceLightn
         double glowWidth = firstPerson ? FIRST_PERSON_GLOW_WIDTH : THIRD_PERSON_GLOW_WIDTH;
         double coreWidth = firstPerson ? FIRST_PERSON_CORE_WIDTH : THIRD_PERSON_CORE_WIDTH;
         VertexConsumer glow = buffer.getBuffer(LightsaberRenderTypes.FORCE_EFFECT_GLOW);
-        VertexConsumer core = buffer.getBuffer(LightsaberRenderTypes.FORCE_EFFECT_CORE);
         renderSegment(glow, poseStack, points.source, points.first, camera, glowWidth, color, 0.85F);
         renderSegment(glow, poseStack, points.first, points.second, camera, glowWidth, color, 0.85F);
         renderSegment(glow, poseStack, points.second, points.target, camera, glowWidth, color, 0.85F);
+        VertexConsumer core = buffer.getBuffer(LightsaberRenderTypes.FORCE_EFFECT_CORE);
         renderSegment(core, poseStack, points.source, points.first, camera, coreWidth, CORE_COLOR, 1.0F);
         renderSegment(core, poseStack, points.first, points.second, camera, coreWidth, CORE_COLOR, 1.0F);
         renderSegment(core, poseStack, points.second, points.target, camera, coreWidth, CORE_COLOR, 1.0F);

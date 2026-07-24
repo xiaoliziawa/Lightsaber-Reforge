@@ -10,7 +10,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
 public final class ALRenderHelper {
-    public static final ResourceLocation SHADER_GRAY = ResourceLocation.withDefaultNamespace(
+    public static final ResourceLocation SHADER_GRAY = ResourceLocation.fromNamespaceAndPath(
+            Lightsabers.MODID,
             "shaders/post/desaturate.json"
     );
     public static final ResourceLocation SHADER_BLUE = ResourceLocation.fromNamespaceAndPath(

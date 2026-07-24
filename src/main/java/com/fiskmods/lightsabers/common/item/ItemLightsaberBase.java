@@ -9,6 +9,7 @@ import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.sound.ModSounds;
 import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.nbt.CompoundTag;
@@ -26,6 +27,7 @@ import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.Unbreakable;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -72,7 +74,13 @@ public abstract class ItemLightsaberBase extends SwordItem {
     };
 
     protected ItemLightsaberBase() {
-        super(LIGHTSABER_TIER, new Item.Properties().stacksTo(1).setNoRepair());
+        super(
+                LIGHTSABER_TIER,
+                new Item.Properties()
+                        .stacksTo(1)
+                        .setNoRepair()
+                        .component(DataComponents.UNBREAKABLE, new Unbreakable(false))
+        );
     }
 
     public float getAttackDamage(ItemStack stack) {

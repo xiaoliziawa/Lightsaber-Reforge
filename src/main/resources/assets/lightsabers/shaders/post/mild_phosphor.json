@@ -5,7 +5,7 @@
     ],
     "passes": [
         {
-            "name": "phosphor",
+            "name": "lightsabers:phosphor",
             "intarget": "minecraft:main",
             "outtarget": "swap",
             "auxtargets": [
@@ -22,12 +22,12 @@
             ]
         },
         {
-            "name": "blit",
+            "name": "lightsabers:blit",
             "intarget": "swap",
             "outtarget": "previous"
         },
         {
-            "name": "blit",
+            "name": "lightsabers:blit",
             "intarget": "swap",
             "outtarget": "minecraft:main"
         }

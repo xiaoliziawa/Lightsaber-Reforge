@@ -4,8 +4,8 @@
         "srcrgb": "one",
         "dstrgb": "zero"
     },
-    "vertex": "blit",
-    "fragment": "blit",
+    "vertex": "lightsabers:blit",
+    "fragment": "lightsabers:blit",
     "attributes": [ "Position" ],
     "samplers": [
         { "name": "DiffuseSampler" }

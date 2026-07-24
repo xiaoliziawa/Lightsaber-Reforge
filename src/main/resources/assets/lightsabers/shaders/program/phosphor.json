@@ -4,8 +4,8 @@
         "srcrgb": "one",
         "dstrgb": "zero"
     },
-    "vertex": "sobel",
-    "fragment": "phosphor",
+    "vertex": "lightsabers:sobel",
+    "fragment": "lightsabers:phosphor",
     "attributes": [ "Position" ],
     "samplers": [
         { "name": "DiffuseSampler" },

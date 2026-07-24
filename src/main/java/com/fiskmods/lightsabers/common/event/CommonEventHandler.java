@@ -1,6 +1,5 @@
 package com.fiskmods.lightsabers.common.event;
 
-import com.fiskmods.lightsabers.ALConstants;
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.client.sound.ALSounds;
 import com.fiskmods.lightsabers.common.block.ModBlocks;
@@ -45,12 +44,12 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.LogicalSide;
@@ -127,18 +126,17 @@ public final class CommonEventHandler {
     }
 
     @SubscribeEvent
-    public void onPlayerTickPre(EntityTickEvent.Pre event) {
-        if (!(event.getEntity() instanceof Player player) || !ALPlayerData.hasData(player)) {
+    public void onPlayerTickPre(PlayerTickEvent.Pre event) {
+        Player player = event.getEntity();
+        if (!ALPlayerData.hasData(player)) {
             return;
         }
         ALData.onUpdate(player);
     }
 
     @SubscribeEvent
-    public void onPlayerTickPost(EntityTickEvent.Post event) {
-        if (!(event.getEntity() instanceof Player player)) {
-            return;
-        }
+    public void onPlayerTickPost(PlayerTickEvent.Post event) {
+        Player player = event.getEntity();
         LogicalSide side = player.level().isClientSide ? LogicalSide.CLIENT : LogicalSide.SERVER;
         if (side == LogicalSide.SERVER) {
             handleSpinningLightsaber(player);
@@ -156,6 +154,8 @@ public final class CommonEventHandler {
         updateActivePowerTransition(player, side);
         updateExperienceRewards(player);
         ensureBasePowersUnlocked(player);
+
+        tickLivingEntityEffects(player);
 
         int forceMax = ALData.POWERS.get(player).getForceMax();
         ALDataInterp.FORCE_POWER.clampWithoutNotify(player, 0.0F, (float) forceMax);
@@ -209,13 +209,7 @@ public final class CommonEventHandler {
                 || entity instanceof Player) {
             return;
         }
-        if (!ALEntityData.hasData(entity)) {
-            return;
-        }
-        ALEntityData data = ALEntityData.getData(entity);
-        handleForcePushCollision(entity, data);
-        tickStatusEffects(entity, data);
-        applyMovementEffects(entity);
+        tickLivingEntityEffects(entity);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -546,6 +540,16 @@ public final class CommonEventHandler {
         if (damage > 0 && !entity.level().isClientSide) {
             entity.hurt(ALDamageSources.causeIntoWallDamage(entity), damage);
         }
+    }
+
+    private static void tickLivingEntityEffects(LivingEntity entity) {
+        if (!ALEntityData.hasData(entity)) {
+            return;
+        }
+        ALEntityData data = ALEntityData.getData(entity);
+        handleForcePushCollision(entity, data);
+        tickStatusEffects(entity, data);
+        applyMovementEffects(entity);
     }
 
     private static void tickStatusEffects(LivingEntity entity, ALEntityData data) {

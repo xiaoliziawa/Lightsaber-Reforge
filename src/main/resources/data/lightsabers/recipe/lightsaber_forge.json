@@ -1,0 +1,37 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SLS",
+    "FIF"
+  ],
+  "key": {
+    "S": {
+      "item": "lightsabers:light_forcestone_stairs"
+    },
+    "L": {
+      "type": "neoforge:components",
+      "components": {
+        "minecraft:block_state": {
+          "variant": "light"
+        }
+      },
+      "items": "lightsabers:forcestone_slab"
+    },
+    "F": {
+      "type": "neoforge:components",
+      "components": {
+        "minecraft:block_state": {
+          "variant": "default"
+        }
+      },
+      "items": "lightsabers:light_forcestone"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    }
+  },
+  "result": {
+    "id": "lightsabers:lightsaber_forge"
+  }
+}

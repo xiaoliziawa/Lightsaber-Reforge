@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "#",
+    "#"
+  ],
+  "key": {
+    "#": {
+      "type": "neoforge:components",
+      "components": {
+        "minecraft:block_state": {
+          "variant": "light"
+        }
+      },
+      "items": "lightsabers:forcestone_slab"
+    }
+  },
+  "result": {
+    "id": "lightsabers:light_forcestone",
+    "components": {
+      "minecraft:block_state": {
+        "variant": "inscribed"
+      }
+    }
+  }
+}
