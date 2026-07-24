@@ -10,12 +10,12 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelManager;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
@@ -28,7 +28,7 @@ public final class HolocronObjRenderer {
     private static final ResourceLocation SITH_ITEM_TEXTURE = texture("sith_holocron");
     private static final ResourceLocation JEDI_ITEM_TEXTURE = texture("jedi_holocron");
     private static final RenderType MODEL_RENDER_TYPE = RenderType.entityTranslucent(
-            TextureAtlas.LOCATION_BLOCKS,
+            InventoryMenu.BLOCK_ATLAS,
             false
     );
     private static final float SITH_SIDE_CENTER_Y = -1.0F / 12.0F;

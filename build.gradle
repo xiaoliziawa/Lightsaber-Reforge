@@ -158,6 +158,10 @@ tasks.register('exportBlockbenchModels', JavaExec) {
     classpath = sourceSets.modelTools.runtimeClasspath
     mainClass = 'com.fiskmods.lightsabers.tools.model.LegacyModelBlockbenchExporter'
     systemProperty 'lightsabers.recordModelExportData', 'true'
+    systemProperty 'lightsabers.minecraftVersion', minecraft_version
+    systemProperty 'lightsabers.minecraftResourcesJar', providers.gradleProperty('minecraftResourcesJar')
+            .orElse(file("build/moddev/artifacts/neoforge-${neo_version}-client-extra-aka-minecraft-resources.jar").absolutePath)
+            .get()
 
     args '--source', file('src/main/java/com/fiskmods/lightsabers/client/model').absolutePath,
             '--textures', file('src/main/resources/assets/lightsabers/textures/models').absolutePath,

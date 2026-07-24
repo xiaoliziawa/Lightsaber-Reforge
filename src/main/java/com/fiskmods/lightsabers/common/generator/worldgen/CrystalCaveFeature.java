@@ -72,7 +72,7 @@ public final class CrystalCaveFeature extends Feature<CrystalCaveConfiguration> 
 
         BlockPos biomePos = new BlockPos(
                 chunk.getMiddleBlockX(),
-                level.getSeaLevel(),
+                context.chunkGenerator().getSeaLevel(),
                 chunk.getMiddleBlockZ()
         );
         if (level.getBiome(biomePos).is(BiomeTags.IS_OCEAN)) {

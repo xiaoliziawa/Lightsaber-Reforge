@@ -44,6 +44,9 @@ import java.util.stream.Stream;
 
 public final class LegacyModelBlockbenchExporter {
     private static final String MODEL_PACKAGE = "com.fiskmods.lightsabers.client.model";
+    private static final String DEFAULT_MINECRAFT_VERSION = "1.21.1";
+    private static final String MINECRAFT_VERSION_PROPERTY = "lightsabers.minecraftVersion";
+    private static final String MINECRAFT_RESOURCES_PROPERTY = "lightsabers.minecraftResourcesJar";
     private static final float MODEL_UNITS_PER_OFFSET = 16.0F;
     private static final float BLOCKBENCH_MODEL_Y_ORIGIN = 24.0F;
     private static final float RADIANS_TO_DEGREES = 180.0F / (float) Math.PI;
@@ -99,6 +102,7 @@ public final class LegacyModelBlockbenchExporter {
 
     private final Options options;
     private final List<Path> availableTextures;
+    private Path minecraftResourcesJar;
 
     private LegacyModelBlockbenchExporter(Options options) throws IOException {
         this.options = options;
@@ -1190,10 +1194,7 @@ public final class LegacyModelBlockbenchExporter {
 
     private Path extractMinecraftTexture(String texturePath, Path outputDirectory) throws IOException {
         String entryName = "assets/minecraft/textures/" + texturePath + ".png";
-        Path minecraftJar = Path.of("D:/GradleHome/.gradle/caches/fabric-loom/1.20.1/minecraft-client.jar");
-        if (!Files.isRegularFile(minecraftJar)) {
-            throw new IOException("Minecraft 1.20.1 client resources not found: " + minecraftJar);
-        }
+        Path minecraftJar = minecraftResourcesJar();
         Path target = outputDirectory.resolve(texturePath + ".png");
         if (Files.isRegularFile(target)) {
             return target;
@@ -1207,6 +1208,46 @@ public final class LegacyModelBlockbenchExporter {
             Files.copy(zip.getInputStream(entry), target, StandardCopyOption.REPLACE_EXISTING);
         }
         return target;
+    }
+
+    private Path minecraftResourcesJar() throws IOException {
+        if (minecraftResourcesJar != null) {
+            return minecraftResourcesJar;
+        }
+
+        Set<Path> candidates = new LinkedHashSet<>();
+        String configuredPath = System.getProperty(MINECRAFT_RESOURCES_PROPERTY);
+        if (configuredPath != null && !configuredPath.isBlank()) {
+            candidates.add(Path.of(configuredPath).toAbsolutePath().normalize());
+        }
+
+        Path buildArtifacts = Path.of("build", "moddev", "artifacts").toAbsolutePath().normalize();
+        if (Files.isDirectory(buildArtifacts)) {
+            try (Stream<Path> files = Files.list(buildArtifacts)) {
+                files.filter(Files::isRegularFile)
+                        .filter(path -> path.getFileName().toString().startsWith("neoforge-"))
+                        .filter(path -> path.getFileName().toString()
+                                .endsWith("-client-extra-aka-minecraft-resources.jar"))
+                        .sorted()
+                        .forEach(candidates::add);
+            }
+        }
+
+        String version = System.getProperty(
+                MINECRAFT_VERSION_PROPERTY,
+                DEFAULT_MINECRAFT_VERSION
+        );
+        for (Path candidate : candidates) {
+            if (Files.isRegularFile(candidate)) {
+                minecraftResourcesJar = candidate;
+                return candidate;
+            }
+        }
+
+        throw new IOException(
+                "Minecraft " + version + " resource jar not found; set -D"
+                        + MINECRAFT_RESOURCES_PROPERTY + " to a client resource jar"
+        );
     }
 
     private JsonArray createBlockTextures(

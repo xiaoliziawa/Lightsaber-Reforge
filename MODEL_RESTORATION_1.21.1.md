@@ -1,9 +1,9 @@
-# Advanced Lightsabers 1.20.1 模型完整还原方案
+# Advanced Lightsabers 1.21.1 NeoForge 模型完整还原方案
 
 ## 一、目标
 
 本方案的目标不是继续使用近似方盒模型，而是把 1.7.10 的硬编码模型、运行时矩阵、UV、发光层和动画
-迁移到 Forge 1.20.1，并建立可重复执行的转换工具。
+迁移到 Minecraft 1.21.1 NeoForge，并建立可重复执行的转换工具。
 
 “完整还原”包含：
 
@@ -15,14 +15,14 @@
 - 动态部件继续由游戏数据驱动，而不是烘焙成固定姿态
 - 资源重载后模型缓存可安全重建
 
-普通 Minecraft `elements` JSON 只用于简单方盒。复杂模型的目标格式为 Forge OBJ、自定义 baked model、
+普通 Minecraft `elements` JSON 只用于简单方盒。复杂模型的目标格式为 NeoForge OBJ、自定义 baked model、
 现代 `ModelPart` 或直接 `VertexConsumer`，不会为了“必须是 elements JSON”而牺牲精度。
 
 ## 二、模型分类与目标技术
 
-| 旧模型类型 | 典型对象 | 1.20.1 目标 |
+| 旧模型类型 | 典型对象 | 1.21.1 NeoForge 目标 |
 |---|---|---|
-| 静态 `ModelRenderer` 方盒层级 | 锻造台、展示架静态本体 | OBJ + `forge:obj` model JSON |
+| 静态 `ModelRenderer` 方盒层级 | 锻造台、展示架静态本体 | OBJ + `neoforge:obj` model JSON |
 | 有活动部件的 `ModelRenderer` | Sith Coffin、Sith Stone Coffin | `LayerDefinition` / `ModelPart` + BER |
 | 程序化三角形/四边形 | Holocron、光剑刃、闪电 | `PoseStack` + `VertexConsumer` |
 | 大量可组合零件 | 60+ 光剑剑柄部件 | 转换后的共享 mesh 库 + 自定义物品 renderer |
@@ -30,11 +30,11 @@
 | 发光覆盖层 | 拆解台灯光、光剑刃 | 独立 `RenderType` 与 full-bright pass |
 | GUI 内 3D 预览 | 锻造台、原力界面 | 与世界/物品共用 renderer，不复制模型逻辑 |
 
-Forge 1.20.1 已确认提供 `forge:obj` loader，支持：
+NeoForge 1.21.1 已确认提供 `neoforge:obj` loader，支持：
 
 ```json
 {
-  "loader": "forge:obj",
+  "loader": "neoforge:obj",
   "model": "lightsabers:models/block/example.obj",
   "automatic_culling": false,
   "shade_quads": true,
@@ -43,11 +43,11 @@ Forge 1.20.1 已确认提供 `forge:obj` loader，支持：
 }
 ```
 
-对应实现位于本地 1.20.1 源码的：
+对应实现位于本地 1.21.1 NeoForge 源码的：
 
-- `net.minecraftforge.client.model.obj.ObjLoader`
-- `net.minecraftforge.client.model.obj.ObjModel`
-- `net.minecraftforge.client.model.generators.loaders.ObjModelBuilder`
+- `net.neoforged.neoforge.client.model.obj.ObjLoader`
+- `net.neoforged.neoforge.client.model.obj.ObjModel`
+- `net.neoforged.neoforge.client.model.generators.loaders.ObjModelBuilder`
 
 ## 三、转换工具架构
 
@@ -133,7 +133,7 @@ build/model-migrator/scenes/<model>.almodel.json
 转换结果：
 
 - 像素 UV 除以原 `textureWidth/textureHeight` 得到 OBJ 的 `0-1` UV
-- 是否翻转 V 统一由导出 manifest 和 `forge:obj` 的 `flip_v` 控制
+- 是否翻转 V 统一由导出 manifest 和 `neoforge:obj` 的 `flip_v` 控制
 - `mirror=true` 按旧 `ModelBox` 的面顺序处理
 - 每个材质保留原纹理路径，不重新打图集，除非后续明确做 atlas 优化
 

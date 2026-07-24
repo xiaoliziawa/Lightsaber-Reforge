@@ -127,14 +127,14 @@ public final class WorldgenDataProvider implements DataProvider {
 
     private CompletableFuture<?> saveCrystalCaveBiomeModifier(CachedOutput output) {
         JsonObject json = new JsonObject();
-        json.addProperty("type", "forge:add_features");
+        json.addProperty("type", "neoforge:add_features");
         json.addProperty("biomes", "#minecraft:is_overworld");
         json.addProperty("features", Lightsabers.MODID + ":crystal_cave");
         json.addProperty("step", "underground_decoration");
         return DataProvider.saveStable(
                 output,
                 json,
-                dataPath("forge/biome_modifier/crystal_cave.json")
+                dataPath("neoforge/biome_modifier/crystal_cave.json")
         );
     }
 

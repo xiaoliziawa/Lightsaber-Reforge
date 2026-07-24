@@ -12,12 +12,12 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelManager;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
@@ -56,7 +56,7 @@ public final class SpinningLightsaberObjRenderer {
     private static final float MAX_ROTATION_DECELERATION = 96.0F;
     private static final float EXTRA_DECELERATION_TURN_SPEED = 48.0F;
     private static final RenderType MODEL_RENDER_TYPE = RenderType.entityCutoutNoCull(
-            TextureAtlas.LOCATION_BLOCKS
+            InventoryMenu.BLOCK_ATLAS
     );
 
     private static final Map<ItemStack, AnimationState> ANIMATION_STATES = new IdentityHashMap<>();

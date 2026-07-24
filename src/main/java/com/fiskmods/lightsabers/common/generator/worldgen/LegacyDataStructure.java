@@ -1,6 +1,7 @@
 package com.fiskmods.lightsabers.common.generator.worldgen;
 
 import com.fiskmods.lightsabers.common.generator.structure.EnumStructure;
+import com.fiskmods.lightsabers.common.generator.structure.StructureSithTomb;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
@@ -62,13 +63,22 @@ public final class LegacyDataStructure extends Structure {
         }
 
         BlockPos origin = new BlockPos(x, y, z);
+        int sithTombStairLength = structure == EnumStructure.SITH_TOMB
+                ? StructureSithTomb.calculateStairLength(
+                        context.chunkGenerator(),
+                        context.heightAccessor(),
+                        context.randomState(),
+                        origin
+                )
+                : 0;
         long pieceSeed = context.random().nextLong();
         return Optional.of(new GenerationStub(
                 origin,
                 builder -> builder.addPiece(new LegacyStructurePiece(
                         structure,
                         origin,
-                        pieceSeed
+                        pieceSeed,
+                        sithTombStairLength
                 ))
         ));
     }

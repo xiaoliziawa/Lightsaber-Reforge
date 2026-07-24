@@ -100,7 +100,7 @@ Blockbench 保存后，将修改后的 `.bbmodel` 和原始 `.mapping.json` 一�
 
 光剑展示架、Holocron 和水晶仍会复制为 Minecraft Java 方块模型 JSON；拆解台和锻造台另外会生成合并后的 `.bbmodel`，不会再把多方块结构拆成互不关联的工程。
 
-`block/DisassemblyStation.bbmodel`、`block/LightsaberForgeLight.bbmodel` 和 `block/LightsaberForgeDark.bbmodel` 可以直接用 Blockbench 的 Java Block/Item 格式打开。它们会把 `parent` 继承的元素展开，按游戏中的相邻方块位置合并，并在工程根部写入 `display`，可调整 GUI、第一/第三人称、地面和展示框姿态。Minecraft 原版贴图从 1.20.1 客户端资源自动提取后内嵌，模组贴图则直接使用项目资源。
+`block/DisassemblyStation.bbmodel`、`block/LightsaberForgeLight.bbmodel` 和 `block/LightsaberForgeDark.bbmodel` 可以直接用 Blockbench 的 Java Block/Item 格式打开。它们会把 `parent` 继承的元素展开，按游戏中的相邻方块位置合并，并在工程根部写入 `display`，可调整 GUI、第一/第三人称、地面和展示框姿态。Minecraft 1.21.1 原版贴图从 NeoForge 的客户端资源包自动提取后内嵌，模组贴图则直接使用项目资源。也可以通过 `-PminecraftResourcesJar=...` 指定资源包路径。
 导出任务会把它们复制到：
 
 ```text
