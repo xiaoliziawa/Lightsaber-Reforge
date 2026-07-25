@@ -15,8 +15,8 @@ public final class WorldgenDataProvider implements DataProvider {
     private static final int SITH_TOMB_SEPARATION = 8;
     private static final int JEDI_TEMPLE_SPACING = 64;
     private static final int JEDI_TEMPLE_SEPARATION = 24;
-    private static final int CRYSTAL_CAVE_SPACING = 64;
-    private static final int CRYSTAL_CAVE_SEPARATION = 48;
+    private static final int CRYSTAL_CAVE_SPACING = 128;
+    private static final int CRYSTAL_CAVE_SEPARATION = 96;
     private static final int SITH_TOMB_SALT = 235785655;
     private static final int JEDI_TEMPLE_SALT = 235785656;
     private static final int CRYSTAL_CAVE_SALT = 235785657;
