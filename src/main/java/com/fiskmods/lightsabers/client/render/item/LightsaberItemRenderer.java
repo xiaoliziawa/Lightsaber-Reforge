@@ -394,9 +394,7 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                 poseStack.mulPose(Axis.ZP.rotationDegrees(
                         rotateSpinningGui ? SPINNING_GUI_ROTATION : -45.0F
                 ));
-                if (!lightsaberPart) {
-                    poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
-                }
+                poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
                 if (rotateSpinningGui) {
                     poseStack.mulPose(Axis.YP.rotationDegrees(SPINNING_GUI_FACE_ROTATION));
                     poseStack.mulPose(Axis.YP.rotationDegrees(SPINNING_GUI_TURN_ROTATION));
