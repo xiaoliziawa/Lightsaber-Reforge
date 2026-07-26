@@ -28,7 +28,7 @@ public class PowerEffectHeal extends PowerEffect {
 
     @Override
     public boolean execute(Player player, LogicalSide side) {
-        player.heal(amplifier);
+        player.heal(heal);
         if (aoeHeal > 0) {
             List<LivingEntity> entities = player.level().getEntitiesOfClass(
                     LivingEntity.class,
