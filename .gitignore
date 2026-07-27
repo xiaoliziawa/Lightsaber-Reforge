@@ -31,7 +31,6 @@ crash-reports/
 libs/
 
 # Minecraft
-minecraft
 /run-data/
 /model_exports/
 /src/generated/resources/.cache/

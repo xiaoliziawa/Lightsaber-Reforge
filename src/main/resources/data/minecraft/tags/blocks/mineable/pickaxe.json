@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "lightsabers:light_forcestone",
+    "lightsabers:dark_forcestone",
+    "lightsabers:light_activated_forcestone_pillar",
+    "lightsabers:dark_activated_forcestone_pillar",
+    "lightsabers:light_forcestone_stairs",
+    "lightsabers:dark_forcestone_stairs",
+    "lightsabers:forcestone_slab",
+    "lightsabers:lightsaber_stand",
+    "lightsabers:crystal_display_stand",
+    "lightsabers:disassembly_station"
+  ]
+}
