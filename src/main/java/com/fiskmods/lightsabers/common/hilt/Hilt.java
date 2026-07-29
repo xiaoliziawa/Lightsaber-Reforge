@@ -66,6 +66,14 @@ public abstract class Hilt extends FiskRegistryEntry<Hilt>
         return true;
     }
 
+    /**
+     * @return true if every component of the assembled hilt must belong to this same set.
+     */
+    public boolean requiresUniformAssembly()
+    {
+        return false;
+    }
+
     public Collection<FocusingCrystal> getFocusingCrystals()
     {
         return Arrays.asList();

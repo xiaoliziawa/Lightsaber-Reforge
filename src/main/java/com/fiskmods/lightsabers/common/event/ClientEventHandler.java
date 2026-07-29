@@ -209,6 +209,7 @@ public final class ClientEventHandler {
         LightsaberData data = ALData.LIGHTSABER.get(player);
         if (data == null
                 || data == LightsaberData.EMPTY
+                || data.isSpear()
                 || player.getMainHandItem().is(ModItems.lightsaber)
                 || player.getOffhandItem().is(ModItems.lightsaber)) {
             return;

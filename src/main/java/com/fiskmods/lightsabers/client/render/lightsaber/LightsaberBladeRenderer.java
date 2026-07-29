@@ -28,6 +28,10 @@ public final class LightsaberBladeRenderer {
     private static final float PICK_ARM_BASE_HALF_HEIGHT = PIXEL * 1.1F;
     private static final float PICK_ARM_TIP_HALF_HEIGHT = PIXEL * 0.12F;
     private static final float PICK_GLOW_EXPANSION = 0.12F;
+    private static final float[] SPEAR_PROFILE_PROGRESS = {0.0F, 0.7F, 0.78F, 0.86F, 0.93F, 0.98F, 1.0F};
+    private static final float[] SPEAR_PROFILE_WIDTH = {1.0F, 1.0F, 0.96F, 0.84F, 0.62F, 0.32F, 0.04F};
+    private static final float SPEAR_EDGE_SCALE = 2.0F;
+    private static final float SPEAR_THICKNESS_SCALE = 0.7F;
     private static final int KATANA_SEGMENTS = 12;
     private static final float KATANA_CURVATURE = 0.08F;
     private static final float KATANA_TIP_START = 0.72F;
@@ -88,7 +92,10 @@ public final class LightsaberBladeRenderer {
         float xHalf = CORE_HALF_WIDTH * widthScale * (style.fineCut() ? 0.75F : 1.0F);
         float zHalf = CORE_HALF_WIDTH * widthScale * (style.fineCut() ? 1.5F : 1.0F);
         if (!crossguard) {
-            if (style.katana()) {
+            if (style.spear()) {
+                xHalf *= SPEAR_EDGE_SCALE;
+                zHalf *= SPEAR_THICKNESS_SCALE;
+            } else if (style.katana()) {
                 xHalf *= KATANA_EDGE_SCALE;
                 zHalf *= KATANA_WIDTH_SCALE;
             } else if (style.dagger()) {
@@ -159,9 +166,11 @@ public final class LightsaberBladeRenderer {
             boolean pickaxe,
             boolean katana,
             boolean cylinder,
-            boolean dagger
+            boolean dagger,
+            boolean spear
     ) {
         static BladeStyle of(LightsaberData data) {
+            boolean spear = data.isSpear();
             return new BladeStyle(
                     data.hasFocusingCrystal(FocusingCrystal.COMPRESSED),
                     data.hasFocusingCrystal(FocusingCrystal.FINE_CUT),
@@ -169,9 +178,10 @@ public final class LightsaberBladeRenderer {
                     data.hasFocusingCrystal(FocusingCrystal.PRISMATIC),
                     data.hasFocusingCrystal(FocusingCrystal.CRACKED),
                     data.hasFocusingCrystal(FocusingCrystal.PICKAXE),
-                    data.hasFocusingCrystal(FocusingCrystal.KATANA),
-                    data.hasFocusingCrystal(FocusingCrystal.CYLINDER),
-                    data.hasFocusingCrystal(FocusingCrystal.DAGGER)
+                    !spear && data.hasFocusingCrystal(FocusingCrystal.KATANA),
+                    !spear && data.hasFocusingCrystal(FocusingCrystal.CYLINDER),
+                    !spear && data.hasFocusingCrystal(FocusingCrystal.DAGGER),
+                    spear
             );
         }
 
@@ -196,6 +206,10 @@ public final class LightsaberBladeRenderer {
             float alpha
     ) {
         if (!crossguard) {
+            if (style.spear()) {
+                renderSpearBlade(consumer, matrix, offsetX, offsetZ, 0.0F, xHalf, zHalf, length, red, green, blue, alpha);
+                return;
+            }
             if (style.katana()) {
                 renderKatanaBlade(consumer, matrix, offsetX, offsetZ, 0.0F, xHalf, zHalf, length, red, green, blue, alpha);
                 return;
@@ -235,7 +249,10 @@ public final class LightsaberBladeRenderer {
             yScale *= 0.9F;
         }
         if (!crossguard) {
-            if (style.katana()) {
+            if (style.spear()) {
+                xScale *= SPEAR_EDGE_SCALE;
+                zScale *= SPEAR_THICKNESS_SCALE;
+            } else if (style.katana()) {
                 xScale *= KATANA_EDGE_SCALE;
                 zScale *= KATANA_WIDTH_SCALE;
             } else if (style.dagger()) {
@@ -280,6 +297,7 @@ public final class LightsaberBladeRenderer {
         float baseLength = getBladeLength(bladeLength);
 
         boolean katanaGlow = !crossguard && style.katana();
+        boolean spearGlow = !crossguard && style.spear();
         for (int layer = 0; layer < layerCount; layer++) {
             float progress = layer / (float) layerCount * 50.0F;
             float radialScale = 1.0F + layer * (width / smoothing);
@@ -298,6 +316,21 @@ public final class LightsaberBladeRenderer {
             float layerOutAlpha = darkGlow ? layerAlpha : 1.0F;
             if (katanaGlow) {
                 renderKatanaBlade(
+                        glow,
+                        matrix,
+                        0.0F,
+                        0.0F,
+                        yOffset,
+                        xHalf,
+                        zHalf,
+                        length,
+                        layerRed,
+                        layerGreen,
+                        layerBlue,
+                        layerOutAlpha
+                );
+            } else if (spearGlow) {
+                renderSpearBlade(
                         glow,
                         matrix,
                         0.0F,
@@ -476,6 +509,65 @@ public final class LightsaberBladeRenderer {
                 capQuad(consumer, matrix, y, minX, maxX, minZ, maxZ, red, green, blue, alpha);
             } else {
                 loftSegment(consumer, matrix, prevY, prevMinX, prevMaxX, prevMinZ, prevMaxZ, y, minX, maxX, minZ, maxZ, red, green, blue, alpha);
+            }
+            prevY = y;
+            prevMinX = minX;
+            prevMaxX = maxX;
+            prevMinZ = minZ;
+            prevMaxZ = maxZ;
+        }
+    }
+
+    private static void renderSpearBlade(
+            VertexConsumer consumer,
+            Matrix4f matrix,
+            float offsetX,
+            float offsetZ,
+            float offsetY,
+            float xHalf,
+            float zHalf,
+            float length,
+            float red,
+            float green,
+            float blue,
+            float alpha
+    ) {
+        float prevY = 0.0F;
+        float prevMinX = 0.0F;
+        float prevMaxX = 0.0F;
+        float prevMinZ = 0.0F;
+        float prevMaxZ = 0.0F;
+        for (int node = 0; node < SPEAR_PROFILE_PROGRESS.length; node++) {
+            float progress = SPEAR_PROFILE_PROGRESS[node];
+            float widthFactor = SPEAR_PROFILE_WIDTH[node];
+            float y = offsetY - length * progress;
+            float halfWidth = xHalf * widthFactor;
+            float halfThickness = zHalf * widthFactor;
+            float minX = offsetX - halfWidth;
+            float maxX = offsetX + halfWidth;
+            float minZ = offsetZ - halfThickness;
+            float maxZ = offsetZ + halfThickness;
+            if (node == 0) {
+                capQuad(consumer, matrix, y, minX, maxX, minZ, maxZ, red, green, blue, alpha);
+            } else {
+                loftSegment(
+                        consumer,
+                        matrix,
+                        prevY,
+                        prevMinX,
+                        prevMaxX,
+                        prevMinZ,
+                        prevMaxZ,
+                        y,
+                        minX,
+                        maxX,
+                        minZ,
+                        maxZ,
+                        red,
+                        green,
+                        blue,
+                        alpha
+                );
             }
             prevY = y;
             prevMinX = minX;

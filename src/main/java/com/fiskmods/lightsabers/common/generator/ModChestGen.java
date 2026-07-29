@@ -1,7 +1,12 @@
 package com.fiskmods.lightsabers.common.generator;
 
-import com.fiskmods.lightsabers.common.block.ModBlocks;
+import com.fiskmods.lightsabers.common.hilt.Hilt;
+import com.fiskmods.lightsabers.common.item.ItemCrystal;
+import com.fiskmods.lightsabers.common.item.ItemFocusingCrystal;
+import com.fiskmods.lightsabers.common.item.ItemLightsaberPart;
 import com.fiskmods.lightsabers.common.item.ModItems;
+import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
+import com.fiskmods.lightsabers.common.lightsaber.PartType;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.Item;
@@ -11,23 +16,29 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public final class ModChestGen {
+    public static final int RANDOM_LOOT_VARIANT = -1;
     public static final String SITH_TOMB_ANNEX = "sithTombAnnex";
     public static final String SITH_TOMB_TREASURY = "sithTombTreasury";
     public static final String SITH_TOMB_COFFIN = "sithTombCoffin";
     public static final String JEDI_TEMPLE = "jediTemple";
+
+    private static final String CHEST_GEN_CATEGORY_TAG = "ChestGenCategory";
+    private static final String SITH_TOMB_LOOT_TAG = "SithTombLoot";
+    private static final String JEDI_TEMPLE_LOOT_TAG = "JediTempleLoot";
 
     private static final LootTable ANNEX = new LootTable(3, 7, List.of(
             entry(Items.BONE, 4, 6, 4),
             entry(Items.ROTTEN_FLESH, 3, 7, 3),
             entry(Items.IRON_INGOT, 2, 7, 3),
             entry(() -> ModItems.circuitry, 1, 1, 2),
-            entry(() -> ModItems.emitter, 1, 1, 3),
+            randomPart(PartType.EMITTER, 3),
             crystal(SITH_TOMB_ANNEX, 1)
     ));
     private static final LootTable TREASURY = new LootTable(5, 7, List.of(
@@ -36,8 +47,8 @@ public final class ModChestGen {
             entry(Items.GOLD_INGOT, 2, 7, 12),
             entry(Items.DIAMOND, 1, 2, 5),
             enchantedBook(5),
-            entry(() -> ModItems.emitter, 1, 1, 6),
-            entry(() -> ModItems.focusingCrystal, 1, 1, 4),
+            randomPart(PartType.EMITTER, 6),
+            randomFocusingCrystal(4),
             crystal(SITH_TOMB_TREASURY, 12)
     ));
     private static final LootTable COFFIN = new LootTable(6, 14, List.of(
@@ -47,11 +58,11 @@ public final class ModChestGen {
             entry(Items.DIAMOND, 1, 2, 5),
             enchantedBook(5),
             entry(() -> ModItems.circuitry, 1, 1, 3),
-            entry(() -> ModItems.emitter, 1, 1, 3),
-            entry(() -> ModItems.focusingCrystal, 1, 1, 4),
+            randomPart(PartType.EMITTER, 3),
+            randomFocusingCrystal(4),
             crystal(SITH_TOMB_COFFIN, 3),
-            tagged(() -> ModItems.lightsaber, 1, 1, 6, stack ->
-                    stack.getOrCreateTag().putBoolean("SithTombLoot", true))
+            tagged(random -> LightsaberData.createRandom(random), 1, 1, 6, stack ->
+                    stack.getOrCreateTag().putBoolean(SITH_TOMB_LOOT_TAG, true))
     ));
     private static final LootTable TEMPLE = new LootTable(4, 8, List.of(
             entry(Items.COOKED_CHICKEN, 1, 4, 4),
@@ -60,9 +71,9 @@ public final class ModChestGen {
             entry(Items.LEATHER, 1, 8, 4),
             entry(Items.WHITE_WOOL, 1, 9, 10),
             entry(() -> ModItems.circuitry, 1, 2, 3),
-            entry(() -> ModItems.emitter, 1, 1, 9),
-            tagged(() -> ModItems.lightsaber, 1, 1, 1, stack ->
-                    stack.getOrCreateTag().putBoolean("JediTempleLoot", true))
+            randomPart(PartType.EMITTER, 9),
+            tagged(random -> LightsaberData.createRandom(random), 1, 1, 1, stack ->
+                    stack.getOrCreateTag().putBoolean(JEDI_TEMPLE_LOOT_TAG, true))
     ));
 
     private ModChestGen() {
@@ -79,14 +90,37 @@ public final class ModChestGen {
     }
 
     public static void fill(Container container, String category, Random random) {
+        fill(container, category, random, RANDOM_LOOT_VARIANT);
+    }
+
+    public static void fill(
+            Container container,
+            String category,
+            Random random,
+            int lootVariant
+    ) {
         LootTable table = get(category);
-        int rolls = nextIntInclusive(random, table.minRolls(), table.maxRolls());
-        int totalWeight = table.entries().stream().mapToInt(LootEntry::weight).sum();
+        List<LootEntry> availableEntries = new ArrayList<>(table.entries());
+        int rolls = Math.min(
+                getRollCount(table, random, lootVariant),
+                availableEntries.size()
+        );
+        int totalWeight = availableEntries.stream().mapToInt(LootEntry::weight).sum();
         for (int roll = 0; roll < rolls; roll++) {
-            LootEntry selected = select(table.entries(), totalWeight, random);
+            LootEntry selected = select(availableEntries, totalWeight, random);
+            availableEntries.remove(selected);
+            totalWeight -= selected.weight();
             ItemStack stack = selected.create(random);
             insertRandomly(container, stack, random);
         }
+    }
+
+    private static int getRollCount(LootTable table, Random random, int lootVariant) {
+        if (lootVariant == RANDOM_LOOT_VARIANT) {
+            return nextIntInclusive(random, table.minRolls(), table.maxRolls());
+        }
+        int range = table.maxRolls() - table.minRolls() + 1;
+        return table.minRolls() + Math.floorMod(lootVariant, range);
     }
 
     private static LootEntry select(List<LootEntry> entries, int totalWeight, Random random) {
@@ -104,6 +138,24 @@ public final class ModChestGen {
         int start = random.nextInt(container.getContainerSize());
         for (int offset = 0; offset < container.getContainerSize(); offset++) {
             int slot = (start + offset) % container.getContainerSize();
+            ItemStack existing = container.getItem(slot);
+            if (!existing.isEmpty() && ItemStack.isSameItemSameTags(existing, stack)) {
+                int maxStackSize = Math.min(
+                        existing.getMaxStackSize(),
+                        container.getMaxStackSize()
+                );
+                int transfer = Math.min(stack.getCount(), maxStackSize - existing.getCount());
+                if (transfer > 0) {
+                    existing.grow(transfer);
+                    stack.shrink(transfer);
+                    if (stack.isEmpty()) {
+                        return;
+                    }
+                }
+            }
+        }
+        for (int offset = 0; offset < container.getContainerSize(); offset++) {
+            int slot = (start + offset) % container.getContainerSize();
             if (container.getItem(slot).isEmpty()) {
                 container.setItem(slot, stack);
                 return;
@@ -112,15 +164,36 @@ public final class ModChestGen {
     }
 
     private static LootEntry entry(Item item, int min, int max, int weight) {
-        return new LootEntry(() -> item, min, max, weight, (stack, random) -> { });
+        return new LootEntry(
+                random -> new ItemStack(item),
+                min,
+                max,
+                weight,
+                (stack, random) -> { }
+        );
     }
 
     private static LootEntry entry(ItemSupplier item, int min, int max, int weight) {
+        return new LootEntry(
+                random -> new ItemStack(item.get()),
+                min,
+                max,
+                weight,
+                (stack, random) -> { }
+        );
+    }
+
+    private static LootEntry stackEntry(
+            StackSupplier item,
+            int min,
+            int max,
+            int weight
+    ) {
         return new LootEntry(item, min, max, weight, (stack, random) -> { });
     }
 
     private static LootEntry tagged(
-            ItemSupplier item,
+            StackSupplier item,
             int min,
             int max,
             int weight,
@@ -137,7 +210,7 @@ public final class ModChestGen {
 
     private static LootEntry enchantedBook(int weight) {
         return new LootEntry(
-                () -> Items.ENCHANTED_BOOK,
+                random -> new ItemStack(Items.ENCHANTED_BOOK),
                 1,
                 1,
                 weight,
@@ -165,11 +238,29 @@ public final class ModChestGen {
 
     private static LootEntry crystal(String category, int weight) {
         return tagged(
-                () -> ModBlocks.LIGHTSABER_CRYSTAL_ITEM.get(),
+                random -> ItemCrystal.create(ItemCrystal.getRandomGen(random)),
                 1,
                 1,
                 weight,
-                stack -> stack.getOrCreateTag().putString("ChestGenCategory", category)
+                stack -> stack.getOrCreateTag().putString(CHEST_GEN_CATEGORY_TAG, category)
+        );
+    }
+
+    private static LootEntry randomPart(PartType type, int weight) {
+        return stackEntry(
+                random -> ItemLightsaberPart.create(type, Hilt.REGISTRY.getRandom(random)),
+                1,
+                1,
+                weight
+        );
+    }
+
+    private static LootEntry randomFocusingCrystal(int weight) {
+        return stackEntry(
+                random -> ItemFocusingCrystal.create(ItemFocusingCrystal.getRandom(random)),
+                1,
+                1,
+                weight
         );
     }
 
@@ -181,17 +272,16 @@ public final class ModChestGen {
     }
 
     public record LootEntry(
-            ItemSupplier item,
+            StackSupplier stackSupplier,
             int minCount,
             int maxCount,
             int weight,
             BiConsumer<ItemStack, Random> modifier
     ) {
         ItemStack create(Random random) {
-            ItemStack stack = new ItemStack(
-                    item.get(),
-                    nextIntInclusive(random, minCount, maxCount)
-            );
+            int count = nextIntInclusive(random, minCount, maxCount);
+            ItemStack stack = stackSupplier.get(random);
+            stack.setCount(count);
             modifier.accept(stack, random);
             return stack;
         }
@@ -211,5 +301,10 @@ public final class ModChestGen {
     @FunctionalInterface
     public interface ItemSupplier {
         Item get();
+    }
+
+    @FunctionalInterface
+    public interface StackSupplier {
+        ItemStack get(Random random);
     }
 }

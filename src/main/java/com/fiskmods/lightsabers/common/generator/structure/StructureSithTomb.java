@@ -10,38 +10,57 @@ import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.tileentity.TileEntityCrystalDisplayStand;
 import com.fiskmods.lightsabers.common.tileentity.TileEntitySithStoneCoffin;
 
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.RandomState;
 
 public class StructureSithTomb extends Structure
 {
+    private static final int MIN_STAIR_LENGTH = 5;
+    private static final int STAIR_SURFACE_Z_OFFSET = 17 + MIN_STAIR_LENGTH;
+
+    private final int stairLength;
+
     public StructureSithTomb(LevelAccessor world, int x, int y, int z)
     {
+        this(world, x, y, z, MIN_STAIR_LENGTH);
+    }
+
+    public StructureSithTomb(LevelAccessor world, int x, int y, int z, int stairLength)
+    {
         super(world, x, y, z);
+        this.stairLength = Math.max(MIN_STAIR_LENGTH, stairLength);
+    }
+
+    public static int calculateStairLength(
+            ChunkGenerator generator,
+            LevelHeightAccessor heightAccessor,
+            RandomState randomState,
+            BlockPos origin
+    )
+    {
+        int surfaceY = generator.getFirstOccupiedHeight(
+                origin.getX(),
+                origin.getZ() + STAIR_SURFACE_Z_OFFSET,
+                Heightmap.Types.WORLD_SURFACE_WG,
+                heightAccessor,
+                randomState
+        );
+        int terrainY = Math.max(generator.getSeaLevel(), surfaceY);
+        return Math.max(MIN_STAIR_LENGTH, origin.getY() + MIN_STAIR_LENGTH - terrainY);
     }
 
     @Override
     public void spawnStructure(Random random)
     {
         generateEntrance(random);
-        int stairLength = 5;
-
-        int k;
-
-        for (k = 63; !worldObj.isEmptyBlock(new BlockPos(xCoord, k + 1, zCoord + 17 + stairLength)); ++k)
-        {
-            ;
-        }
-
-        while (yCoord - stairLength + 5 > k)
-        {
-            ++stairLength;
-        }
-
         generateStairway(random, stairLength);
         generateAntechamber(random);
         generateAnnex(random);
@@ -748,7 +767,8 @@ public class StructureSithTomb extends Structure
                 0,
                 6,
                 SITH_TOMB_ANNEX,
-                Direction.WEST
+                Direction.WEST,
+                0
         );
         generateStructureChestContents(
                 random,
@@ -756,7 +776,8 @@ public class StructureSithTomb extends Structure
                 0,
                 6,
                 SITH_TOMB_ANNEX,
-                Direction.EAST
+                Direction.EAST,
+                1
         );
     }
 
@@ -1006,7 +1027,8 @@ public class StructureSithTomb extends Structure
                 0,
                 -10,
                 SITH_TOMB_TREASURY,
-                Direction.SOUTH
+                Direction.SOUTH,
+                0
         );
         generateStructureChestContents(
                 random,
@@ -1014,7 +1036,8 @@ public class StructureSithTomb extends Structure
                 0,
                 -7,
                 SITH_TOMB_TREASURY,
-                Direction.WEST
+                Direction.WEST,
+                1
         );
         generateStructureChestContents(
                 random,
@@ -1022,7 +1045,8 @@ public class StructureSithTomb extends Structure
                 0,
                 -7,
                 SITH_TOMB_TREASURY,
-                Direction.EAST
+                Direction.EAST,
+                2
         );
 
         placeTreasuryDisplay(random);

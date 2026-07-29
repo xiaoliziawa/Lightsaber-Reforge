@@ -53,6 +53,24 @@ public final class LightsaberRenderer {
             }
             return;
         }
+        if (SpearLightsaberObjRenderer.isSupported(data)) {
+            SpearLightsaberObjRenderer.renderHilt(
+                    poseStack,
+                    buffer,
+                    packedLight,
+                    packedOverlay
+            );
+            if (ItemLightsaberBase.isActive(stack)) {
+                SpearLightsaberObjRenderer.renderBlade(
+                        data,
+                        stack,
+                        poseStack,
+                        buffer,
+                        inWorld
+                );
+            }
+            return;
+        }
         HiltModelRenderer.render(data, poseStack, buffer, packedLight, packedOverlay);
         if (!ItemLightsaberBase.isActive(stack)) {
             return;

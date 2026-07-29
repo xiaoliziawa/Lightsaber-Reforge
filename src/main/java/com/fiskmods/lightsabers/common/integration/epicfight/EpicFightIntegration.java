@@ -29,6 +29,11 @@ public final class EpicFightIntegration {
                     "spinning_lightsaber",
                     () -> SpinningLightsaberCondition::new
             );
+    private static final RegistryObject<Supplier<Condition<?>>> SPEAR_LIGHTSABER =
+            CONDITIONS.register(
+                    "spear_lightsaber",
+                    () -> SpearLightsaberCondition::new
+            );
     private static final RegistryObject<Supplier<Condition<?>>> DAGGER_LIGHTSABER =
             CONDITIONS.register(
                     "dagger_lightsaber",

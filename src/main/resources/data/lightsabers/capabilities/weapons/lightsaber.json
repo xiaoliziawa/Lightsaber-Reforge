@@ -7,6 +7,11 @@
       "type": "lightsabers:lightsaber_spear"
     },
     {
+      "condition": "lightsabers:spear_lightsaber",
+      "predicate": {},
+      "type": "lightsabers:lightsaber_spear"
+    },
+    {
       "condition": "lightsabers:dagger_lightsaber",
       "predicate": {},
       "type": "lightsabers:lightsaber_dagger"

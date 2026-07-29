@@ -20,6 +20,10 @@ import java.util.Map;
 import java.util.Random;
 
 public abstract class Structure {
+    private static final long CONTAINER_SEED_SALT = 0x6A09E667F3BCC909L;
+    private static final long MIX_MULTIPLIER_1 = 0xBF58476D1CE4E5B9L;
+    private static final long MIX_MULTIPLIER_2 = 0x94D049BB133111EBL;
+
     protected final LevelAccessor worldObj;
     protected int xCoord;
     protected int yCoord;
@@ -32,6 +36,7 @@ public abstract class Structure {
     private final Map<StructurePoint, StructurePoint> coverageByColumn = new HashMap<>();
     @Nullable
     private BoundingBox generationBounds;
+    private long generationSeed;
 
     protected Structure(LevelAccessor level, int x, int y, int z) {
         worldObj = level;
@@ -44,6 +49,39 @@ public abstract class Structure {
 
     public final void setGenerationBounds(BoundingBox generationBounds) {
         this.generationBounds = generationBounds;
+    }
+
+    public final void setGenerationSeed(long generationSeed) {
+        this.generationSeed = generationSeed;
+    }
+
+    private Random createContainerRandom(BlockPos pos, String category) {
+        long seed = mixSeed(generationSeed ^ CONTAINER_SEED_SALT, pos.asLong());
+        seed = mixSeed(seed, category.hashCode());
+        return new Random(seed);
+    }
+
+    private static long mixSeed(long seed, long value) {
+        long mixed = seed + value;
+        mixed = (mixed ^ (mixed >>> 30)) * MIX_MULTIPLIER_1;
+        mixed = (mixed ^ (mixed >>> 27)) * MIX_MULTIPLIER_2;
+        return mixed ^ (mixed >>> 31);
+    }
+
+    private void fillStructureContainer(BlockPos pos, String category) {
+        fillStructureContainer(pos, category, ModChestGen.RANDOM_LOOT_VARIANT);
+    }
+
+    private void fillStructureContainer(BlockPos pos, String category, int lootVariant) {
+        if (worldObj.getBlockEntity(pos) instanceof Container container) {
+            ModChestGen.fill(
+                    container,
+                    category,
+                    createContainerRandom(pos, category),
+                    lootVariant
+            );
+            container.setChanged();
+        }
     }
 
     protected final boolean isWithinGenerationBounds(BlockPos pos) {
@@ -188,6 +226,26 @@ public abstract class Structure {
             String category,
             Direction facing
     ) {
+        return generateStructureChestContents(
+                random,
+                x,
+                y,
+                z,
+                category,
+                facing,
+                ModChestGen.RANDOM_LOOT_VARIANT
+        );
+    }
+
+    protected boolean generateStructureChestContents(
+            Random random,
+            int x,
+            int y,
+            int z,
+            String category,
+            Direction facing,
+            int lootVariant
+    ) {
         int worldX = xCoord + x;
         int worldY = yCoord + y;
         int worldZ = zCoord + z;
@@ -203,10 +261,7 @@ public abstract class Structure {
                 Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, facing),
                 Block.UPDATE_CLIENTS
         );
-        if (worldObj.getBlockEntity(pos) instanceof Container container) {
-            ModChestGen.fill(container, category, random);
-            container.setChanged();
-        }
+        fillStructureContainer(pos, category, lootVariant);
         return true;
     }
 
@@ -228,10 +283,7 @@ public abstract class Structure {
         if (!worldObj.getBlockState(pos).is(block)) {
             return false;
         }
-        if (worldObj.getBlockEntity(pos) instanceof Container container) {
-            ModChestGen.fill(container, category, random);
-            container.setChanged();
-        }
+        fillStructureContainer(pos, category);
         return true;
     }
 }

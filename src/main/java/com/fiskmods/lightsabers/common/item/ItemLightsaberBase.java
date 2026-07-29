@@ -41,6 +41,7 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
     private static final float PLAYER_BASE_ATTACK_DAMAGE = 1.0F;
     private static final float SINGLE_ATTACK_DAMAGE = 13.0F;
     private static final float SPINNING_ATTACK_DAMAGE = 20.0F;
+    private static final float SPEAR_ATTACK_DAMAGE = 25.0F;
     private static final Tier LIGHTSABER_TIER = new Tier() {
         @Override
         public int getUses() {
@@ -88,6 +89,9 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
     }
 
     protected float getAttackDamage(ItemStack stack) {
+        if (isSpearLightsaber(stack)) {
+            return SPEAR_ATTACK_DAMAGE;
+        }
         return isSpinningLightsaber(stack) ? SPINNING_ATTACK_DAMAGE : SINGLE_ATTACK_DAMAGE;
     }
 
@@ -189,6 +193,11 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
         }
 
         return LightsaberData.get(stack).canSpinBlades();
+    }
+
+    public static boolean isSpearLightsaber(ItemStack stack) {
+        return stack.getItem() instanceof ItemLightsaber
+                && LightsaberData.get(stack).isSpear();
     }
 
     public static boolean isDaggerLightsaber(ItemStack stack) {

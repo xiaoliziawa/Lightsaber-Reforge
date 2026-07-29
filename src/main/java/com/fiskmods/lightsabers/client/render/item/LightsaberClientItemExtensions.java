@@ -52,7 +52,9 @@ public final class LightsaberClientItemExtensions implements IClientItemExtensio
             InteractionHand hand,
             ItemStack stack
     ) {
-        if (!ItemLightsaberBase.isActive(stack) || entity.isCrouching()) {
+        if (!ItemLightsaberBase.isActive(stack)
+                || ItemLightsaberBase.isSpearLightsaber(stack)
+                || entity.isCrouching()) {
             return null;
         }
         return stack.getItem() instanceof ItemDoubleLightsaber

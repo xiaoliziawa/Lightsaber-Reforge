@@ -31,6 +31,7 @@ public class LightsaberData extends AbstractLightsaberData implements ISerializa
 {
     public static final LightsaberData EMPTY = new LightsaberData();
     public static final float MIN_LENGTH_CM = 19;
+    private static final float SPEAR_LENGTH_MULTIPLIER = 10.0F;
 
     public LightsaberData()
     {
@@ -90,6 +91,13 @@ public class LightsaberData extends AbstractLightsaberData implements ISerializa
         return getHeightCm() < MIN_LENGTH_CM;
     }
 
+    @Override
+    public float getHeightCm()
+    {
+        float heightCm = super.getHeightCm();
+        return isSpear() ? heightCm * SPEAR_LENGTH_MULTIPLIER : heightCm;
+    }
+
     public boolean supportsDoubleLightsaber()
     {
         for (PartType type : PartType.values())
@@ -114,15 +122,43 @@ public class LightsaberData extends AbstractLightsaberData implements ISerializa
         return hasSpinningCore() && get(PartType.POMMEL) == HiltManager.SPINNING;
     }
 
+    public boolean isSpear()
+    {
+        return isUniform(HiltManager.SPEAR);
+    }
+
+    private boolean isUniform(Hilt hilt)
+    {
+        for (PartType type : PartType.values())
+        {
+            if (get(type) != hilt)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public boolean isAssemblyCompatible()
     {
         if (get(PartType.BODY) == HiltManager.SPINNING)
         {
             return hasSpinningCore();
         }
-        return get(PartType.EMITTER) != HiltManager.SPINNING
-                && get(PartType.SWITCH_SECTION) != HiltManager.SPINNING
-                && get(PartType.POMMEL) != HiltManager.SPINNING;
+
+        for (PartType type : PartType.values())
+        {
+            Hilt hilt = get(type);
+            if (hilt == HiltManager.SPINNING)
+            {
+                return false;
+            }
+            if (hilt.requiresUniformAssembly() && !isUniform(hilt))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -415,7 +451,17 @@ public class LightsaberData extends AbstractLightsaberData implements ISerializa
      */
     public static float getHeightCm(ItemStack itemstack)
     {
-        return getHeight(itemstack) * 0.575F;
+        if (itemstack.getItem() == ModItems.DOUBLE_LIGHTSABER.get())
+        {
+            float heightCm = 0.0F;
+            for (LightsaberData data : ItemDoubleLightsaber.get(itemstack))
+            {
+                heightCm += data.getHeightCm();
+            }
+            return heightCm;
+        }
+
+        return get(itemstack).getHeightCm();
     }
 
     /**
@@ -454,19 +500,12 @@ public class LightsaberData extends AbstractLightsaberData implements ISerializa
      */
     public static ItemStack createRandom(Random rand, CrystalColor color)
     {
-        Hilt[] hilt = new Hilt[4];
-
-        for (int i = 0; i < 4; ++i)
+        LightsaberData data;
+        do
         {
-            hilt[i] = Hilt.REGISTRY.getRandom(rand);
+            data = new LightsaberData().set(createRandomHilt(rand));
         }
-
-        LightsaberData data = new LightsaberData().set(hilt);
-
-        if (data.isTooShort())
-        {
-            return createRandom(rand, color);
-        }
+        while (data.isTooShort() || !data.isAssemblyCompatible());
 
         if (color == null)
         {
@@ -489,6 +528,42 @@ public class LightsaberData extends AbstractLightsaberData implements ISerializa
         }
 
         return data.create();
+    }
+
+    private static Hilt[] createRandomHilt(Random rand)
+    {
+        Hilt body = Hilt.REGISTRY.getRandom(rand);
+        Hilt[] hilt = new Hilt[PartType.values().length];
+
+        if (requiresUniformRandomAssembly(body))
+        {
+            Arrays.fill(hilt, body);
+            return hilt;
+        }
+
+        for (PartType type : PartType.values())
+        {
+            hilt[type.ordinal()] = type == PartType.BODY
+                    ? body
+                    : getRandomCombinableHilt(rand);
+        }
+        return hilt;
+    }
+
+    private static Hilt getRandomCombinableHilt(Random rand)
+    {
+        Hilt hilt;
+        do
+        {
+            hilt = Hilt.REGISTRY.getRandom(rand);
+        }
+        while (requiresUniformRandomAssembly(hilt));
+        return hilt;
+    }
+
+    private static boolean requiresUniformRandomAssembly(Hilt hilt)
+    {
+        return hilt == HiltManager.SPINNING || hilt.requiresUniformAssembly();
     }
 
     /**
