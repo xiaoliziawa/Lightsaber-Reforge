@@ -106,22 +106,62 @@ public final class SpinningLightsaberObjRenderer {
         poseStack.scale(DISPLAY_SCALE, DISPLAY_SCALE, DISPLAY_SCALE);
         poseStack.pushPose();
         poseStack.scale(OBJ_SCALE, OBJ_SCALE, OBJ_SCALE);
-        renderModel(itemRenderer, modelManager.getModel(GRIP_MODEL), poseStack, buffer, packedLight, packedOverlay);
-        renderModel(itemRenderer, modelManager.getModel(SWITCH_MODEL), poseStack, buffer, packedLight, packedOverlay);
+        renderModel(
+                itemRenderer,
+                modelManager.getModel(GRIP_MODEL),
+                stack,
+                poseStack,
+                buffer,
+                packedLight,
+                packedOverlay
+        );
+        renderModel(
+                itemRenderer,
+                modelManager.getModel(SWITCH_MODEL),
+                stack,
+                poseStack,
+                buffer,
+                packedLight,
+                packedOverlay
+        );
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.mulPose(Axis.XP.rotationDegrees(rotation));
         poseStack.scale(OBJ_SCALE, OBJ_SCALE, OBJ_SCALE);
-        renderModel(itemRenderer, modelManager.getModel(OUTER_MODEL), poseStack, buffer, packedLight, packedOverlay);
+        renderModel(
+                itemRenderer,
+                modelManager.getModel(OUTER_MODEL),
+                stack,
+                poseStack,
+                buffer,
+                packedLight,
+                packedOverlay
+        );
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.mulPose(Axis.XP.rotationDegrees(rotation));
         poseStack.scale(OBJ_SCALE, OBJ_SCALE, OBJ_SCALE);
-        renderModel(itemRenderer, modelManager.getModel(UPPER_EMITTER_MODEL), poseStack, buffer, packedLight, packedOverlay);
+        renderModel(
+                itemRenderer,
+                modelManager.getModel(UPPER_EMITTER_MODEL),
+                stack,
+                poseStack,
+                buffer,
+                packedLight,
+                packedOverlay
+        );
         if (hasLowerEmitter(data)) {
-            renderModel(itemRenderer, modelManager.getModel(LOWER_EMITTER_MODEL), poseStack, buffer, packedLight, packedOverlay);
+            renderModel(
+                    itemRenderer,
+                    modelManager.getModel(LOWER_EMITTER_MODEL),
+                    stack,
+                    poseStack,
+                    buffer,
+                    packedLight,
+                    packedOverlay
+            );
         }
         poseStack.popPose();
 
@@ -228,13 +268,22 @@ public final class SpinningLightsaberObjRenderer {
         poseStack.pushPose();
         poseStack.scale(OBJ_SCALE, OBJ_SCALE, OBJ_SCALE);
         poseStack.translate(-offsetX, -offsetY, 0.0F);
-        renderModel(itemRenderer, modelManager.getModel(model), poseStack, buffer, packedLight, packedOverlay);
+        renderModel(
+                itemRenderer,
+                modelManager.getModel(model),
+                ItemStack.EMPTY,
+                poseStack,
+                buffer,
+                packedLight,
+                packedOverlay
+        );
         poseStack.popPose();
     }
 
     private static void renderModel(
             ItemRenderer itemRenderer,
             BakedModel model,
+            ItemStack stack,
             PoseStack poseStack,
             MultiBufferSource buffer,
             int packedLight,
@@ -246,7 +295,12 @@ public final class SpinningLightsaberObjRenderer {
                 packedLight,
                 packedOverlay,
                 poseStack,
-                buffer.getBuffer(MODEL_RENDER_TYPE)
+                ItemRenderer.getFoilBuffer(
+                        buffer,
+                        MODEL_RENDER_TYPE,
+                        true,
+                        stack.hasFoil()
+                )
         );
     }
 

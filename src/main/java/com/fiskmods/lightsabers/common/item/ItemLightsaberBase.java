@@ -36,6 +36,7 @@ import net.minecraft.world.phys.HitResult;
 
 public abstract class ItemLightsaberBase extends SwordItem {
     private static final String ACTIVE_TAG = "active";
+    private static final int ENCHANTMENT_VALUE = 10;
     private static final int ATTACK_DAMAGE_MODIFIER = 5;
     private static final float ATTACK_SPEED_MODIFIER = -2.4F;
     private static final float PLAYER_BASE_ATTACK_DAMAGE = 1.0F;
@@ -65,7 +66,7 @@ public abstract class ItemLightsaberBase extends SwordItem {
 
         @Override
         public int getEnchantmentValue() {
-            return 10;
+            return ENCHANTMENT_VALUE;
         }
 
         @Override
@@ -82,6 +83,11 @@ public abstract class ItemLightsaberBase extends SwordItem {
                         .setNoRepair()
                         .component(DataComponents.UNBREAKABLE, new Unbreakable(false))
         );
+    }
+
+    @Override
+    public boolean isEnchantable(ItemStack stack) {
+        return true;
     }
 
     public float getAttackDamage(ItemStack stack) {

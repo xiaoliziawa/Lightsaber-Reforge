@@ -88,6 +88,7 @@ public final class SpearLightsaberObjRenderer {
     }
 
     public static void renderHilt(
+            ItemStack stack,
             PoseStack poseStack,
             MultiBufferSource buffer,
             int packedLight,
@@ -100,10 +101,42 @@ public final class SpearLightsaberObjRenderer {
         poseStack.mulPose(Axis.XP.rotationDegrees(MODEL_ORIENTATION_ROTATION));
         poseStack.scale(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
         poseStack.translate(0.0F, -HILT_CENTER_Y, 0.0F);
-        renderModel(itemRenderer, modelManager.getModel(EMITTER_MODEL), poseStack, buffer, packedLight, packedOverlay);
-        renderModel(itemRenderer, modelManager.getModel(SWITCH_MODEL), poseStack, buffer, packedLight, packedOverlay);
-        renderModel(itemRenderer, modelManager.getModel(GRIP_MODEL), poseStack, buffer, packedLight, packedOverlay);
-        renderModel(itemRenderer, modelManager.getModel(POMMEL_MODEL), poseStack, buffer, packedLight, packedOverlay);
+        renderModel(
+                itemRenderer,
+                modelManager.getModel(EMITTER_MODEL),
+                stack,
+                poseStack,
+                buffer,
+                packedLight,
+                packedOverlay
+        );
+        renderModel(
+                itemRenderer,
+                modelManager.getModel(SWITCH_MODEL),
+                stack,
+                poseStack,
+                buffer,
+                packedLight,
+                packedOverlay
+        );
+        renderModel(
+                itemRenderer,
+                modelManager.getModel(GRIP_MODEL),
+                stack,
+                poseStack,
+                buffer,
+                packedLight,
+                packedOverlay
+        );
+        renderModel(
+                itemRenderer,
+                modelManager.getModel(POMMEL_MODEL),
+                stack,
+                poseStack,
+                buffer,
+                packedLight,
+                packedOverlay
+        );
         poseStack.popPose();
     }
 
@@ -155,13 +188,22 @@ public final class SpearLightsaberObjRenderer {
         poseStack.mulPose(Axis.XP.rotationDegrees(MODEL_ORIENTATION_ROTATION));
         poseStack.scale(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
         poseStack.translate(0.0F, -centerY, 0.0F);
-        renderModel(itemRenderer, modelManager.getModel(model), poseStack, buffer, packedLight, packedOverlay);
+        renderModel(
+                itemRenderer,
+                modelManager.getModel(model),
+                ItemStack.EMPTY,
+                poseStack,
+                buffer,
+                packedLight,
+                packedOverlay
+        );
         poseStack.popPose();
     }
 
     private static void renderModel(
             ItemRenderer itemRenderer,
             BakedModel model,
+            ItemStack stack,
             PoseStack poseStack,
             MultiBufferSource buffer,
             int packedLight,
@@ -173,7 +215,12 @@ public final class SpearLightsaberObjRenderer {
                 packedLight,
                 packedOverlay,
                 poseStack,
-                buffer.getBuffer(MODEL_RENDER_TYPE)
+                ItemRenderer.getFoilBuffer(
+                        buffer,
+                        MODEL_RENDER_TYPE,
+                        true,
+                        stack.hasFoil()
+                )
         );
     }
 
