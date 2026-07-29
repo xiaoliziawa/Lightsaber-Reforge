@@ -13,6 +13,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.item.ItemStack;
 
 public final class HiltModelRenderer {
@@ -59,6 +60,7 @@ public final class HiltModelRenderer {
         }
         if (SpearLightsaberObjRenderer.isSupported(data)) {
             SpearLightsaberObjRenderer.renderHilt(
+                    stack,
                     poseStack,
                     buffer,
                     packedLight,
@@ -87,6 +89,7 @@ public final class HiltModelRenderer {
             renderModel(
                     renderer,
                     type,
+                    stack,
                     poseStack,
                     buffer,
                     packedLight,
@@ -156,16 +159,6 @@ public final class HiltModelRenderer {
             );
             return;
         }
-        if (hilt == HiltManager.SPEAR) {
-            SpearLightsaberObjRenderer.renderPart(
-                    type,
-                    poseStack,
-                    buffer,
-                    packedLight,
-                    packedOverlay
-            );
-            return;
-        }
         registerModels();
         HiltRenderer renderer = HiltRenderer.get(hilt);
         if (renderer == null) {
@@ -174,7 +167,15 @@ public final class HiltModelRenderer {
         Part part = hilt.getPart(type);
         float direction = type.isLowerPart() ? -1.0F : 1.0F;
         poseStack.translate(0.0F, part.height * direction / 32.0F, 0.0F);
-        renderModel(renderer, type, poseStack, buffer, packedLight, packedOverlay);
+        renderModel(
+                renderer,
+                type,
+                ItemStack.EMPTY,
+                poseStack,
+                buffer,
+                packedLight,
+                packedOverlay
+        );
     }
 
     private static void applyPartTransform(
@@ -213,14 +214,18 @@ public final class HiltModelRenderer {
     private static void renderModel(
             HiltRenderer renderer,
             PartType type,
+            ItemStack stack,
             PoseStack poseStack,
             MultiBufferSource buffer,
             int packedLight,
             int packedOverlay
     ) {
         LegacyModelBase model = renderer.getModel(type);
-        VertexConsumer consumer = buffer.getBuffer(
-                RenderType.entityCutoutNoCull(renderer.getTexture(type))
+        VertexConsumer consumer = ItemRenderer.getFoilBuffer(
+                buffer,
+                RenderType.entityCutoutNoCull(renderer.getTexture(type)),
+                true,
+                stack.hasFoil()
         );
         model.render(poseStack, consumer, packedLight, packedOverlay);
     }
