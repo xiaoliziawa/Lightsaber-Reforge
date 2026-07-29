@@ -4,6 +4,7 @@ import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberBladeRenderer
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberRenderer;
 import com.fiskmods.lightsabers.common.entity.EntityLightsaber;
 import com.fiskmods.lightsabers.common.item.ItemDoubleLightsaber;
+import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -23,6 +24,7 @@ public class RenderLightsaber extends EntityRenderer<EntityLightsaber> {
     // 自转时剑尖的运动方向是模型空间 -Z，方向敏感的剑刃（如武士刀，刃在 -X）
     // 需绕剑轴滚转 -90°，让刀刃转入旋转平面并领先旋转方向。
     private static final float SPIN_EDGE_ROLL = -90.0F;
+    private static final float SPEAR_SCALE = 3.5F;
 
     public RenderLightsaber(EntityRendererProvider.Context context) {
         super(context);
@@ -51,12 +53,18 @@ public class RenderLightsaber extends EntityRenderer<EntityLightsaber> {
                 Mth.rotLerp(partialTick, entity.xRotO, entity.getXRot())
         ));
         poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
-        poseStack.mulPose(Axis.XP.rotationDegrees(
-                (entity.tickCount + partialTick) * SPIN_DEGREES_PER_TICK
-        ));
+        boolean spear = ItemLightsaberBase.isSpearLightsaber(stack);
+        if (!spear) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(
+                    (entity.tickCount + partialTick) * SPIN_DEGREES_PER_TICK
+            ));
+        }
         poseStack.scale(SCALE, SCALE, SCALE);
+        if (spear) {
+            poseStack.scale(SPEAR_SCALE, SPEAR_SCALE, SPEAR_SCALE);
+        }
 
-        LightsaberBladeRenderer.bladeRoll = SPIN_EDGE_ROLL;
+        LightsaberBladeRenderer.bladeRoll = spear ? 0.0F : SPIN_EDGE_ROLL;
         if (stack.getItem() instanceof ItemDoubleLightsaber) {
             LightsaberRenderer.render(
                     ItemDoubleLightsaber.get(stack),

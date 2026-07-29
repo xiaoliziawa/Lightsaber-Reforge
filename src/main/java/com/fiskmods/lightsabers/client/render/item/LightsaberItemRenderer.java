@@ -5,6 +5,7 @@ import com.fiskmods.lightsabers.client.integration.epicfight.EpicFightClientInte
 import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberBladeRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberRenderer;
+import com.fiskmods.lightsabers.client.render.lightsaber.SpearLightsaberObjRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.SpinningLightsaberObjRenderer;
 import com.fiskmods.lightsabers.common.hilt.Hilt;
 import com.fiskmods.lightsabers.common.hilt.HiltManager;
@@ -91,6 +92,17 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final float SPINNING_DEFENSE_VERTICAL_OFFSET = -0.10F;
     private static final float SPINNING_DEFENSE_FORWARD_OFFSET = 0.05F;
     private static final float SPINNING_DEFENSE_FACE_ROTATION = 90.0F;
+    private static final float SPEAR_ALIGN_ROLL = 135.0F;
+    private static final float SPEAR_THIRD_PERSON_SCALE = 4.0F;
+    private static final float SPEAR_FIRST_PERSON_YAW = -90.0F;
+    private static final float SPEAR_FIRST_PERSON_ROLL = 25.0F;
+    private static final float SPEAR_FIRST_PERSON_OFFSET_X = 1.13F / MODEL_PIXELS_PER_BLOCK;
+    private static final float SPEAR_FIRST_PERSON_OFFSET_Y = 3.2F / MODEL_PIXELS_PER_BLOCK;
+    private static final float SPEAR_FIRST_PERSON_OFFSET_Z = 1.13F / MODEL_PIXELS_PER_BLOCK;
+    private static final float SPEAR_FIRST_PERSON_SCALE = 0.80F;
+    private static final float SPEAR_GUI_SCALE = 1.75F;
+    private static final float SPEAR_GROUND_SCALE = 2.5F;
+    private static final float SPEAR_DISPLAY_SCALE = 2.5F;
 
     public LightsaberItemRenderer() {
         super(
@@ -100,6 +112,9 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
     }
 
     public static double getThirdPersonBladeLength(ItemStack stack) {
+        if (ItemLightsaberBase.isSpearLightsaber(stack)) {
+            return SpearLightsaberObjRenderer.getBladeModelLength() * SPEAR_THIRD_PERSON_SCALE;
+        }
         float bladeLength = ItemLightsaberBase.isSpinningLightsaber(stack)
                 ? SpinningLightsaberObjRenderer.getBladeModelLength()
                 : LightsaberRenderer.getMainBladeModelLength();
@@ -119,6 +134,7 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                 ? item
                 : null;
         boolean spinning = isSpinningStack(stack, partItem);
+        boolean spear = isSpearStack(stack, partItem);
         boolean rotateSpinningGui = spinning
                 && (partItem == null || partItem.partType == PartType.BODY);
         poseStack.pushPose();
@@ -141,12 +157,13 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                 partItem != null,
                 doublePose,
                 spinning,
+                spear,
                 rotateSpinningGui,
                 spinningDefense,
                 poseStack
         );
         float edgeRollYaw = doubleLightsaber ? DOUBLE_FIRST_PERSON_EDGE_ROLL_YAW : FIRST_PERSON_EDGE_ROLL_YAW;
-        LightsaberBladeRenderer.bladeRoll = switch (displayContext) {
+        LightsaberBladeRenderer.bladeRoll = spear ? 0.0F : switch (displayContext) {
             case FIRST_PERSON_RIGHT_HAND -> FIRST_PERSON_EDGE_ROLL_BASE - edgeRollYaw;
             case FIRST_PERSON_LEFT_HAND -> FIRST_PERSON_EDGE_ROLL_BASE + edgeRollYaw;
             default -> 0.0F;
@@ -214,6 +231,19 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
             int packedOverlay
     ) {
         Hilt hilt = ItemLightsaberPart.get(stack);
+        if (hilt == HiltManager.SPEAR) {
+            float scale = SpearLightsaberObjRenderer.getPartScale(type);
+            poseStack.scale(scale, scale, scale);
+            HiltModelRenderer.renderPart(
+                    hilt,
+                    type,
+                    poseStack,
+                    buffer,
+                    packedLight,
+                    packedOverlay
+            );
+            return;
+        }
         if (hilt == HiltManager.SPINNING) {
             float scale = getSpinningPartScale(type);
             poseStack.scale(scale, scale, scale);
@@ -385,10 +415,25 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
             boolean lightsaberPart,
             boolean doubleLightsaber,
             boolean spinning,
+            boolean spear,
             boolean rotateSpinningGui,
             boolean spinningDefense,
             PoseStack poseStack
     ) {
+        if (spear && !lightsaberPart) {
+            switch (displayContext) {
+                case FIRST_PERSON_LEFT_HAND -> {
+                    applySpearFirstPersonTransform(poseStack, -1);
+                    return;
+                }
+                case FIRST_PERSON_RIGHT_HAND -> {
+                    applySpearFirstPersonTransform(poseStack, 1);
+                    return;
+                }
+                default -> {
+                }
+            }
+        }
         switch (displayContext) {
             case GUI -> {
                 poseStack.mulPose(Axis.ZP.rotationDegrees(
@@ -404,6 +449,9 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                 if (spinning && !lightsaberPart) {
                     poseStack.scale(SPINNING_GUI_SCALE, SPINNING_GUI_SCALE, SPINNING_GUI_SCALE);
                 }
+                if (spear) {
+                    poseStack.scale(SPEAR_GUI_SCALE, SPEAR_GUI_SCALE, SPEAR_GUI_SCALE);
+                }
             }
             case FIRST_PERSON_LEFT_HAND -> applyFirstPersonTransform(poseStack, -1, doubleLightsaber, spinning);
             case FIRST_PERSON_RIGHT_HAND -> applyFirstPersonTransform(poseStack, 1, doubleLightsaber, spinning);
@@ -417,6 +465,13 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                 if (spinning && !lightsaberPart) {
                     poseStack.mulPose(Axis.YP.rotationDegrees(SPINNING_THIRD_PERSON_TURN_ROTATION));
                 }
+                if (spear && !lightsaberPart) {
+                    poseStack.scale(
+                            SPEAR_THIRD_PERSON_SCALE,
+                            SPEAR_THIRD_PERSON_SCALE,
+                            SPEAR_THIRD_PERSON_SCALE
+                    );
+                }
             }
             case THIRD_PERSON_RIGHT_HAND -> {
                 applyThirdPersonTransform(
@@ -428,17 +483,59 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                 if (spinning && !lightsaberPart) {
                     poseStack.mulPose(Axis.YP.rotationDegrees(SPINNING_THIRD_PERSON_TURN_ROTATION));
                 }
+                if (spear && !lightsaberPart) {
+                    poseStack.scale(
+                            SPEAR_THIRD_PERSON_SCALE,
+                            SPEAR_THIRD_PERSON_SCALE,
+                            SPEAR_THIRD_PERSON_SCALE
+                    );
+                }
             }
             case GROUND -> {
                 poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
                 poseStack.scale(GROUND_SCALE, GROUND_SCALE, GROUND_SCALE);
+                if (spear && !lightsaberPart) {
+                    poseStack.scale(SPEAR_GROUND_SCALE, SPEAR_GROUND_SCALE, SPEAR_GROUND_SCALE);
+                }
             }
             case FIXED -> {
                 poseStack.mulPose(Axis.ZP.rotationDegrees(-45.0F));
                 poseStack.scale(FIXED_SCALE, FIXED_SCALE, FIXED_SCALE);
+                if (spear && !lightsaberPart) {
+                    poseStack.scale(SPEAR_DISPLAY_SCALE, SPEAR_DISPLAY_SCALE, SPEAR_DISPLAY_SCALE);
+                }
             }
-            default -> poseStack.scale(FIXED_SCALE, FIXED_SCALE, FIXED_SCALE);
+            default -> {
+                poseStack.scale(FIXED_SCALE, FIXED_SCALE, FIXED_SCALE);
+                if (spear && !lightsaberPart) {
+                    poseStack.scale(SPEAR_DISPLAY_SCALE, SPEAR_DISPLAY_SCALE, SPEAR_DISPLAY_SCALE);
+                }
+            }
         }
+    }
+
+    private void applySpearFirstPersonTransform(PoseStack poseStack, int handSide) {
+        poseStack.translate(
+                SPEAR_FIRST_PERSON_OFFSET_X * handSide,
+                SPEAR_FIRST_PERSON_OFFSET_Y,
+                SPEAR_FIRST_PERSON_OFFSET_Z
+        );
+        poseStack.mulPose(Axis.YP.rotationDegrees(SPEAR_FIRST_PERSON_YAW * handSide));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(SPEAR_FIRST_PERSON_ROLL * handSide));
+        poseStack.scale(
+                SPEAR_FIRST_PERSON_SCALE,
+                SPEAR_FIRST_PERSON_SCALE,
+                SPEAR_FIRST_PERSON_SCALE
+        );
+        poseStack.mulPose(Axis.ZP.rotationDegrees(SPEAR_ALIGN_ROLL));
+    }
+
+    private boolean isSpearStack(ItemStack stack, ItemLightsaberPart partItem) {
+        if (partItem != null) {
+            return ItemLightsaberPart.get(stack) == HiltManager.SPEAR;
+        }
+        return !(stack.getItem() instanceof ItemDoubleLightsaber)
+                && SpearLightsaberObjRenderer.isSupported(LightsaberData.get(stack));
     }
 
     private boolean isSpinningStack(ItemStack stack, ItemLightsaberPart partItem) {

@@ -66,6 +66,11 @@ public abstract class Hilt extends FiskRegistryEntry<Hilt>
         return true;
     }
 
+    public boolean requiresUniformAssembly()
+    {
+        return false;
+    }
+
     public Collection<FocusingCrystal> getFocusingCrystals()
     {
         return Arrays.asList();
