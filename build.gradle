@@ -139,6 +139,7 @@ dependencies {
     implementation fg.deobf("curse.maven:appleskin-248787:4770828")
 //    implementation fg.deobf("curse.maven:asteorbar-959237:7121000")
     implementation fg.deobf("curse.maven:classic-bars-317642:8250607")
+    implementation fg.deobf("curse.maven:lootr-361276:7263076")
 }
 
 tasks.named('processResources', ProcessResources).configure {

@@ -5,6 +5,7 @@ public interface ALConstants
     String BATTLEGEAR = "battlegear2";
     String DYNAMIC_LIGHTS = "dynamiclights";
     String EPIC_FIGHT = "epicfight";
+    String LOOTR = "lootr";
 
     String TAG_PART = "Type";
     String TAG_POUCH_UUID = "PouchID";

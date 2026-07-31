@@ -53,12 +53,14 @@ public final class Lightsabers {
     public static boolean isBattlegearLoaded;
     public static boolean isDynamicLightsLoaded;
     public static boolean isEpicFightLoaded;
+    public static boolean isLootrLoaded;
 
     public Lightsabers() {
         instance = this;
         isBattlegearLoaded = false;
         isDynamicLightsLoaded = ModList.get().isLoaded(ALConstants.DYNAMIC_LIGHTS);
         isEpicFightLoaded = ModList.get().isLoaded(ALConstants.EPIC_FIGHT);
+        isLootrLoaded = ModList.get().isLoaded(ALConstants.LOOTR);
 
         HiltManager.register();
         Effect.register();
