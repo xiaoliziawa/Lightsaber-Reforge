@@ -1,6 +1,8 @@
 package com.fiskmods.lightsabers.common.generator.structure;
 
+import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.generator.ModChestGen;
+import com.fiskmods.lightsabers.common.integration.lootr.LootrIntegration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
@@ -229,6 +231,15 @@ public abstract class Structure {
             return false;
         }
         BlockPos pos = new BlockPos(worldX, worldY, worldZ);
+        if (Lightsabers.isLootrLoaded && ModChestGen.isSithTombCategory(category)) {
+            return LootrIntegration.generateSithTombChest(
+                    worldObj,
+                    pos,
+                    category,
+                    facing,
+                    createContainerRandom(pos, category)
+            );
+        }
         if (worldObj.getBlockState(pos).is(Blocks.CHEST)) {
             return false;
         }

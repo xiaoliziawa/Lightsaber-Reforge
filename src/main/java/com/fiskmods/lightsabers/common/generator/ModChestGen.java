@@ -94,6 +94,13 @@ public final class ModChestGen {
         };
     }
 
+    public static boolean isSithTombCategory(String category) {
+        return switch (category) {
+            case SITH_TOMB_ANNEX, SITH_TOMB_TREASURY, SITH_TOMB_COFFIN -> true;
+            default -> false;
+        };
+    }
+
     public static void fill(
             Container container,
             String category,

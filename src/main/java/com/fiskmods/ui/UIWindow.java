@@ -11,33 +11,24 @@ import javax.swing.AbstractButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 public class UIWindow extends JFrame
 {
     public final Map<String, Component> components = new HashMap<>();
     public final Map<Component, Predicate<Component>> enabled = new HashMap<>();
     public final JPanel panel = new JPanel();
-    
-    private Thread updateThread;
+
+    private final Timer updateTimer;
 
     public UIWindow(String title, int width, int height)
     {
         panel.setLayout(null);
         panel.setPreferredSize(new Dimension(width, height));
-        updateThread = new Thread(() ->
+        updateTimer = new Timer(50, event ->
         {
-            try
-            {
-
-                while (true)
-                {
-                    update();
-                    updateUI();
-                }
-            }
-            catch (ThreadDeath e)
-            {
-            }
+            update();
+            updateUI();
         });
         
         setTitle(title);
@@ -54,9 +45,7 @@ public class UIWindow extends JFrame
     public void updateUI()
     {
         enabled.forEach((key, value) ->
-        {
-            key.setEnabled(value.test(key));
-        });
+                key.setEnabled(value.test(key)));
     }
 
     public ComponentWrapper add(Component component, int x, int y, int width, int height)
@@ -82,12 +71,12 @@ public class UIWindow extends JFrame
         pack();
         setVisible(true);
         setResizable(false);
-        updateThread.start();
+        updateTimer.start();
     }
 
     public void close()
     {
         dispose();
-        updateThread.stop();
+        updateTimer.stop();
     }
 }
