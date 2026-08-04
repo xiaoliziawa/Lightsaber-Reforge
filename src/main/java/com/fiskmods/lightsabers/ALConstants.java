@@ -5,6 +5,7 @@ public interface ALConstants
     String BATTLEGEAR = "battlegear2";
     String DYNAMIC_LIGHTS = "dynamiclights";
     String EPIC_FIGHT = "epicfight";
+    String EPIC_FIGHT_DAWN_DAY = "epicfight_dd";
     String LOOTR = "lootr";
 
     String TAG_PART = "Type";

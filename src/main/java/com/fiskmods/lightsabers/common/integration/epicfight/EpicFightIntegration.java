@@ -1,11 +1,13 @@
 package com.fiskmods.lightsabers.common.integration.epicfight;
 
+import com.fiskmods.lightsabers.ALConstants;
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.sound.ModSounds;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 import yesman.epicfight.api.forgeevent.WeaponCapabilityPresetRegistryEvent;
@@ -49,6 +51,11 @@ public final class EpicFightIntegration {
     }
 
     private static void registerWeaponPresets(WeaponCapabilityPresetRegistryEvent event) {
+        Function<Item, CapabilityItem.Builder> doubleLightsaberPreset =
+                ModList.get().isLoaded(ALConstants.EPIC_FIGHT_DAWN_DAY)
+                        ? EpicFightDawnDayIntegration.polebladePreset()
+                        : WeaponCapabilityPresets.SPEAR;
+
         event.getTypeEntry().put(
                 weaponType("lightsaber_sword"),
                 item -> withLightsaberSounds(WeaponCapabilityPresets.SWORD, item)
@@ -60,6 +67,10 @@ public final class EpicFightIntegration {
         event.getTypeEntry().put(
                 weaponType("lightsaber_dagger"),
                 item -> withLightsaberSounds(WeaponCapabilityPresets.DAGGER, item)
+        );
+        event.getTypeEntry().put(
+                weaponType("double_lightsaber"),
+                item -> withLightsaberSounds(doubleLightsaberPreset, item)
         );
     }
 
