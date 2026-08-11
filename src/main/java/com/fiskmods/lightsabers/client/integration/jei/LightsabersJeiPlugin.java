@@ -30,15 +30,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.BlockItemStateProperties;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
 @JeiPlugin
-@OnlyIn(Dist.CLIENT)
 public final class LightsabersJeiPlugin implements IModPlugin {
     public static final IRecipeType<LightsaberForgeJeiRecipe> LIGHTSABER_FORGE =
             IRecipeType.create(
