@@ -41,6 +41,8 @@ public final class LightsaberBladeRenderer {
     private static final float KATANA_EDGE_SCALE = 1.5F;
     private static final int CYLINDER_SIDES = 10;
     private static final float CYLINDER_RADIUS_SCALE = 1.8F;
+    private static final int BLADE_CYLINDER_SIDES = 12;
+    private static final int GLOW_CYLINDER_SIDES = 10;
     private static final float DAGGER_LENGTH_SCALE = 0.42F;
     private static final float DAGGER_WIDTH_SCALE = 1.25F;
     private static final float DAGGER_TAPER_START = 0.55F;
@@ -376,15 +378,15 @@ public final class LightsaberBladeRenderer {
                                     layerOutAlpha
                             );
                         } else {
-                            renderPrism(
+                            renderGlowCylinder(
                                     glow,
                                     matrix,
-                                    -xHalf,
-                                    yOffset - length,
-                                    -zHalf + fineCutOffset,
-                                    xHalf,
+                                    0.0F,
+                                    fineCutOffset,
                                     yOffset,
-                                    zHalf + fineCutOffset,
+                                    xHalf,
+                                    zHalf,
+                                    length,
                                     layerRed,
                                     layerGreen,
                                     layerBlue,
@@ -676,6 +678,37 @@ public final class LightsaberBladeRenderer {
         }
     }
 
+    private static void renderGlowCylinder(
+            VertexConsumer consumer,
+            Matrix4f matrix,
+            float offsetX,
+            float offsetZ,
+            float offsetY,
+            float radiusX,
+            float radiusZ,
+            float length,
+            float red,
+            float green,
+            float blue,
+            float alpha
+    ) {
+        float step = (float) (Math.PI * 2.0 / GLOW_CYLINDER_SIDES);
+        float top = offsetY;
+        float bottom = offsetY - length;
+        float prevX = offsetX + radiusX;
+        float prevZ = offsetZ;
+        for (int side = 1; side <= GLOW_CYLINDER_SIDES; side++) {
+            float angle = side * step;
+            float x = offsetX + radiusX * Mth.cos(angle);
+            float z = offsetZ + radiusZ * Mth.sin(angle);
+            quad(consumer, matrix, prevX, top, prevZ, x, top, z, x, bottom, z, prevX, bottom, prevZ, red, green, blue, alpha);
+            triangle(consumer, matrix, offsetX, top, offsetZ, prevX, top, prevZ, x, top, z, red, green, blue, alpha);
+            triangle(consumer, matrix, offsetX, bottom, offsetZ, x, bottom, z, prevX, bottom, prevZ, red, green, blue, alpha);
+            prevX = x;
+            prevZ = z;
+        }
+    }
+
     private static void loftSegment(
             VertexConsumer consumer,
             Matrix4f matrix,
@@ -737,76 +770,21 @@ public final class LightsaberBladeRenderer {
             float blue,
             float alpha
     ) {
+        float step = (float) (Math.PI * 2.0 / BLADE_CYLINDER_SIDES);
         float bottom = -length;
-        renderPrism(
-                consumer,
-                matrix,
-                offsetX - xHalf,
-                bottom,
-                offsetZ - zHalf,
-                offsetX + xHalf,
-                0.0F,
-                offsetZ + zHalf,
-                red,
-                green,
-                blue,
-                alpha
-        );
-        renderTip(
-                consumer,
-                matrix,
-                offsetX,
-                offsetZ,
-                xHalf,
-                zHalf,
-                bottom,
-                red,
-                green,
-                blue,
-                alpha
-        );
-    }
-
-    private static void renderPrism(
-            VertexConsumer consumer,
-            Matrix4f matrix,
-            float minX,
-            float minY,
-            float minZ,
-            float maxX,
-            float maxY,
-            float maxZ,
-            float red,
-            float green,
-            float blue,
-            float alpha
-    ) {
-        quad(consumer, matrix, minX, minY, minZ, maxX, minY, minZ, maxX, maxY, minZ, minX, maxY, minZ, red, green, blue, alpha);
-        quad(consumer, matrix, maxX, minY, maxZ, minX, minY, maxZ, minX, maxY, maxZ, maxX, maxY, maxZ, red, green, blue, alpha);
-        quad(consumer, matrix, minX, minY, maxZ, minX, minY, minZ, minX, maxY, minZ, minX, maxY, maxZ, red, green, blue, alpha);
-        quad(consumer, matrix, maxX, minY, minZ, maxX, minY, maxZ, maxX, maxY, maxZ, maxX, maxY, minZ, red, green, blue, alpha);
-        quad(consumer, matrix, minX, maxY, minZ, maxX, maxY, minZ, maxX, maxY, maxZ, minX, maxY, maxZ, red, green, blue, alpha);
-        quad(consumer, matrix, minX, minY, maxZ, maxX, minY, maxZ, maxX, minY, minZ, minX, minY, minZ, red, green, blue, alpha);
-    }
-
-    private static void renderTip(
-            VertexConsumer consumer,
-            Matrix4f matrix,
-            float centerX,
-            float centerZ,
-            float xHalf,
-            float zHalf,
-            float baseY,
-            float red,
-            float green,
-            float blue,
-            float alpha
-    ) {
-        float tipY = baseY - TIP_LENGTH;
-        triangle(consumer, matrix, centerX - xHalf, baseY, centerZ - zHalf, centerX + xHalf, baseY, centerZ - zHalf, centerX, tipY, centerZ, red, green, blue, alpha);
-        triangle(consumer, matrix, centerX + xHalf, baseY, centerZ - zHalf, centerX + xHalf, baseY, centerZ + zHalf, centerX, tipY, centerZ, red, green, blue, alpha);
-        triangle(consumer, matrix, centerX + xHalf, baseY, centerZ + zHalf, centerX - xHalf, baseY, centerZ + zHalf, centerX, tipY, centerZ, red, green, blue, alpha);
-        triangle(consumer, matrix, centerX - xHalf, baseY, centerZ + zHalf, centerX - xHalf, baseY, centerZ - zHalf, centerX, tipY, centerZ, red, green, blue, alpha);
+        float tipY = bottom - TIP_LENGTH;
+        float prevX = offsetX + xHalf;
+        float prevZ = offsetZ;
+        for (int side = 1; side <= BLADE_CYLINDER_SIDES; side++) {
+            float angle = side * step;
+            float x = offsetX + xHalf * Mth.cos(angle);
+            float z = offsetZ + zHalf * Mth.sin(angle);
+            quad(consumer, matrix, prevX, 0.0F, prevZ, x, 0.0F, z, x, bottom, z, prevX, bottom, prevZ, red, green, blue, alpha);
+            triangle(consumer, matrix, offsetX, 0.0F, offsetZ, prevX, 0.0F, prevZ, x, 0.0F, z, red, green, blue, alpha);
+            triangle(consumer, matrix, offsetX, tipY, offsetZ, x, bottom, z, prevX, bottom, prevZ, red, green, blue, alpha);
+            prevX = x;
+            prevZ = z;
+        }
     }
 
     private static void triangle(

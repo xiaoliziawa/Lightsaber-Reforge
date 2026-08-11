@@ -542,8 +542,8 @@ public class LightsaberItemRenderer
                 SPEAR_FIRST_PERSON_OFFSET_Y,
                 SPEAR_FIRST_PERSON_OFFSET_Z
         );
-        poseStack.mulPose(Axis.YP.rotationDegrees(SPEAR_FIRST_PERSON_YAW * handSide));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(SPEAR_FIRST_PERSON_ROLL * handSide));
+        poseStack.mulPose(Axis.YP.rotationDegrees(SPEAR_FIRST_PERSON_YAW));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(SPEAR_FIRST_PERSON_ROLL));
         poseStack.scale(
                 SPEAR_FIRST_PERSON_SCALE,
                 SPEAR_FIRST_PERSON_SCALE,

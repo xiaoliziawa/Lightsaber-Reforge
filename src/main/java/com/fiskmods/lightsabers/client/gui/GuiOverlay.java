@@ -14,6 +14,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -46,7 +47,9 @@ public final class GuiOverlay {
 
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
-        if (player == null) {
+        if (player == null
+                || minecraft.options.hideGui
+                || minecraft.gameMode.getPlayerMode() == GameType.SPECTATOR) {
             return;
         }
 
