@@ -3,7 +3,6 @@ package com.fiskmods.lightsabers.common.entity;
 import com.fiskmods.lightsabers.common.damage.ALDamageSources;
 import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import com.fiskmods.lightsabers.common.sound.ModSounds;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -16,11 +15,14 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -49,9 +51,8 @@ public class EntityLightsaber extends ThrowableItemProjectile {
             ItemStack stack,
             int amplifier
     ) {
-        super(ModEntities.LIGHTSABER.get(), thrower, level);
+        super(ModEntities.LIGHTSABER.get(), thrower, level, stack);
         setAmplifier(amplifier);
-        setItem(stack);
         shootFromRotation(thrower, thrower.getXRot(), thrower.getYRot(), 0, 2.0F, 0);
     }
 
@@ -97,7 +98,7 @@ public class EntityLightsaber extends ThrowableItemProjectile {
 
     @Override
     public void tick() {
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             Entity owner = getOwner();
             if (!(owner instanceof LivingEntity thrower) || !thrower.isAlive()) {
                 dropLightsaber(this);
@@ -136,7 +137,11 @@ public class EntityLightsaber extends ThrowableItemProjectile {
             }
         }
 
-        super.tick();
+        if (isReturning()) {
+            tickReturning();
+        } else {
+            super.tick();
+        }
     }
 
     @Override
@@ -184,18 +189,47 @@ public class EntityLightsaber extends ThrowableItemProjectile {
         setDeltaMovement(Vec3.ZERO);
     }
 
-    @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        tag.putBoolean("Returning", isReturning());
-        tag.putInt("Amplifier", getAmplifier());
+    private void tickReturning() {
+        Vec3 movement = getDeltaMovement();
+        Vec3 start = position();
+        Vec3 end = start.add(movement);
+        EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
+                level(),
+                this,
+                start,
+                end,
+                getBoundingBox().expandTowards(movement).inflate(1.0D),
+                this::canHitEntity
+        );
+
+        if (entityHit != null) {
+            Vec3 hitLocation = entityHit.getLocation();
+            setPos(hitLocation.x, hitLocation.y, hitLocation.z);
+        } else {
+            setPos(end.x, end.y, end.z);
+        }
+
+        updateRotation();
+        applyEffectsFromBlocks();
+        checkLeftOwner();
+        baseTick();
+        if (entityHit != null && isAlive()) {
+            hitTargetOrDeflectSelf(entityHit);
+        }
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
-        setReturning(tag.getBoolean("Returning"));
-        setAmplifier(tag.getInt("Amplifier"));
+    protected void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putBoolean("Returning", isReturning());
+        output.putInt("Amplifier", getAmplifier());
+    }
+
+    @Override
+    protected void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        setReturning(input.getBooleanOr("Returning", false));
+        setAmplifier(input.getIntOr("Amplifier", 0));
     }
 
     private void returnToThrower(LivingEntity thrower) {

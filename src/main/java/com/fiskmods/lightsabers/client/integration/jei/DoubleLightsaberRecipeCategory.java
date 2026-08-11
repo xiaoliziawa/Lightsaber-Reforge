@@ -6,11 +6,11 @@ import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.client.gui.GuiGraphics;
+import mezz.jei.api.recipe.types.IRecipeType;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public final class DoubleLightsaberRecipeCategory
@@ -29,7 +29,7 @@ public final class DoubleLightsaberRecipeCategory
     }
 
     @Override
-    public RecipeType<DoubleLightsaberJeiRecipe> getRecipeType() {
+    public IRecipeType<DoubleLightsaberJeiRecipe> getRecipeType() {
         return LightsabersJeiPlugin.DOUBLE_LIGHTSABER;
     }
 
@@ -61,20 +61,20 @@ public final class DoubleLightsaberRecipeCategory
     ) {
         builder.addInputSlot(42, 14)
                 .setStandardSlotBackground()
-                .addItemStack(recipe.upper());
+                .add(recipe.upper());
         builder.addInputSlot(42, 34)
                 .setStandardSlotBackground()
-                .addItemStack(recipe.lower());
+                .add(recipe.lower());
         builder.addOutputSlot(111, 25)
                 .setOutputSlotBackground()
-                .addItemStack(recipe.output());
+                .add(recipe.output());
     }
 
     @Override
     public void draw(
             DoubleLightsaberJeiRecipe recipe,
             IRecipeSlotsView recipeSlotsView,
-            GuiGraphics guiGraphics,
+            GuiGraphicsExtractor guiGraphics,
             double mouseX,
             double mouseY
     ) {
@@ -82,7 +82,7 @@ public final class DoubleLightsaberRecipeCategory
     }
 
     @Override
-    public ResourceLocation getRegistryName(DoubleLightsaberJeiRecipe recipe) {
+    public Identifier getIdentifier(DoubleLightsaberJeiRecipe recipe) {
         return recipe.id();
     }
 }

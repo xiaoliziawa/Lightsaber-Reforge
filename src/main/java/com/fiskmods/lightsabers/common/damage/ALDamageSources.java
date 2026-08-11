@@ -34,8 +34,8 @@ public final class ALDamageSources {
             Entity causingEntity
     ) {
         Holder<DamageType> holder = level.registryAccess()
-                .registryOrThrow(Registries.DAMAGE_TYPE)
-                .getHolderOrThrow(damageType);
+                .lookupOrThrow(Registries.DAMAGE_TYPE)
+                .getOrThrow(damageType);
         return causingEntity == null ? new DamageSource(holder) : new DamageSource(holder, causingEntity);
     }
 }

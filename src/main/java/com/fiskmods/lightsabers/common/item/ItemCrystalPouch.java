@@ -7,43 +7,46 @@ import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
-import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class ItemCrystalPouch extends Item {
     public static final UUID NULL_UUID = new UUID(0, 0);
 
-    public ItemCrystalPouch() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
+    public ItemCrystalPouch(Item.Properties properties) {
+        super(properties.stacksTo(1).rarity(Rarity.UNCOMMON));
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(
+    public InteractionResult use(
             Level level,
             Player player,
             InteractionHand usedHand
     ) {
         ItemStack stack = player.getItemInHand(usedHand);
         if (usedHand != InteractionHand.MAIN_HAND) {
-            return InteractionResultHolder.pass(stack);
+            return InteractionResult.PASS;
         }
-        if (level.isClientSide) {
-            return InteractionResultHolder.success(stack);
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
 
-        int itemSlot = player.getInventory().selected;
+        int itemSlot = player.getInventory().getSelectedSlot();
         getOrCreateUUID(stack);
         ServerPlayer serverPlayer = (ServerPlayer) player;
         serverPlayer.openMenu(
@@ -58,30 +61,28 @@ public class ItemCrystalPouch extends Item {
                 ),
                 buffer -> buffer.writeVarInt(itemSlot)
         );
-        return InteractionResultHolder.consume(stack);
+        return InteractionResult.CONSUME;
     }
 
     @Override
     public void inventoryTick(
             ItemStack stack,
-            Level level,
+            ServerLevel level,
             Entity entity,
-            int slotId,
-            boolean isSelected
+            EquipmentSlot slot
     ) {
-        if (!level.isClientSide) {
-            getOrCreateUUID(stack);
-        }
+        getOrCreateUUID(stack);
     }
 
     @Override
     public void appendHoverText(
             ItemStack stack,
             Item.TooltipContext context,
-            List<Component> tooltip,
+            TooltipDisplay display,
+            Consumer<Component> tooltip,
             TooltipFlag flag
     ) {
-        tooltip.add(Component.translatable(ItemCrystal.get(stack).getUnlocalizedName())
+        tooltip.accept(Component.translatable(ItemCrystal.get(stack).getUnlocalizedName())
                 .withStyle(ChatFormatting.GRAY));
     }
 
@@ -98,7 +99,7 @@ public class ItemCrystalPouch extends Item {
         if (tag == null) {
             return NULL_UUID;
         }
-        String value = tag.getString(ALConstants.TAG_POUCH_UUID);
+        String value = tag.getStringOr(ALConstants.TAG_POUCH_UUID, "");
         if (value.isEmpty()) {
             return NULL_UUID;
         }

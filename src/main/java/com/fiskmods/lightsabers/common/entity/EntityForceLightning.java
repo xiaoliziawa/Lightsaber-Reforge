@@ -1,13 +1,16 @@
 package com.fiskmods.lightsabers.common.entity;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 public final class EntityForceLightning extends Entity {
@@ -57,18 +60,23 @@ public final class EntityForceLightning extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
-        entityData.set(CASTER_ID, tag.getInt(CASTER_ID_TAG));
+    protected void readAdditionalSaveData(ValueInput input) {
+        entityData.set(CASTER_ID, input.getIntOr(CASTER_ID_TAG, 0));
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
-        tag.putInt(CASTER_ID_TAG, entityData.get(CASTER_ID));
+    protected void addAdditionalSaveData(ValueOutput output) {
+        output.putInt(CASTER_ID_TAG, entityData.get(CASTER_ID));
     }
 
     @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
         return true;
+    }
+
+    @Override
+    public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
+        return false;
     }
 
     private void moveToCaster(LivingEntity caster) {

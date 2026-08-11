@@ -10,12 +10,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.component.TooltipDisplay;
 
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.Consumer;
 
 public class ItemCrystal extends Item implements ILightsaberComponent {
     private static final String CRYSTAL_ID_TAG = "CrystalColorId";
@@ -27,8 +27,8 @@ public class ItemCrystal extends Item implements ILightsaberComponent {
             new EnumMap<>(CrystalColor.class);
     private static int generationTotalWeight;
 
-    public ItemCrystal() {
-        super(new Item.Properties().rarity(Rarity.UNCOMMON));
+    public ItemCrystal(Item.Properties properties) {
+        super(properties.rarity(Rarity.UNCOMMON));
     }
 
     @Override
@@ -45,10 +45,11 @@ public class ItemCrystal extends Item implements ILightsaberComponent {
     public void appendHoverText(
             ItemStack stack,
             Item.TooltipContext context,
-            List<Component> tooltip,
+            TooltipDisplay display,
+            Consumer<Component> tooltip,
             TooltipFlag flag
     ) {
-        tooltip.add(Component.translatable(get(stack).getUnlocalizedName())
+        tooltip.accept(Component.translatable(get(stack).getUnlocalizedName())
                 .withStyle(ChatFormatting.GRAY));
     }
 
@@ -60,10 +61,10 @@ public class ItemCrystal extends Item implements ILightsaberComponent {
         CompoundTag tag = ItemDataHelper.getCustomData(stack);
         if (tag != null) {
             if (tag.contains(CRYSTAL_ID_TAG)) {
-                return normalizeId(tag.getInt(CRYSTAL_ID_TAG));
+                return normalizeId(tag.getIntOr(CRYSTAL_ID_TAG, 0));
             }
             if (tag.contains(LEGACY_CRYSTAL_ID_TAG)) {
-                int id = normalizeId(tag.getInt(LEGACY_CRYSTAL_ID_TAG));
+                int id = normalizeId(tag.getIntOr(LEGACY_CRYSTAL_ID_TAG, 0));
                 tag.remove(LEGACY_CRYSTAL_ID_TAG);
                 tag.putInt(CRYSTAL_ID_TAG, id);
                 ItemDataHelper.setCustomData(stack, tag);

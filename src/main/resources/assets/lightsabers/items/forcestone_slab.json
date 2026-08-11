@@ -1,0 +1,20 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "block_state_property": "variant",
+    "cases": [
+      {
+        "when": "dark",
+        "model": {
+          "type": "minecraft:model",
+          "model": "lightsabers:block/dark_forcestone_slab"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "lightsabers:block/light_forcestone_slab"
+    },
+    "property": "minecraft:block_state"
+  }
+}

@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.phys.HitResult;
 
 import java.util.Locale;
 
@@ -46,10 +45,10 @@ public class BlockModSlab extends SlabBlock {
 
     @Override
     public ItemStack getCloneItemStack(
-            BlockState state,
-            HitResult target,
             LevelReader level,
             BlockPos pos,
+            BlockState state,
+            boolean includeData,
             Player player
     ) {
         return ItemForcestoneSlab.create(this, state.getValue(VARIANT));

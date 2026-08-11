@@ -10,12 +10,12 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FastColor;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 
 public final class ModelCrystal {
     public static final ModelLayerLocation LAYER = new ModelLayerLocation(
-            ResourceLocation.fromNamespaceAndPath(Lightsabers.MODID, "lightsaber_crystal"),
+            Identifier.fromNamespaceAndPath(Lightsabers.MODID, "lightsaber_crystal"),
             "main"
     );
 
@@ -23,6 +23,10 @@ public final class ModelCrystal {
 
     public ModelCrystal(ModelPart root) {
         this.root = root;
+    }
+
+    public ModelPart root() {
+        return root;
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -130,7 +134,7 @@ public final class ModelCrystal {
                 consumer,
                 packedLight,
                 packedOverlay,
-                FastColor.ARGB32.colorFromFloat(alpha, red, green, blue)
+                ARGB.colorFromFloat(alpha, red, green, blue)
         );
     }
 }

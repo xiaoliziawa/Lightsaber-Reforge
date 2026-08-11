@@ -3,7 +3,6 @@ package com.fiskmods.lightsabers.common.item;
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.client.sound.ALSounds;
 import com.fiskmods.lightsabers.common.entity.EntityLightsaber;
-import com.fiskmods.lightsabers.common.integration.epicfight.EpicFightIntegration;
 import com.fiskmods.lightsabers.common.lightsaber.FocusingCrystal;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.sound.ModSounds;
@@ -11,10 +10,11 @@ import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.TagKey;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Unit;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
@@ -23,18 +23,16 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SwordItem;
-import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.ToolMaterial;
+import net.minecraft.world.item.enchantment.Enchantable;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
-import net.minecraft.world.item.component.Unbreakable;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
-public abstract class ItemLightsaberBase extends SwordItem {
+public abstract class ItemLightsaberBase extends Item {
     private static final String ACTIVE_TAG = "active";
     private static final int ENCHANTMENT_VALUE = 10;
     private static final int ATTACK_DAMAGE_MODIFIER = 5;
@@ -43,51 +41,31 @@ public abstract class ItemLightsaberBase extends SwordItem {
     private static final float SINGLE_ATTACK_DAMAGE = 13.0F;
     private static final float SPINNING_ATTACK_DAMAGE = 20.0F;
     private static final float SPEAR_ATTACK_DAMAGE = 25.0F;
-    private static final Tier LIGHTSABER_TIER = new Tier() {
-        @Override
-        public int getUses() {
-            return 0;
-        }
+    private static final int TIER_DURABILITY = 0;
+    private static final float TIER_MINING_SPEED = 8.0F;
+    private static final float TIER_ATTACK_DAMAGE_BONUS = 3.0F;
+    private static final ToolMaterial LIGHTSABER_MATERIAL = new ToolMaterial(
+            BlockTags.INCORRECT_FOR_NETHERITE_TOOL,
+            TIER_DURABILITY,
+            TIER_MINING_SPEED,
+            TIER_ATTACK_DAMAGE_BONUS,
+            ENCHANTMENT_VALUE,
+            ItemTags.DIAMOND_TOOL_MATERIALS
+    );
 
-        @Override
-        public float getSpeed() {
-            return 8.0F;
-        }
-
-        @Override
-        public float getAttackDamageBonus() {
-            return 3.0F;
-        }
-
-        @Override
-        public TagKey<Block> getIncorrectBlocksForDrops() {
-            return BlockTags.INCORRECT_FOR_NETHERITE_TOOL;
-        }
-
-        @Override
-        public int getEnchantmentValue() {
-            return ENCHANTMENT_VALUE;
-        }
-
-        @Override
-        public Ingredient getRepairIngredient() {
-            return Ingredient.EMPTY;
-        }
-    };
-
-    protected ItemLightsaberBase() {
+    protected ItemLightsaberBase(Item.Properties properties) {
+        // Sword tool/weapon behaviour comes from the material, but the ATTRIBUTE_MODIFIERS
+        // component it writes is dropped again so getDefaultAttributeModifiers stays in
+        // control of the per-hilt attack damage.
         super(
-                LIGHTSABER_TIER,
-                new Item.Properties()
+                properties
+                        .sword(LIGHTSABER_MATERIAL, ATTACK_DAMAGE_MODIFIER, ATTACK_SPEED_MODIFIER)
                         .stacksTo(1)
-                        .setNoRepair()
-                        .component(DataComponents.UNBREAKABLE, new Unbreakable(false))
+                        .setNoCombineRepair()
+                        .component(DataComponents.UNBREAKABLE, Unit.INSTANCE)
+                        .component(DataComponents.ENCHANTABLE, new Enchantable(ENCHANTMENT_VALUE))
+                        .attributes(ItemAttributeModifiers.EMPTY)
         );
-    }
-
-    @Override
-    public boolean isEnchantable(ItemStack stack) {
-        return true;
     }
 
     public float getAttackDamage(ItemStack stack) {
@@ -122,8 +100,8 @@ public abstract class ItemLightsaberBase extends SwordItem {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-        return InteractionResultHolder.pass(player.getItemInHand(hand));
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        return InteractionResult.PASS;
     }
 
     @Override
@@ -158,11 +136,11 @@ public abstract class ItemLightsaberBase extends SwordItem {
     }
 
     @Override
-    public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        if (!attacker.level().isClientSide
-                && (!(attacker instanceof Player player)
-                        || !Lightsabers.isEpicFightLoaded
-                        || !EpicFightIntegration.isBattleMode(player))) {
+    public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        // Epic Fight has no 26.1.2 build, so its battle mode check is disabled:
+        // && (!(attacker instanceof Player player) || !Lightsabers.isEpicFightLoaded
+        //         || !EpicFightIntegration.isBattleMode(player))
+        if (!attacker.level().isClientSide()) {
             attacker.level().playSound(
                     null,
                     target.getX(),
@@ -176,7 +154,6 @@ public abstract class ItemLightsaberBase extends SwordItem {
                     1.0F
             );
         }
-        return true;
     }
 
     @Override
@@ -192,7 +169,7 @@ public abstract class ItemLightsaberBase extends SwordItem {
 
     public static boolean isActive(ItemStack stack) {
         CompoundTag tag = ItemDataHelper.getCustomData(stack);
-        return !stack.isEmpty() && tag != null && tag.getBoolean(ACTIVE_TAG);
+        return !stack.isEmpty() && tag != null && tag.getBooleanOr(ACTIVE_TAG, false);
     }
 
     public static boolean isSpinningLightsaber(ItemStack stack) {
@@ -240,7 +217,7 @@ public abstract class ItemLightsaberBase extends SwordItem {
     }
 
     public static void throwLightsaber(LivingEntity entity, ItemStack stack, int amplifier) {
-        if (entity.level().isClientSide || stack.isEmpty()) {
+        if (entity.level().isClientSide() || stack.isEmpty()) {
             return;
         }
 

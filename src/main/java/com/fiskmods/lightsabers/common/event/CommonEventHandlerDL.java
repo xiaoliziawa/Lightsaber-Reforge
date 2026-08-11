@@ -110,10 +110,9 @@ public final class CommonEventHandlerDL {
             return 0;
         }
 
-        for (ItemStack stack : livingEntity.getAllSlots()) {
-            if (isActiveLightsaber(stack)) {
-                return LIGHT_LEVEL;
-            }
+        if (isActiveLightsaber(livingEntity.getMainHandItem())
+                || isActiveLightsaber(livingEntity.getOffhandItem())) {
+            return LIGHT_LEVEL;
         }
         return 0;
     }

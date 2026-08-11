@@ -1,5 +1,6 @@
 package com.fiskmods.lightsabers.client.render.lightsaber;
 
+import com.fiskmods.lightsabers.client.render.RenderSubmissionHelper;
 import com.fiskmods.lightsabers.common.config.ModConfig;
 import com.fiskmods.lightsabers.common.lightsaber.FocusingCrystal;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
@@ -7,7 +8,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Matrix4f;
@@ -59,8 +60,9 @@ public final class LightsaberBladeRenderer {
             LightsaberData data,
             ItemStack stack,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             boolean inWorld,
+            boolean deferGlow,
             int bladeLength,
             boolean crossguard
     ) {
@@ -75,9 +77,10 @@ public final class LightsaberBladeRenderer {
         renderGlow(
                 stack,
                 poseStack,
-                buffer,
+                collector,
                 rgb,
                 inWorld,
+                deferGlow,
                 bladeLength,
                 crossguard,
                 style
@@ -107,51 +110,59 @@ public final class LightsaberBladeRenderer {
                 zHalf *= CYLINDER_RADIUS_SCALE;
             }
         }
-        VertexConsumer core = buffer.getBuffer(LightsaberRenderTypes.BLADE_CORE);
-        Matrix4f matrix = poseStack.last().pose();
-
-        renderCoreShape(
-                core,
-                matrix,
-                style,
-                crossguard,
-                0.0F,
-                0.0F,
-                xHalf,
-                zHalf,
-                length,
-                coreRed,
-                coreGreen,
-                coreBlue,
-                1.0F
+        float coreXHalf = xHalf;
+        float coreZHalf = zHalf;
+        float coreLength = length;
+        RenderSubmissionHelper.submitGeometry(
+                collector,
+                poseStack,
+                LightsaberRenderTypes.BLADE_CORE,
+                (renderPose, core) -> {
+                    Matrix4f matrix = renderPose.last().pose();
+                    renderCoreShape(
+                            core,
+                            matrix,
+                            style,
+                            crossguard,
+                            0.0F,
+                            0.0F,
+                            coreXHalf,
+                            coreZHalf,
+                            coreLength,
+                            coreRed,
+                            coreGreen,
+                            coreBlue,
+                            1.0F
+                    );
+                    if (style.cracked() && !style.fineCut()) {
+                        renderCrackedCopies(
+                                core,
+                                matrix,
+                                style,
+                                crossguard,
+                                coreXHalf,
+                                coreZHalf,
+                                coreLength,
+                                coreRed,
+                                coreGreen,
+                                coreBlue
+                        );
+                    }
+                    if (style.pickaxe() && !crossguard) {
+                        renderPickaxeHead(
+                                core,
+                                matrix,
+                                coreLength,
+                                coreZHalf,
+                                1.0F,
+                                coreRed,
+                                coreGreen,
+                                coreBlue,
+                                1.0F
+                        );
+                    }
+                }
         );
-        if (style.cracked() && !style.fineCut()) {
-            renderCrackedCopies(
-                    core,
-                    matrix,
-                    style,
-                    crossguard,
-                    xHalf,
-                    zHalf,
-                    length,
-                    coreRed,
-                    coreGreen,
-                    coreBlue
-            );
-        }
-        if (style.pickaxe() && !crossguard) {
-            renderPickaxeHead(
-                    core,
-                    matrix,
-                    length,
-                    zHalf,
-                    1.0F,
-                    coreRed,
-                    coreGreen,
-                    coreBlue,
-                    1.0F
-            );
-        }
         if (rollBlade) {
             poseStack.popPose();
         }
@@ -229,9 +240,10 @@ public final class LightsaberBladeRenderer {
     private static void renderGlow(
             ItemStack stack,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             float[] rgb,
             boolean inWorld,
+            boolean deferGlow,
             int bladeLength,
             boolean crossguard,
             BladeStyle style
@@ -287,99 +299,127 @@ public final class LightsaberBladeRenderer {
         float red = darkGlow ? 0.0F : whiteBlade ? WHITE_GLOW_BRIGHTNESS : rgb[0];
         float green = darkGlow ? 0.0F : whiteBlade ? WHITE_GLOW_BRIGHTNESS : rgb[1];
         float blue = darkGlow ? 0.0F : whiteBlade ? WHITE_GLOW_BRIGHTNESS : rgb[2];
-        VertexConsumer glow = DeferredGlowRenderer.getBuffer(
-                buffer,
+        float baseLength = getBladeLength(bladeLength);
+        int smoothingValue = smoothing;
+        float widthValue = width;
+        float xScaleValue = xScale;
+        float yScaleValue = yScale;
+        float zScaleValue = zScale;
+        DeferredGlowRenderer.submitGeometry(
+                collector,
+                poseStack,
                 darkGlow
                         ? LightsaberRenderTypes.BLADE_DARK_GLOW
-                        : LightsaberRenderTypes.BLADE_GLOW
+                        : LightsaberRenderTypes.BLADE_GLOW,
+                darkGlow
+                        ? LightsaberRenderTypes.BLADE_DARK_GLOW_DIRECT
+                        : LightsaberRenderTypes.BLADE_GLOW_DIRECT,
+                deferGlow,
+                (renderPose, glow) -> {
+                    Matrix4f matrix = renderPose.last().pose();
+                    boolean katanaGlow = !crossguard && style.katana();
+                    boolean spearGlow = !crossguard && style.spear();
+                    for (int layer = 0; layer < layerCount; layer++) {
+                        float progress = layer / (float) layerCount * 50.0F;
+                        float radialScale = 1.0F
+                                + layer * (widthValue / smoothingValue);
+                        float verticalScale = crossguard
+                                ? (3.0F - progress * 0.05F) * yScaleValue
+                                : (1.2F - progress * (fineCut ? 0.003F : 0.005F))
+                                        * yScaleValue;
+                        float yOffset = (-progress / 400.0F + 0.06F) * verticalScale;
+                        float xHalf = CORE_HALF_WIDTH * radialScale * xScaleValue;
+                        float zHalf = CORE_HALF_WIDTH * radialScale * zScaleValue;
+                        float length = baseLength * verticalScale;
+                        float fineCutOffset = fineCut
+                                ? 0.005F + progress * 0.00001F
+                                : 0.0F;
+                        float dither = (layer * DITHER_GOLDEN_RATIO) % 1.0F;
+                        float layerRed = darkGlow
+                                ? red
+                                : premultiply(red, layerAlpha, dither);
+                        float layerGreen = darkGlow
+                                ? green
+                                : premultiply(green, layerAlpha, dither);
+                        float layerBlue = darkGlow
+                                ? blue
+                                : premultiply(blue, layerAlpha, dither);
+                        float layerOutAlpha = darkGlow ? layerAlpha : 1.0F;
+                        if (katanaGlow) {
+                            renderKatanaBlade(
+                                    glow,
+                                    matrix,
+                                    0.0F,
+                                    0.0F,
+                                    yOffset,
+                                    xHalf,
+                                    zHalf,
+                                    length,
+                                    layerRed,
+                                    layerGreen,
+                                    layerBlue,
+                                    layerOutAlpha
+                            );
+                        } else if (spearGlow) {
+                            renderSpearBlade(
+                                    glow,
+                                    matrix,
+                                    0.0F,
+                                    0.0F,
+                                    yOffset,
+                                    xHalf,
+                                    zHalf,
+                                    length,
+                                    layerRed,
+                                    layerGreen,
+                                    layerBlue,
+                                    layerOutAlpha
+                            );
+                        } else {
+                            renderPrism(
+                                    glow,
+                                    matrix,
+                                    -xHalf,
+                                    yOffset - length,
+                                    -zHalf + fineCutOffset,
+                                    xHalf,
+                                    yOffset,
+                                    zHalf + fineCutOffset,
+                                    layerRed,
+                                    layerGreen,
+                                    layerBlue,
+                                    layerOutAlpha
+                            );
+                        }
+                    }
+
+                    if (style.pickaxe() && !crossguard) {
+                        float armAlpha = layerAlpha * 5.0F;
+                        for (int layer = 0; layer < smoothingValue; layer++) {
+                            float expansion = 1.0F
+                                    + (layer + 1) * PICK_GLOW_EXPANSION;
+                            float dither = (layer * DITHER_GOLDEN_RATIO) % 1.0F;
+                            renderPickaxeHead(
+                                    glow,
+                                    matrix,
+                                    baseLength,
+                                    CORE_HALF_WIDTH * expansion,
+                                    expansion,
+                                    darkGlow
+                                            ? red
+                                            : premultiply(red, armAlpha, dither),
+                                    darkGlow
+                                            ? green
+                                            : premultiply(green, armAlpha, dither),
+                                    darkGlow
+                                            ? blue
+                                            : premultiply(blue, armAlpha, dither),
+                                    darkGlow ? armAlpha : 1.0F
+                            );
+                        }
+                    }
+                }
         );
-        Matrix4f matrix = poseStack.last().pose();
-        float baseLength = getBladeLength(bladeLength);
-
-        boolean katanaGlow = !crossguard && style.katana();
-        boolean spearGlow = !crossguard && style.spear();
-        for (int layer = 0; layer < layerCount; layer++) {
-            float progress = layer / (float) layerCount * 50.0F;
-            float radialScale = 1.0F + layer * (width / smoothing);
-            float verticalScale = crossguard
-                    ? (3.0F - progress * 0.05F) * yScale
-                    : (1.2F - progress * (fineCut ? 0.003F : 0.005F)) * yScale;
-            float yOffset = (-progress / 400.0F + 0.06F) * verticalScale;
-            float xHalf = CORE_HALF_WIDTH * radialScale * xScale;
-            float zHalf = CORE_HALF_WIDTH * radialScale * zScale;
-            float length = baseLength * verticalScale;
-            float fineCutOffset = fineCut ? 0.005F + progress * 0.00001F : 0.0F;
-            float dither = (layer * DITHER_GOLDEN_RATIO) % 1.0F;
-            float layerRed = darkGlow ? red : premultiply(red, layerAlpha, dither);
-            float layerGreen = darkGlow ? green : premultiply(green, layerAlpha, dither);
-            float layerBlue = darkGlow ? blue : premultiply(blue, layerAlpha, dither);
-            float layerOutAlpha = darkGlow ? layerAlpha : 1.0F;
-            if (katanaGlow) {
-                renderKatanaBlade(
-                        glow,
-                        matrix,
-                        0.0F,
-                        0.0F,
-                        yOffset,
-                        xHalf,
-                        zHalf,
-                        length,
-                        layerRed,
-                        layerGreen,
-                        layerBlue,
-                        layerOutAlpha
-                );
-            } else if (spearGlow) {
-                renderSpearBlade(
-                        glow,
-                        matrix,
-                        0.0F,
-                        0.0F,
-                        yOffset,
-                        xHalf,
-                        zHalf,
-                        length,
-                        layerRed,
-                        layerGreen,
-                        layerBlue,
-                        layerOutAlpha
-                );
-            } else {
-                renderPrism(
-                        glow,
-                        matrix,
-                        -xHalf,
-                        yOffset - length,
-                        -zHalf + fineCutOffset,
-                        xHalf,
-                        yOffset,
-                        zHalf + fineCutOffset,
-                        layerRed,
-                        layerGreen,
-                        layerBlue,
-                        layerOutAlpha
-                );
-            }
-        }
-
-        if (style.pickaxe() && !crossguard) {
-            float armAlpha = layerAlpha * 5.0F;
-            for (int layer = 0; layer < smoothing; layer++) {
-                float expansion = 1.0F + (layer + 1) * PICK_GLOW_EXPANSION;
-                float dither = (layer * DITHER_GOLDEN_RATIO) % 1.0F;
-                renderPickaxeHead(
-                        glow,
-                        matrix,
-                        baseLength,
-                        CORE_HALF_WIDTH * expansion,
-                        expansion,
-                        darkGlow ? red : premultiply(red, armAlpha, dither),
-                        darkGlow ? green : premultiply(green, armAlpha, dither),
-                        darkGlow ? blue : premultiply(blue, armAlpha, dither),
-                        darkGlow ? armAlpha : 1.0F
-                );
-            }
-        }
     }
 
     private static float premultiply(float component, float alpha, float dither) {
@@ -401,7 +441,8 @@ public final class LightsaberBladeRenderer {
     ) {
         Minecraft minecraft = Minecraft.getInstance();
         long tick = minecraft.level == null ? 0L : minecraft.level.getGameTime();
-        float partialTick = minecraft.getTimer().getGameTimeDeltaPartialTick(true);
+        float partialTick = minecraft.getDeltaTracker()
+                .getGameTimeDeltaPartialTick(true);
         for (int copy = 1; copy < 4; copy++) {
             float currentX = randomSigned(tick, copy * 2) / 120.0F;
             float previousX = randomSigned(tick - 1L, copy * 2) / 120.0F;

@@ -5,15 +5,16 @@ import com.fiskmods.lightsabers.common.tileentity.TileEntityCrystalDisplayStand;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -53,16 +54,27 @@ public class BlockCrystalDisplayStand extends BaseEntityBlock {
     @Override
     public BlockState updateShape(
             BlockState state,
-            Direction direction,
-            BlockState neighborState,
-            LevelAccessor level,
+            LevelReader level,
+            ScheduledTickAccess ticks,
             BlockPos pos,
-            BlockPos neighborPos
+            Direction direction,
+            BlockPos neighborPos,
+            BlockState neighborState,
+            RandomSource random
     ) {
         if (direction == Direction.DOWN && !state.canSurvive(level, pos)) {
             return Blocks.AIR.defaultBlockState();
         }
-        return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+        return super.updateShape(
+                state,
+                level,
+                ticks,
+                pos,
+                direction,
+                neighborPos,
+                neighborState,
+                random
+        );
     }
 
     @Override
@@ -81,7 +93,7 @@ public class BlockCrystalDisplayStand extends BaseEntityBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(
+    protected InteractionResult useItemOn(
             ItemStack heldStack,
             BlockState state,
             Level level,
@@ -90,41 +102,22 @@ public class BlockCrystalDisplayStand extends BaseEntityBlock {
             InteractionHand hand,
             BlockHitResult hitResult
     ) {
-        if (level.isClientSide) {
-            return ItemInteractionResult.SUCCESS;
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
         if (!(level.getBlockEntity(pos) instanceof TileEntityCrystalDisplayStand stand)) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
 
         if (!heldStack.isEmpty() && !stand.isItemValid(heldStack)) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
 
         ItemStack previousStack = stand.getDisplayStack();
         if (stand.setDisplayStack(heldStack)) {
             player.setItemInHand(hand, previousStack);
         }
-        return ItemInteractionResult.CONSUME;
-    }
-
-    @Override
-    public void onRemove(
-            BlockState state,
-            Level level,
-            BlockPos pos,
-            BlockState newState,
-            boolean isMoving
-    ) {
-        if (!state.is(newState.getBlock())) {
-            if (level.getBlockEntity(pos) instanceof TileEntityCrystalDisplayStand stand) {
-                ItemStack displayStack = stand.getDisplayStack();
-                if (!displayStack.isEmpty()) {
-                    Block.popResource(level, pos, displayStack.copy());
-                }
-            }
-            super.onRemove(state, level, pos, newState, isMoving);
-        }
+        return InteractionResult.CONSUME;
     }
 
     @Override

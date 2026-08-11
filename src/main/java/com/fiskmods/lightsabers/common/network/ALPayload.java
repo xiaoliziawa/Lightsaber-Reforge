@@ -2,7 +2,7 @@ package com.fiskmods.lightsabers.common.network;
 
 import com.fiskmods.lightsabers.Lightsabers;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +12,7 @@ public interface ALPayload extends CustomPacketPayload {
 
     static <T extends ALPayload> Type<T> registerType(Class<T> payloadClass, String name) {
         Type<T> type = new Type<>(
-                ResourceLocation.fromNamespaceAndPath(Lightsabers.MODID, name)
+                Identifier.fromNamespaceAndPath(Lightsabers.MODID, name)
         );
         TYPES.put(payloadClass, type);
         return type;

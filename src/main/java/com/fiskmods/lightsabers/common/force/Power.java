@@ -219,7 +219,7 @@ public class Power implements Comparable<Power>, ISerializableObject<Power>
         }
 
         return title.withStyle(style -> style.withHoverEvent(
-                new HoverEvent(HoverEvent.Action.SHOW_TEXT, description)
+                new HoverEvent.ShowText(description)
         ));
     }
 
@@ -365,7 +365,7 @@ public class Power implements Comparable<Power>, ISerializableObject<Power>
         {
             if (tag instanceof StringTag stringTag)
             {
-                return Power.getPowerFromName(stringTag.getAsString());
+                return Power.getPowerFromName(stringTag.value());
             }
 
             return null;

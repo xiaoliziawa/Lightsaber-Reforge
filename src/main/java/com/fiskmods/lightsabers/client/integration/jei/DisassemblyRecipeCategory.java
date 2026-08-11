@@ -7,11 +7,11 @@ import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.client.gui.GuiGraphics;
+import mezz.jei.api.recipe.types.IRecipeType;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
@@ -37,7 +37,7 @@ public final class DisassemblyRecipeCategory
     }
 
     @Override
-    public RecipeType<DisassemblyJeiRecipe> getRecipeType() {
+    public IRecipeType<DisassemblyJeiRecipe> getRecipeType() {
         return LightsabersJeiPlugin.DISASSEMBLY;
     }
 
@@ -69,7 +69,7 @@ public final class DisassemblyRecipeCategory
     ) {
         builder.addInputSlot(8, 8)
                 .setStandardSlotBackground()
-                .addItemStack(recipe.input());
+                .add(recipe.input());
         builder.addInputSlot(8, 44)
                 .setStandardSlotBackground()
                 .addItemStacks(fuels);
@@ -80,7 +80,7 @@ public final class DisassemblyRecipeCategory
             int y = 8 + 18 * (index / OUTPUT_COLUMNS);
             builder.addOutputSlot(x, y)
                     .setStandardSlotBackground()
-                    .addItemStack(output.stack())
+                    .add(output.stack())
                     .addRichTooltipCallback((slot, tooltip) -> tooltip.add(
                             Component.translatable(
                                     "jei.lightsabers.chance",
@@ -94,7 +94,7 @@ public final class DisassemblyRecipeCategory
     public void draw(
             DisassemblyJeiRecipe recipe,
             IRecipeSlotsView recipeSlotsView,
-            GuiGraphics guiGraphics,
+            GuiGraphicsExtractor guiGraphics,
             double mouseX,
             double mouseY
     ) {
@@ -102,7 +102,7 @@ public final class DisassemblyRecipeCategory
     }
 
     @Override
-    public ResourceLocation getRegistryName(DisassemblyJeiRecipe recipe) {
+    public Identifier getIdentifier(DisassemblyJeiRecipe recipe) {
         return recipe.id();
     }
 }

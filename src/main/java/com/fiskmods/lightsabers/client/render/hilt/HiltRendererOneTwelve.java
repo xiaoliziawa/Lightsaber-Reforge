@@ -3,7 +3,7 @@ package com.fiskmods.lightsabers.client.render.hilt;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
 import com.fiskmods.lightsabers.client.model.legacy.LegacyModelBase;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class HiltRendererOneTwelve extends HiltRendererBase
 {
@@ -18,9 +18,9 @@ public class HiltRendererOneTwelve extends HiltRendererBase
     }
     
     @Override
-    public ResourceLocation getTexture(PartType type)
+    public Identifier getTexture(PartType type)
     {
-        return ResourceLocation.fromNamespaceAndPath(
+        return Identifier.fromNamespaceAndPath(
                 getDomain(),
                 String.format(
                         "textures/models/lightsaber/%s.png",

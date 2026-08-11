@@ -9,6 +9,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
 
 public class TileEntityHolocron extends BlockEntity {
     private static final String PLAYERS_USING_TAG = "PlayersUsing";
@@ -70,11 +71,9 @@ public class TileEntityHolocron extends BlockEntity {
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains(PLAYERS_USING_TAG)) {
-            playersUsing = Math.max(tag.getInt(PLAYERS_USING_TAG), 0);
-        }
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        input.getInt(PLAYERS_USING_TAG).ifPresent(count -> playersUsing = Math.max(count, 0));
     }
 
     @Override
@@ -90,7 +89,7 @@ public class TileEntityHolocron extends BlockEntity {
     }
 
     private void syncUsageCount() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             BlockState state = getBlockState();
             level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
         }

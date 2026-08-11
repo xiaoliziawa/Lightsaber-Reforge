@@ -3,7 +3,7 @@ package com.fiskmods.lightsabers.client.sound;
 import com.fiskmods.lightsabers.common.data.effect.Effect;
 import com.fiskmods.lightsabers.common.data.effect.StatusEffect;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
@@ -15,7 +15,7 @@ public class MovingSoundStatusEffect extends AbstractTickableSoundInstance {
 
     public MovingSoundStatusEffect(LivingEntity entity, Effect effect, String soundName) {
         super(
-                SoundEvent.createVariableRangeEvent(ResourceLocation.parse(soundName)),
+                SoundEvent.createVariableRangeEvent(Identifier.parse(soundName)),
                 SoundSource.PLAYERS,
                 RandomSource.create()
         );

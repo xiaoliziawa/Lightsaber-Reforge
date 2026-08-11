@@ -4,10 +4,11 @@ import com.fiskmods.lightsabers.common.container.ContainerLightsaberForge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -101,7 +102,7 @@ public class BlockLightsaberForge extends Block {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(
+    protected InteractionResult useItemOn(
             ItemStack stack,
             BlockState state,
             Level level,
@@ -111,13 +112,13 @@ public class BlockLightsaberForge extends Block {
             BlockHitResult hitResult
     ) {
         if (player.isShiftKeyDown()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
-        if (level.isClientSide) {
-            return ItemInteractionResult.SUCCESS;
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
         if (!(player instanceof ServerPlayer serverPlayer)) {
-            return ItemInteractionResult.CONSUME;
+            return InteractionResult.CONSUME;
         }
 
         BlockPos basePos = getBasePos(state, pos);
@@ -133,7 +134,7 @@ public class BlockLightsaberForge extends Block {
                 ),
                 buffer -> buffer.writeBlockPos(basePos)
         );
-        return ItemInteractionResult.CONSUME;
+        return InteractionResult.CONSUME;
     }
 
     @Override
@@ -153,24 +154,21 @@ public class BlockLightsaberForge extends Block {
     }
 
     @Override
-    public void onRemove(
+    protected void affectNeighborsAfterRemoval(
             BlockState state,
-            Level level,
+            ServerLevel level,
             BlockPos pos,
-            BlockState newState,
             boolean isMoving
     ) {
-        if (!state.is(newState.getBlock())) {
-            BlockPos counterpartPos = getCounterpartPos(state, pos);
-            BlockState counterpartState = level.getBlockState(counterpartPos);
-            if (counterpartState.is(this)
-                    && counterpartState.getValue(PART) != state.getValue(PART)
-                    && counterpartState.getValue(HorizontalDirectionalBlock.FACING)
-                    == state.getValue(HorizontalDirectionalBlock.FACING)) {
-                level.removeBlock(counterpartPos, isMoving);
-            }
+        BlockPos counterpartPos = getCounterpartPos(state, pos);
+        BlockState counterpartState = level.getBlockState(counterpartPos);
+        if (counterpartState.is(this)
+                && counterpartState.getValue(PART) != state.getValue(PART)
+                && counterpartState.getValue(HorizontalDirectionalBlock.FACING)
+                == state.getValue(HorizontalDirectionalBlock.FACING)) {
+            level.removeBlock(counterpartPos, isMoving);
         }
-        super.onRemove(state, level, pos, newState, isMoving);
+        super.affectNeighborsAfterRemoval(state, level, pos, isMoving);
     }
 
     @Override

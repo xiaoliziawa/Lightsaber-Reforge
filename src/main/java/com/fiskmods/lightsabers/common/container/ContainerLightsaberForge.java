@@ -58,7 +58,7 @@ public class ContainerLightsaberForge extends AbstractContainerMenu {
         level = playerInventory.player.level();
         access = ContainerLevelAccess.create(level, blockPos);
 
-        craftMatrix.addListener(this::slotsChanged);
+        craftMatrix.setChangeListener(() -> slotsChanged(craftMatrix));
         for (int slot = 0; slot < SLOTS.length; slot++) {
             addSlot(new InputSlot(craftMatrix, slot, SLOTS[slot][0], SLOTS[slot][1]));
         }
@@ -177,7 +177,7 @@ public class ContainerLightsaberForge extends AbstractContainerMenu {
     @Override
     public void removed(Player player) {
         super.removed(player);
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             for (int slot = 0; slot < craftMatrix.getContainerSize(); slot++) {
                 ItemStack stack = craftMatrix.removeItemNoUpdate(slot);
                 if (!stack.isEmpty()) {
@@ -269,7 +269,7 @@ public class ContainerLightsaberForge extends AbstractContainerMenu {
         @Override
         public void onTake(Player player, ItemStack stack) {
             ItemLightsaberBase.setActive(stack, false);
-            stack.onCraftedBy(level, player, 1);
+            stack.onCraftedBy(player, 1);
             EventHooks.firePlayerCraftingEvent(player, stack, craftMatrix);
             for (int slot = 0; slot < craftMatrix.getContainerSize(); slot++) {
                 if (!craftMatrix.getItem(slot).isEmpty()) {

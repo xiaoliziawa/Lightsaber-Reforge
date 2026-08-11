@@ -6,7 +6,7 @@ import com.mojang.serialization.MapCodec;
 import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.util.RandomSource;
@@ -30,6 +30,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -115,7 +116,7 @@ public class BlockSithStoneCoffin extends BaseEntityBlock {
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockPos pos = context.getClickedPos();
         Level level = context.getLevel();
-        if (pos.getY() >= level.getMaxBuildHeight() - 1
+        if (pos.getY() >= level.getMaxY()
                 || !level.getBlockState(pos.above()).canBeReplaced(context)) {
             return null;
         }
@@ -148,7 +149,7 @@ public class BlockSithStoneCoffin extends BaseEntityBlock {
             @Nullable LivingEntity placer,
             ItemStack stack
     ) {
-        if (!level.isClientSide
+        if (!level.isClientSide()
                 && level.getBlockEntity(pos) instanceof TileEntitySithStoneCoffin coffin) {
             coffin.loadEquipmentFromItem(stack);
             coffin.setTaskFinished(true);
@@ -163,7 +164,7 @@ public class BlockSithStoneCoffin extends BaseEntityBlock {
             BlockState oldState,
             boolean isMoving
     ) {
-        if (!oldState.is(state.getBlock()) && !level.isClientSide) {
+        if (!oldState.is(state.getBlock()) && !level.isClientSide()) {
             level.scheduleTick(getBasePos(state, pos), this, 1);
         }
     }
@@ -179,18 +180,18 @@ public class BlockSithStoneCoffin extends BaseEntityBlock {
     }
 
     @Override
-    public void neighborChanged(
+    protected void neighborChanged(
             BlockState state,
             Level level,
             BlockPos pos,
             Block neighborBlock,
-            BlockPos neighborPos,
+            Orientation orientation,
             boolean isMoving
     ) {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             tryActivate(level, state, pos);
         }
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, isMoving);
+        super.neighborChanged(state, level, pos, neighborBlock, orientation, isMoving);
     }
 
     private void tryActivate(Level level, BlockState state, BlockPos pos) {
@@ -203,7 +204,7 @@ public class BlockSithStoneCoffin extends BaseEntityBlock {
 
     @Override
     public void attack(BlockState state, Level level, BlockPos pos, Player player) {
-        if (!level.isClientSide && !player.isCreative()) {
+        if (!level.isClientSide() && !player.isCreative()) {
             BlockPos basePos = getBasePos(state, pos);
             if (level.getBlockEntity(basePos) instanceof TileEntitySithStoneCoffin coffin
                     && !coffin.isBaseplateOnly()
@@ -211,11 +212,14 @@ public class BlockSithStoneCoffin extends BaseEntityBlock {
                 ItemStack droppedStack = new ItemStack(this);
                 ItemStack equipment = coffin.getEquipment();
                 if (!equipment.isEmpty()) {
-                    CompoundTag equipmentTag = new CompoundTag();
-                    equipment.save(level.registryAccess(), equipmentTag);
                     ItemDataHelper.updateCustomData(
                             droppedStack,
-                            tag -> tag.put(EQUIPMENT_TAG, equipmentTag)
+                            tag -> tag.store(
+                                    EQUIPMENT_TAG,
+                                    ItemStack.CODEC,
+                                    level.registryAccess().createSerializationContext(NbtOps.INSTANCE),
+                                    equipment
+                            )
                     );
                 }
 
@@ -272,29 +276,26 @@ public class BlockSithStoneCoffin extends BaseEntityBlock {
     }
 
     @Override
-    public void onRemove(
+    protected void affectNeighborsAfterRemoval(
             BlockState state,
-            Level level,
+            ServerLevel level,
             BlockPos pos,
-            BlockState newState,
             boolean isMoving
     ) {
-        if (!state.is(newState.getBlock())) {
-            Direction facing = state.getValue(HorizontalDirectionalBlock.FACING);
-            if (state.getValue(PART) == Part.BASE) {
-                removeMatchingUpper(level, pos.above(), facing, isMoving);
-            } else {
-                BlockPos basePos = pos.below();
-                BlockState baseState = level.getBlockState(basePos);
-                if (isMatchingPart(baseState, facing, Part.BASE)
-                        && (!(level.getBlockEntity(basePos)
-                        instanceof TileEntitySithStoneCoffin coffin)
-                        || !coffin.isBaseplateOnly())) {
-                    level.removeBlock(basePos, isMoving);
-                }
+        Direction facing = state.getValue(HorizontalDirectionalBlock.FACING);
+        if (state.getValue(PART) == Part.BASE) {
+            removeMatchingUpper(level, pos.above(), facing, isMoving);
+        } else {
+            BlockPos basePos = pos.below();
+            BlockState baseState = level.getBlockState(basePos);
+            if (isMatchingPart(baseState, facing, Part.BASE)
+                    && (!(level.getBlockEntity(basePos)
+                    instanceof TileEntitySithStoneCoffin coffin)
+                    || !coffin.isBaseplateOnly())) {
+                level.removeBlock(basePos, isMoving);
             }
         }
-        super.onRemove(state, level, pos, newState, isMoving);
+        super.affectNeighborsAfterRemoval(state, level, pos, isMoving);
     }
 
     @Override
@@ -333,7 +334,7 @@ public class BlockSithStoneCoffin extends BaseEntityBlock {
             BlockState state,
             BlockEntityType<T> blockEntityType
     ) {
-        if (level.isClientSide || state.getValue(PART) != Part.BASE) {
+        if (level.isClientSide() || state.getValue(PART) != Part.BASE) {
             return null;
         }
         return createTickerHelper(

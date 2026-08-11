@@ -1,29 +1,29 @@
 newmtl sith_bottom
 Ka 1.0 1.0 1.0
 Kd 1.0 1.0 1.0
-map_Kd lightsabers:block/sith_holocron_bottom
+map_Kd sith_bottom
 
 newmtl sith_side
 Ka 1.0 1.0 1.0
 Kd 1.0 1.0 1.0
-map_Kd lightsabers:block/sith_holocron_side
+map_Kd sith_side
 
 newmtl jedi_side
 Ka 1.0 1.0 1.0
 Kd 1.0 1.0 1.0
-map_Kd lightsabers:block/jedi_holocron_side
+map_Kd jedi_side
 
 newmtl jedi_frame
 Ka 1.0 1.0 1.0
 Kd 1.0 1.0 1.0
-map_Kd lightsabers:block/jedi_holocron_corner
+map_Kd jedi_frame
 
 newmtl jedi_corner_bottom
 Ka 1.0 1.0 1.0
 Kd 1.0 1.0 1.0
-map_Kd lightsabers:block/jedi_holocron_corner_bottom
+map_Kd jedi_corner_bottom
 
 newmtl jedi_corner_side
 Ka 1.0 1.0 1.0
 Kd 1.0 1.0 1.0
-map_Kd lightsabers:block/jedi_holocron_corner_side
+map_Kd jedi_corner_side

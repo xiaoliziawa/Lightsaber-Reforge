@@ -358,11 +358,11 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
 
     public boolean sync(Player player)
     {
-        LogicalSide side = player.level().isClientSide ? LogicalSide.CLIENT : LogicalSide.SERVER;
+        LogicalSide side = player.level().isClientSide() ? LogicalSide.CLIENT : LogicalSide.SERVER;
         if (hasPerms(side) && legalUpdate(player))
         {
             MessagePlayerData message = new MessagePlayerData(player, this, get(player));
-            if (player.level().isClientSide)
+            if (player.level().isClientSide())
             {
                 ALNetworkManager.sendToServer(message);
             }
@@ -416,7 +416,7 @@ public class ALData<T> extends FiskRegistryEntry<ALData<?>>
 
     public static Map<ALData<?>, Object> readFromNBT(CompoundTag nbt, Map<ALData<?>, Object> data)
     {
-        CompoundTag dataTag = nbt.getCompound("DataArray");
+        CompoundTag dataTag = nbt.getCompoundOrEmpty("DataArray");
 
         for (ALData<?> type : ALData.REGISTRY)
         {

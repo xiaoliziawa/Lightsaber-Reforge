@@ -4,14 +4,16 @@ import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class TileEntityLightsaberStand extends BlockEntity {
@@ -64,25 +66,22 @@ public class TileEntityLightsaberStand extends BlockEntity {
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        displayStack = tag.contains(DISPLAY_STACK_TAG, Tag.TAG_COMPOUND)
-                ? ItemStack.parseOptional(registries, tag.getCompound(DISPLAY_STACK_TAG))
-                : ItemStack.EMPTY;
-        owner = readOwner(tag);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        displayStack = input.read(DISPLAY_STACK_TAG, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        owner = readOwner(input);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
         if (!displayStack.isEmpty()) {
-            tag.put(DISPLAY_STACK_TAG, displayStack.save(registries, new CompoundTag()));
+            output.store(DISPLAY_STACK_TAG, ItemStack.CODEC, displayStack);
         }
         if (owner != null) {
-            CompoundTag ownerTag = new CompoundTag();
-            ownerTag.putLong(UUID_MOST_TAG, owner.getMostSignificantBits());
-            ownerTag.putLong(UUID_LEAST_TAG, owner.getLeastSignificantBits());
-            tag.put(OWNER_TAG, ownerTag);
+            ValueOutput ownerOutput = output.child(OWNER_TAG);
+            ownerOutput.putLong(UUID_MOST_TAG, owner.getMostSignificantBits());
+            ownerOutput.putLong(UUID_LEAST_TAG, owner.getLeastSignificantBits());
         }
     }
 
@@ -96,24 +95,32 @@ public class TileEntityLightsaberStand extends BlockEntity {
         return saveWithoutMetadata(registries);
     }
 
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (level != null && !displayStack.isEmpty()) {
+            Block.popResource(level, pos, displayStack.copy());
+        }
+        super.preRemoveSideEffects(pos, state);
+    }
+
     private void setChangedAndSync() {
         setChanged();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             BlockState state = getBlockState();
             level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
         }
     }
 
-    private static UUID readOwner(CompoundTag tag) {
-        if (!tag.contains(OWNER_TAG, Tag.TAG_COMPOUND)) {
-            return null;
-        }
-
-        CompoundTag ownerTag = tag.getCompound(OWNER_TAG);
-        if (!ownerTag.contains(UUID_MOST_TAG, Tag.TAG_LONG)
-                || !ownerTag.contains(UUID_LEAST_TAG, Tag.TAG_LONG)) {
-            return null;
-        }
-        return new UUID(ownerTag.getLong(UUID_MOST_TAG), ownerTag.getLong(UUID_LEAST_TAG));
+    private static UUID readOwner(ValueInput input) {
+        return input.child(OWNER_TAG).flatMap(ownerInput -> {
+            if (ownerInput.getLong(UUID_MOST_TAG).isEmpty()
+                    || ownerInput.getLong(UUID_LEAST_TAG).isEmpty()) {
+                return Optional.empty();
+            }
+            return Optional.of(new UUID(
+                    ownerInput.getLongOr(UUID_MOST_TAG, 0L),
+                    ownerInput.getLongOr(UUID_LEAST_TAG, 0L)
+            ));
+        }).orElse(null);
     }
 }

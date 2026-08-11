@@ -23,6 +23,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 public class TileEntitySithCoffin extends BlockEntity implements Container {
@@ -93,7 +95,7 @@ public class TileEntitySithCoffin extends BlockEntity implements Container {
 
     private void spawnOpeningParticles(Level level, BlockPos pos, BlockState state) {
         Direction facing = state.getValue(HorizontalDirectionalBlock.FACING);
-        RandomSource random = level.random;
+        RandomSource random = level.getRandom();
         double frontOffsetX = facing.getStepX() * 0.5D;
         double frontOffsetZ = facing.getStepZ() * 0.5D;
         double maxHeight = lidOpenTimer / 5.0D;
@@ -218,23 +220,23 @@ public class TileEntitySithCoffin extends BlockEntity implements Container {
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
         items.clear();
-        ContainerHelper.loadAllItems(tag, items, registries);
-        hasBeenOpened = tag.getBoolean(HAS_BEEN_OPENED_TAG);
-        lidOpen = tag.getBoolean(IS_LID_OPEN_TAG);
-        lidOpenTimer = tag.getInt(LID_OPEN_TIMER_TAG);
+        ContainerHelper.loadAllItems(input, items);
+        hasBeenOpened = input.getBooleanOr(HAS_BEEN_OPENED_TAG, false);
+        lidOpen = input.getBooleanOr(IS_LID_OPEN_TAG, false);
+        lidOpenTimer = input.getIntOr(LID_OPEN_TIMER_TAG, 0);
         previousLidOpenTimer = lidOpenTimer;
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        ContainerHelper.saveAllItems(tag, items, registries);
-        tag.putBoolean(HAS_BEEN_OPENED_TAG, hasBeenOpened);
-        tag.putBoolean(IS_LID_OPEN_TAG, lidOpen);
-        tag.putInt(LID_OPEN_TIMER_TAG, lidOpenTimer);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output, items);
+        output.putBoolean(HAS_BEEN_OPENED_TAG, hasBeenOpened);
+        output.putBoolean(IS_LID_OPEN_TAG, lidOpen);
+        output.putInt(LID_OPEN_TIMER_TAG, lidOpenTimer);
     }
 
     @Override
@@ -249,14 +251,7 @@ public class TileEntitySithCoffin extends BlockEntity implements Container {
     }
 
     @Override
-    public void onDataPacket(
-            Connection connection,
-            ClientboundBlockEntityDataPacket packet,
-            HolderLookup.Provider registries
-    ) {
-        CompoundTag tag = packet.getTag();
-        if (!tag.isEmpty()) {
-            loadWithComponents(tag, registries);
-        }
+    public void onDataPacket(Connection connection, ValueInput input) {
+        loadWithComponents(input);
     }
 }

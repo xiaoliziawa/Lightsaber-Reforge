@@ -15,6 +15,7 @@ import net.minecraft.nbt.FloatTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.ShortTag;
 import net.minecraft.nbt.StringTag;
@@ -22,7 +23,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -82,7 +83,10 @@ public final class NBTHelper {
             return result;
         }
         if (obj instanceof ItemStack itemStack) {
-            return itemStack.save(BUILT_IN_REGISTRIES, new CompoundTag());
+            return ItemStack.CODEC
+                    .encodeStart(BUILT_IN_REGISTRIES.createSerializationContext(NbtOps.INSTANCE), itemStack)
+                    .result()
+                    .orElse(null);
         }
         if (obj instanceof DimensionalCoords coords) {
             CompoundTag tag = new CompoundTag();
@@ -107,16 +111,16 @@ public final class NBTHelper {
             return adapter == null ? null : (T) adapter.readFromNBT(tag);
         }
         if (tag instanceof NumericTag numeric) {
-            if (type == Byte.class) return (T) Byte.valueOf(numeric.getAsByte());
-            if (type == Short.class) return (T) Short.valueOf(numeric.getAsShort());
-            if (type == Integer.class) return (T) Integer.valueOf(numeric.getAsInt());
-            if (type == Long.class) return (T) Long.valueOf(numeric.getAsLong());
-            if (type == Float.class) return (T) Float.valueOf(numeric.getAsFloat());
-            if (type == Double.class) return (T) Double.valueOf(numeric.getAsDouble());
-            if (type == Boolean.class) return (T) Boolean.valueOf(numeric.getAsByte() != 0);
+            if (type == Byte.class) return (T) Byte.valueOf(numeric.byteValue());
+            if (type == Short.class) return (T) Short.valueOf(numeric.shortValue());
+            if (type == Integer.class) return (T) Integer.valueOf(numeric.intValue());
+            if (type == Long.class) return (T) Long.valueOf(numeric.longValue());
+            if (type == Float.class) return (T) Float.valueOf(numeric.floatValue());
+            if (type == Double.class) return (T) Double.valueOf(numeric.doubleValue());
+            if (type == Boolean.class) return (T) Boolean.valueOf(numeric.byteValue() != 0);
         }
         if (type == String.class && tag instanceof StringTag stringTag) {
-            return (T) stringTag.getAsString();
+            return (T) stringTag.value();
         }
         if (type == List.class && tag instanceof ListTag listTag) {
             List<Object> values = new ArrayList<>(listTag.size());
@@ -130,25 +134,26 @@ public final class NBTHelper {
         }
         if (tag instanceof CompoundTag compoundTag) {
             if (type == ItemStack.class) {
-                return (T) ItemStack.parseOptional(BUILT_IN_REGISTRIES, compoundTag);
+                return (T) ItemStack.CODEC
+                        .parse(BUILT_IN_REGISTRIES.createSerializationContext(NbtOps.INSTANCE), compoundTag)
+                        .result()
+                        .orElse(ItemStack.EMPTY);
             }
             if (type == DimensionalCoords.class) {
-                ResourceLocation dimension = compoundTag.contains("dimension", Tag.TAG_STRING)
-                        ? ResourceLocation.tryParse(compoundTag.getString("dimension"))
-                        : null;
+                Identifier dimension = Identifier.tryParse(compoundTag.getStringOr("dimension", ""));
                 if (dimension != null) {
                     return (T) new DimensionalCoords(
-                            compoundTag.getInt("x"),
-                            compoundTag.getInt("y"),
-                            compoundTag.getInt("z"),
+                            compoundTag.getIntOr("x", 0),
+                            compoundTag.getIntOr("y", 0),
+                            compoundTag.getIntOr("z", 0),
                             DimensionalCoords.dimension(dimension)
                     );
                 }
                 return (T) new DimensionalCoords(
-                        compoundTag.getInt("x"),
-                        compoundTag.getInt("y"),
-                        compoundTag.getInt("z"),
-                        compoundTag.getInt("dim")
+                        compoundTag.getIntOr("x", 0),
+                        compoundTag.getIntOr("y", 0),
+                        compoundTag.getIntOr("z", 0),
+                        compoundTag.getIntOr("dim", 0)
                 );
             }
         }
@@ -193,7 +198,7 @@ public final class NBTHelper {
                 buffer.writeInt(coords.posX);
                 buffer.writeInt(coords.posY);
                 buffer.writeInt(coords.posZ);
-                friendlyBuffer.writeResourceLocation(coords.dimensionLocation());
+                friendlyBuffer.writeIdentifier(coords.dimensionLocation());
             }
         }
     }
@@ -241,7 +246,7 @@ public final class NBTHelper {
                     buffer.readInt(),
                     buffer.readInt(),
                     buffer.readInt(),
-                    DimensionalCoords.dimension(friendlyBuffer.readResourceLocation())
+                    DimensionalCoords.dimension(friendlyBuffer.readIdentifier())
             );
         }
         return null;
@@ -252,14 +257,14 @@ public final class NBTHelper {
             String name,
             FiskSimpleRegistry<T> registry
     ) {
-        if (!compound.contains(name, Tag.TAG_LIST)) {
+        if (!compound.contains(name)) {
             return null;
         }
 
-        ListTag tagList = compound.getList(name, Tag.TAG_STRING);
+        ListTag tagList = compound.getListOrEmpty(name);
         List<T> values = new ArrayList<>(tagList.size());
         for (int i = 0; i < tagList.size(); i++) {
-            T entry = registry.getObject(tagList.getString(i));
+            T entry = registry.getObject(tagList.getStringOr(i, ""));
             if (entry != null) {
                 values.add(entry);
             }
@@ -269,7 +274,7 @@ public final class NBTHelper {
 
     public static CompoundTag getCompound(String value) {
         try {
-            return TagParser.parseTag(value);
+            return TagParser.parseCompoundFully(value);
         } catch (CommandSyntaxException ignored) {
             return new CompoundTag();
         }

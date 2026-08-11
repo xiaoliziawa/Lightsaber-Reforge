@@ -27,7 +27,7 @@ public class ContainerHolocron extends AbstractContainerMenu {
     ) {
         super(ModMenus.HOLOCRON.get(), containerId);
         this.holocron = holocron;
-        if (holocron.getLevel() != null && !holocron.getLevel().isClientSide) {
+        if (holocron.getLevel() != null && !holocron.getLevel().isClientSide()) {
             holocron.startUsing();
         }
     }
@@ -45,7 +45,7 @@ public class ContainerHolocron extends AbstractContainerMenu {
     @Override
     public void removed(Player player) {
         super.removed(player);
-        if (holocron.getLevel() != null && !holocron.getLevel().isClientSide) {
+        if (holocron.getLevel() != null && !holocron.getLevel().isClientSide()) {
             holocron.stopUsing();
         }
     }

@@ -1,7 +1,6 @@
 package com.fiskmods.lightsabers.client.model;
 
 import com.fiskmods.lightsabers.Lightsabers;
-import com.fiskmods.lightsabers.common.entity.EntitySithGhost;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -10,11 +9,12 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 
-public class ModelSithGhost extends HumanoidModel<EntitySithGhost> {
+public class ModelSithGhost extends HumanoidModel<HumanoidRenderState> {
     public static final ModelLayerLocation LAYER = new ModelLayerLocation(
-            ResourceLocation.fromNamespaceAndPath(Lightsabers.MODID, "sith_ghost"),
+            Identifier.fromNamespaceAndPath(Lightsabers.MODID, "sith_ghost"),
             "main"
     );
 
@@ -41,7 +41,7 @@ public class ModelSithGhost extends HumanoidModel<EntitySithGhost> {
                         .addBox(-5.5F, -9.4F, -3.6F, 11.0F, 11.0F, 9.0F),
                 PartPose.rotation(0.0842994F, 0.0F, 0.0F)
         );
-        root.addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO);
+        head.addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO);
         root.addOrReplaceChild(
                 "body",
                 CubeListBuilder.create()
@@ -84,22 +84,8 @@ public class ModelSithGhost extends HumanoidModel<EntitySithGhost> {
     }
 
     @Override
-    public void setupAnim(
-            EntitySithGhost entity,
-            float limbSwing,
-            float limbSwingAmount,
-            float ageInTicks,
-            float netHeadYaw,
-            float headPitch
-    ) {
-        super.setupAnim(
-                entity,
-                limbSwing,
-                limbSwingAmount,
-                ageInTicks,
-                netHeadYaw,
-                headPitch
-        );
+    public void setupAnim(HumanoidRenderState state) {
+        super.setupAnim(state);
         rightArm.setPos(-4.0F, 2.0F, 0.0F);
         leftArm.setPos(4.0F, 2.0F, 0.0F);
     }

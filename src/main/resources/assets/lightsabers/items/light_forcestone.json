@@ -1,0 +1,41 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "block_state_property": "variant",
+    "cases": [
+      {
+        "when": "inscribed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "lightsabers:block/light_forcestone_inscribed"
+        }
+      },
+      {
+        "when": "pillar",
+        "model": {
+          "type": "minecraft:model",
+          "model": "lightsabers:block/light_forcestone_pillar"
+        }
+      },
+      {
+        "when": "cracked",
+        "model": {
+          "type": "minecraft:model",
+          "model": "lightsabers:block/light_forcestone_cracked"
+        }
+      },
+      {
+        "when": "mossy",
+        "model": {
+          "type": "minecraft:model",
+          "model": "lightsabers:block/light_forcestone_mossy"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "lightsabers:block/light_forcestone_default"
+    },
+    "property": "minecraft:block_state"
+  }
+}

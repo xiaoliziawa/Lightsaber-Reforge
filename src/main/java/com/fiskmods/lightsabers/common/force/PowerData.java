@@ -102,14 +102,14 @@ public class PowerData implements Comparable<PowerData>, ISerializableObject<Pow
         {
             if (tag instanceof CompoundTag nbt)
             {
-                Power power = Power.getPowerFromName(nbt.getString("Id"));
+                Power power = Power.getPowerFromName(nbt.getStringOr("Id", ""));
                 if (power == null)
                 {
                     return null;
                 }
                 PowerData data = new PowerData(power);
-                data.unlocked = nbt.getBoolean("Unlocked");
-                data.xpInvested = nbt.getInt("XpInvested");
+                data.unlocked = nbt.getBooleanOr("Unlocked", false);
+                data.xpInvested = nbt.getIntOr("XpInvested", 0);
 
                 return data;
             }

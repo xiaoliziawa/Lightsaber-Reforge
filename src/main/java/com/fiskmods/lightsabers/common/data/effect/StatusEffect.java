@@ -6,6 +6,7 @@ import com.fiskmods.lightsabers.common.network.ALNetworkManager;
 import com.fiskmods.lightsabers.common.network.MessageUpdateEffects;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.Tag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -63,19 +64,19 @@ public class StatusEffect implements Comparable<StatusEffect> {
     }
 
     public static StatusEffect readFromNBT(CompoundTag tag) {
-        Effect effect = Effect.getEffectFromName(tag.getString("Id"));
+        Effect effect = Effect.getEffectFromName(tag.getStringOr("Id", ""));
         if (effect == null) {
             return null;
         }
 
         UUID caster = null;
-        if (tag.hasUUID("CasterUUID")) {
-            caster = tag.getUUID("CasterUUID");
-        } else if (tag.contains("CasterUUIDMost", Tag.TAG_ANY_NUMERIC)
-                && tag.contains("CasterUUIDLeast", Tag.TAG_ANY_NUMERIC)) {
-            caster = new UUID(tag.getLong("CasterUUIDMost"), tag.getLong("CasterUUIDLeast"));
+        if (tag.read("CasterUUID", UUIDUtil.CODEC).isPresent()) {
+            caster = tag.read("CasterUUID", UUIDUtil.CODEC).orElse(null);
+        } else if (tag.getLong("CasterUUIDMost").isPresent()
+                && tag.getLong("CasterUUIDLeast").isPresent()) {
+            caster = new UUID(tag.getLongOr("CasterUUIDMost", 0L), tag.getLongOr("CasterUUIDLeast", 0L));
         }
-        return new StatusEffect(effect, tag.getInt("Duration"), tag.getInt("Amplifier"), caster);
+        return new StatusEffect(effect, tag.getIntOr("Duration", 0), tag.getIntOr("Amplifier", 0), caster);
     }
 
     public CompoundTag writeToNBT(CompoundTag tag) {
@@ -83,7 +84,7 @@ public class StatusEffect implements Comparable<StatusEffect> {
         tag.putInt("Duration", duration);
         tag.putInt("Amplifier", amplifier);
         if (casterUUID != null) {
-            tag.putUUID("CasterUUID", casterUUID);
+            tag.store("CasterUUID", UUIDUtil.CODEC, casterUUID);
         }
         return tag;
     }
@@ -155,7 +156,7 @@ public class StatusEffect implements Comparable<StatusEffect> {
     }
 
     public static void clear(LivingEntity entity) {
-        if (entity.level().isClientSide) {
+        if (entity.level().isClientSide()) {
             return;
         }
 
@@ -167,7 +168,7 @@ public class StatusEffect implements Comparable<StatusEffect> {
     }
 
     public static void clear(LivingEntity entity, Effect effect) {
-        if (entity.level().isClientSide || !has(entity, effect)) {
+        if (entity.level().isClientSide() || !has(entity, effect)) {
             return;
         }
 
@@ -203,7 +204,7 @@ public class StatusEffect implements Comparable<StatusEffect> {
     }
 
     private static void sync(LivingEntity entity, List<StatusEffect> effects) {
-        if (!entity.level().isClientSide) {
+        if (!entity.level().isClientSide()) {
             ALNetworkManager.sendToTrackingAndSelf(entity, new MessageUpdateEffects(entity, effects));
         }
     }

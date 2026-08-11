@@ -10,17 +10,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.item.component.TooltipDisplay;
 
-import java.util.List;
 import java.util.Random;
+import java.util.function.Consumer;
 
 public class ItemLightsaberPart extends Item implements ILightsaberComponent {
     public final PartType partType;
 
-    public ItemLightsaberPart(PartType partType) {
-        super(new Item.Properties().stacksTo(16));
+    public ItemLightsaberPart(Item.Properties properties, PartType partType) {
+        super(properties.stacksTo(16));
         this.partType = partType;
     }
 
@@ -38,27 +37,28 @@ public class ItemLightsaberPart extends Item implements ILightsaberComponent {
     public void appendHoverText(
             ItemStack stack,
             Item.TooltipContext context,
-            List<Component> tooltip,
+            TooltipDisplay display,
+            Consumer<Component> tooltip,
             TooltipFlag flag
     ) {
-        tooltip.add(Component.literal(get(stack).getLocalizedName()));
+        tooltip.accept(Component.literal(get(stack).getLocalizedName()));
     }
 
     public static Hilt get(ItemStack stack) {
         int id = 0;
         CompoundTag tag = ItemDataHelper.getCustomData(stack);
         if (tag != null) {
-            if (tag.contains("lightsaber", Tag.TAG_STRING)) {
+            if (tag.getString("lightsaber").isPresent()) {
                 Hilt legacyHilt = Hilt.REGISTRY.getObject(
-                        Hilt.LEGACY_MAPPINGS.get(tag.getString("lightsaber"))
+                        Hilt.LEGACY_MAPPINGS.get(tag.getStringOr("lightsaber", ""))
                 );
                 id = Hilt.REGISTRY.getIDForObject(legacyHilt);
                 tag.remove("lightsaber");
                 tag.remove("type");
                 tag.putByte(ALConstants.TAG_PART, (byte) id);
                 ItemDataHelper.setCustomData(stack, tag);
-            } else if (tag.contains(ALConstants.TAG_PART, Tag.TAG_ANY_NUMERIC)) {
-                id = tag.getByte(ALConstants.TAG_PART);
+            } else if (tag.getInt(ALConstants.TAG_PART).isPresent()) {
+                id = tag.getByteOr(ALConstants.TAG_PART, (byte) 0);
             }
         }
         return Hilt.REGISTRY.getObjectById(id);

@@ -10,8 +10,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class ItemSithStoneCoffin extends BlockItem {
-    public ItemSithStoneCoffin(BlockSithStoneCoffin block) {
-        super(block, new Item.Properties());
+    public ItemSithStoneCoffin(BlockSithStoneCoffin block, Item.Properties properties) {
+        super(block, properties.useBlockDescriptionPrefix());
     }
 
     @Override

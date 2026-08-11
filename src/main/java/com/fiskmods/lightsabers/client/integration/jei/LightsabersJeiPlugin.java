@@ -16,7 +16,7 @@ import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.ingredients.subtypes.UidContext;
-import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
@@ -24,7 +24,7 @@ import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.BlockItemStateProperties;
@@ -40,31 +40,28 @@ import java.util.function.Function;
 @JeiPlugin
 @OnlyIn(Dist.CLIENT)
 public final class LightsabersJeiPlugin implements IModPlugin {
-    public static final RecipeType<LightsaberForgeJeiRecipe> LIGHTSABER_FORGE =
-            RecipeType.create(
-                    Lightsabers.MODID,
-                    "lightsaber_forge",
+    public static final IRecipeType<LightsaberForgeJeiRecipe> LIGHTSABER_FORGE =
+            IRecipeType.create(
+                    Identifier.fromNamespaceAndPath(Lightsabers.MODID, "lightsaber_forge"),
                     LightsaberForgeJeiRecipe.class
             );
-    public static final RecipeType<DoubleLightsaberJeiRecipe> DOUBLE_LIGHTSABER =
-            RecipeType.create(
-                    Lightsabers.MODID,
-                    "double_lightsaber",
+    public static final IRecipeType<DoubleLightsaberJeiRecipe> DOUBLE_LIGHTSABER =
+            IRecipeType.create(
+                    Identifier.fromNamespaceAndPath(Lightsabers.MODID, "double_lightsaber"),
                     DoubleLightsaberJeiRecipe.class
             );
-    public static final RecipeType<DisassemblyJeiRecipe> DISASSEMBLY = RecipeType.create(
-            Lightsabers.MODID,
-            "disassembly",
+    public static final IRecipeType<DisassemblyJeiRecipe> DISASSEMBLY = IRecipeType.create(
+            Identifier.fromNamespaceAndPath(Lightsabers.MODID, "disassembly"),
             DisassemblyJeiRecipe.class
     );
 
-    private static final ResourceLocation PLUGIN_ID = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier PLUGIN_ID = Identifier.fromNamespaceAndPath(
             Lightsabers.MODID,
             "jei_plugin"
     );
 
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return PLUGIN_ID;
     }
 
@@ -159,12 +156,6 @@ public final class LightsabersJeiPlugin implements IModPlugin {
             public Object getSubtypeData(ItemStack stack, UidContext context) {
                 return subtypeData.apply(stack);
             }
-
-            @Override
-            public String getLegacyStringSubtypeInfo(ItemStack stack, UidContext context) {
-                Object data = subtypeData.apply(stack);
-                return data == null ? "" : data.toString();
-            }
         });
     }
 
@@ -219,15 +210,15 @@ public final class LightsabersJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-        registration.addRecipeCatalysts(
+        registration.addCraftingStation(
                 LIGHTSABER_FORGE,
                 ModBlocks.LIGHTSABER_FORGE_ITEM.get()
         );
-        registration.addRecipeCatalysts(
+        registration.addCraftingStation(
                 DISASSEMBLY,
                 ModBlocks.DISASSEMBLY_STATION_ITEM.get()
         );
-        registration.addRecipeCatalysts(DOUBLE_LIGHTSABER, Blocks.CRAFTING_TABLE);
+        registration.addCraftingStation(DOUBLE_LIGHTSABER, Blocks.CRAFTING_TABLE);
     }
 
     @Override

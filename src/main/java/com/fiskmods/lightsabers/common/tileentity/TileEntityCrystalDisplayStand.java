@@ -6,12 +6,15 @@ import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
+import java.util.Optional;
 
 public class TileEntityCrystalDisplayStand extends BlockEntity {
     private static final String DISPLAY_STACK_TAG = "DisplayStack";
@@ -45,23 +48,19 @@ public class TileEntityCrystalDisplayStand extends BlockEntity {
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        boolean displayPresent = tag.contains(DISPLAY_PRESENT_TAG, Tag.TAG_BYTE)
-                ? tag.getBoolean(DISPLAY_PRESENT_TAG)
-                : tag.contains(DISPLAY_STACK_TAG, Tag.TAG_COMPOUND);
-        displayStack = displayPresent
-                && tag.contains(DISPLAY_STACK_TAG, Tag.TAG_COMPOUND)
-                ? ItemStack.parseOptional(registries, tag.getCompound(DISPLAY_STACK_TAG))
-                : ItemStack.EMPTY;
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        Optional<ItemStack> storedStack = input.read(DISPLAY_STACK_TAG, ItemStack.CODEC);
+        boolean displayPresent = input.getBooleanOr(DISPLAY_PRESENT_TAG, storedStack.isPresent());
+        displayStack = displayPresent ? storedStack.orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.putBoolean(DISPLAY_PRESENT_TAG, !displayStack.isEmpty());
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putBoolean(DISPLAY_PRESENT_TAG, !displayStack.isEmpty());
         if (!displayStack.isEmpty()) {
-            tag.put(DISPLAY_STACK_TAG, displayStack.save(registries, new CompoundTag()));
+            output.store(DISPLAY_STACK_TAG, ItemStack.CODEC, displayStack);
         }
     }
 
@@ -75,9 +74,17 @@ public class TileEntityCrystalDisplayStand extends BlockEntity {
         return saveWithoutMetadata(registries);
     }
 
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (level != null && !displayStack.isEmpty()) {
+            Block.popResource(level, pos, displayStack.copy());
+        }
+        super.preRemoveSideEffects(pos, state);
+    }
+
     private void setChangedAndSync() {
         setChanged();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             BlockState state = getBlockState();
             level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_ALL);
         }

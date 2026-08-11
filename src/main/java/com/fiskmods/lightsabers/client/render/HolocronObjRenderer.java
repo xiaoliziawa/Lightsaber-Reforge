@@ -5,32 +5,38 @@ import com.fiskmods.lightsabers.common.block.HolocronType;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import java.util.List;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelManager;
-import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
-import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.model.standalone.SimpleUnbakedStandaloneModel;
+import net.neoforged.neoforge.client.model.standalone.StandaloneModelKey;
 
 public final class HolocronObjRenderer {
-    private static final ModelResourceLocation SITH_BOTTOM_MODEL = model("sith_bottom");
-    private static final ModelResourceLocation SITH_SIDE_MODEL = model("sith_side");
-    private static final ModelResourceLocation JEDI_FACE_MODEL = model("jedi_face");
-    private static final ModelResourceLocation JEDI_FRAME_MODEL = model("jedi_frame");
-    private static final ModelResourceLocation JEDI_CORNER_MODEL = model("jedi_corner");
-    private static final ResourceLocation SITH_ITEM_TEXTURE = texture("sith_holocron");
-    private static final ResourceLocation JEDI_ITEM_TEXTURE = texture("jedi_holocron");
-    private static final RenderType MODEL_RENDER_TYPE = RenderType.entityTranslucent(
-            InventoryMenu.BLOCK_ATLAS,
+    private static final StandaloneModelKey<BlockStateModelPart> SITH_BOTTOM_MODEL =
+            modelKey("sith_bottom");
+    private static final StandaloneModelKey<BlockStateModelPart> SITH_SIDE_MODEL =
+            modelKey("sith_side");
+    private static final StandaloneModelKey<BlockStateModelPart> JEDI_FACE_MODEL =
+            modelKey("jedi_face");
+    private static final StandaloneModelKey<BlockStateModelPart> JEDI_FRAME_MODEL =
+            modelKey("jedi_frame");
+    private static final StandaloneModelKey<BlockStateModelPart> JEDI_CORNER_MODEL =
+            modelKey("jedi_corner");
+    private static final Identifier SITH_ITEM_TEXTURE = texture("sith_holocron");
+    private static final Identifier JEDI_ITEM_TEXTURE = texture("jedi_holocron");
+    private static final RenderType MODEL_RENDER_TYPE = RenderTypes.entityTranslucent(
+            TextureAtlas.LOCATION_BLOCKS,
             false
     );
+    private static final int[] NO_TINTS = new int[0];
     private static final float SITH_SIDE_CENTER_Y = -1.0F / 12.0F;
     private static final float SITH_SIDE_CENTER_Z = -1.0F / 6.0F;
     private static final float JEDI_SIZE = 0.5F;
@@ -44,12 +50,12 @@ public final class HolocronObjRenderer {
     private HolocronObjRenderer() {
     }
 
-    public static void registerModels(ModelEvent.RegisterAdditional event) {
-        event.register(SITH_BOTTOM_MODEL);
-        event.register(SITH_SIDE_MODEL);
-        event.register(JEDI_FACE_MODEL);
-        event.register(JEDI_FRAME_MODEL);
-        event.register(JEDI_CORNER_MODEL);
+    public static void registerModels(ModelEvent.RegisterStandalone event) {
+        register(event, SITH_BOTTOM_MODEL, "sith_bottom");
+        register(event, SITH_SIDE_MODEL, "sith_side");
+        register(event, JEDI_FACE_MODEL, "jedi_face");
+        register(event, JEDI_FRAME_MODEL, "jedi_frame");
+        register(event, JEDI_CORNER_MODEL, "jedi_corner");
     }
 
     public static void renderModel(
@@ -57,69 +63,49 @@ public final class HolocronObjRenderer {
             float openProgress,
             float openTicks,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedOverlay
     ) {
-        Minecraft minecraft = Minecraft.getInstance();
-        ModelManager modelManager = minecraft.getModelManager();
-        ItemRenderer itemRenderer = minecraft.getItemRenderer();
-        VertexConsumer consumer = buffer.getBuffer(MODEL_RENDER_TYPE);
         if (type == HolocronType.JEDI) {
-            renderJedi(
-                    openProgress,
-                    openTicks,
-                    poseStack,
-                    itemRenderer,
-                    modelManager,
-                    consumer,
-                    packedOverlay
-            );
+            renderJedi(openProgress, openTicks, poseStack, collector, packedOverlay);
         } else {
-            renderSith(
-                    poseStack,
-                    itemRenderer,
-                    modelManager,
-                    consumer,
-                    packedOverlay
-            );
+            renderSith(poseStack, collector, packedOverlay);
         }
     }
 
     public static void renderItemIcon(
             HolocronType type,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedOverlay
     ) {
-        ResourceLocation texture = type == HolocronType.JEDI
+        Identifier texture = type == HolocronType.JEDI
                 ? JEDI_ITEM_TEXTURE
                 : SITH_ITEM_TEXTURE;
-        VertexConsumer consumer = buffer.getBuffer(
-                RenderType.entityTranslucentEmissive(texture, false)
+        RenderSubmissionHelper.submitGeometry(
+                collector,
+                poseStack,
+                RenderTypes.entityTranslucentEmissive(texture, false),
+                (renderPose, consumer) -> renderItemIconQuad(
+                        renderPose,
+                        consumer,
+                        packedOverlay
+                )
         );
-        PoseStack.Pose pose = poseStack.last();
-        vertex(consumer, pose, -0.5F, -0.5F, 0, 0, 1, packedOverlay);
-        vertex(consumer, pose, 0.5F, -0.5F, 0, 1, 1, packedOverlay);
-        vertex(consumer, pose, 0.5F, 0.5F, 0, 1, 0, packedOverlay);
-        vertex(consumer, pose, -0.5F, 0.5F, 0, 0, 0, packedOverlay);
     }
 
     private static void renderSith(
             PoseStack poseStack,
-            ItemRenderer itemRenderer,
-            ModelManager modelManager,
-            VertexConsumer consumer,
+            SubmitNodeCollector collector,
             int packedOverlay
     ) {
-        BakedModel bottom = modelManager.getModel(SITH_BOTTOM_MODEL);
-        BakedModel side = modelManager.getModel(SITH_SIDE_MODEL);
-        renderPart(itemRenderer, bottom, poseStack, consumer, packedOverlay);
+        renderPart(SITH_BOTTOM_MODEL, poseStack, collector, packedOverlay);
 
         for (int sideIndex = 0; sideIndex < 4; sideIndex++) {
             poseStack.pushPose();
             poseStack.mulPose(Axis.YP.rotationDegrees(sideIndex * 90.0F));
-            poseStack.translate(0, SITH_SIDE_CENTER_Y, SITH_SIDE_CENTER_Z);
-            renderPart(itemRenderer, side, poseStack, consumer, packedOverlay);
+            poseStack.translate(0.0F, SITH_SIDE_CENTER_Y, SITH_SIDE_CENTER_Z);
+            renderPart(SITH_SIDE_MODEL, poseStack, collector, packedOverlay);
             poseStack.popPose();
         }
     }
@@ -128,17 +114,11 @@ public final class HolocronObjRenderer {
             float openProgress,
             float openTicks,
             PoseStack poseStack,
-            ItemRenderer itemRenderer,
-            ModelManager modelManager,
-            VertexConsumer consumer,
+            SubmitNodeCollector collector,
             int packedOverlay
     ) {
-        BakedModel face = modelManager.getModel(JEDI_FACE_MODEL);
-        BakedModel frame = modelManager.getModel(JEDI_FRAME_MODEL);
-        BakedModel corner = modelManager.getModel(JEDI_CORNER_MODEL);
-
-        renderJediCore(itemRenderer, face, poseStack, consumer, packedOverlay);
-        renderJediFrames(itemRenderer, frame, poseStack, consumer, packedOverlay);
+        renderJediCore(poseStack, collector, packedOverlay);
+        renderJediFrames(poseStack, collector, packedOverlay);
 
         float hoverOffset = Mth.sin(openTicks / HOVER_SPEED) * HOVER_HEIGHT;
         float cornerOffset = JEDI_SIZE * (
@@ -155,18 +135,16 @@ public final class HolocronObjRenderer {
                 if (verticalSide == 1) {
                     poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
                 }
-                poseStack.translate(0, 0, cornerOffset);
-                renderPart(itemRenderer, corner, poseStack, consumer, packedOverlay);
+                poseStack.translate(0.0F, 0.0F, cornerOffset);
+                renderPart(JEDI_CORNER_MODEL, poseStack, collector, packedOverlay);
                 poseStack.popPose();
             }
         }
     }
 
     private static void renderJediCore(
-            ItemRenderer itemRenderer,
-            BakedModel face,
             PoseStack poseStack,
-            VertexConsumer consumer,
+            SubmitNodeCollector collector,
             int packedOverlay
     ) {
         for (int faceIndex = 0; faceIndex < 6; faceIndex++) {
@@ -178,16 +156,14 @@ public final class HolocronObjRenderer {
                         (faceIndex - 4) * 180.0F + 90.0F
                 ));
             }
-            renderPart(itemRenderer, face, poseStack, consumer, packedOverlay);
+            renderPart(JEDI_FACE_MODEL, poseStack, collector, packedOverlay);
             poseStack.popPose();
         }
     }
 
     private static void renderJediFrames(
-            ItemRenderer itemRenderer,
-            BakedModel frame,
             PoseStack poseStack,
-            VertexConsumer consumer,
+            SubmitNodeCollector collector,
             int packedOverlay
     ) {
         for (int verticalSide = 0; verticalSide < 2; verticalSide++) {
@@ -197,27 +173,45 @@ public final class HolocronObjRenderer {
                 if (verticalSide == 1) {
                     poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
                 }
-                renderPart(itemRenderer, frame, poseStack, consumer, packedOverlay);
+                renderPart(JEDI_FRAME_MODEL, poseStack, collector, packedOverlay);
                 poseStack.popPose();
             }
         }
     }
 
     private static void renderPart(
-            ItemRenderer itemRenderer,
-            BakedModel model,
+            StandaloneModelKey<BlockStateModelPart> key,
+            PoseStack poseStack,
+            SubmitNodeCollector collector,
+            int packedOverlay
+    ) {
+        BlockStateModelPart model = Minecraft.getInstance()
+                .getModelManager()
+                .getStandaloneModel(key);
+        if (model == null) {
+            return;
+        }
+        collector.submitBlockModel(
+                poseStack,
+                MODEL_RENDER_TYPE,
+                List.of(model),
+                NO_TINTS,
+                LightCoordsUtil.FULL_BRIGHT,
+                packedOverlay,
+                0
+        );
+    }
+
+    private static void renderItemIconQuad(
             PoseStack poseStack,
             VertexConsumer consumer,
             int packedOverlay
     ) {
-        itemRenderer.renderModelLists(
-                model,
-                ItemStack.EMPTY,
-                LightTexture.FULL_BRIGHT,
-                packedOverlay,
-                poseStack,
-                consumer
-        );
+        PoseStack.Pose pose = poseStack.last();
+        vertex(consumer, pose, -0.5F, -0.5F, 0.0F, 0.0F, 1.0F, packedOverlay);
+        vertex(consumer, pose, 0.5F, -0.5F, 0.0F, 1.0F, 1.0F, packedOverlay);
+        vertex(consumer, pose, 0.5F, 0.5F, 0.0F, 1.0F, 0.0F, packedOverlay);
+        vertex(consumer, pose, -0.5F, 0.5F, 0.0F, 0.0F, 0.0F, packedOverlay);
     }
 
     private static void vertex(
@@ -234,19 +228,32 @@ public final class HolocronObjRenderer {
                 .setColor(255, 255, 255, 255)
                 .setUv(u, v)
                 .setOverlay(packedOverlay)
-                .setLight(LightTexture.FULL_BRIGHT)
-                .setNormal(pose, 0, 0, 1);
+                .setLight(LightCoordsUtil.FULL_BRIGHT)
+                .setNormal(pose, 0.0F, 0.0F, 1.0F);
     }
 
-    private static ModelResourceLocation model(String name) {
-        return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(
+    private static StandaloneModelKey<BlockStateModelPart> modelKey(String name) {
+        Identifier id = modelId(name);
+        return new StandaloneModelKey<>(id::toString);
+    }
+
+    private static void register(
+            ModelEvent.RegisterStandalone event,
+            StandaloneModelKey<BlockStateModelPart> key,
+            String name
+    ) {
+        event.register(key, SimpleUnbakedStandaloneModel.simpleModelWrapper(modelId(name)));
+    }
+
+    private static Identifier modelId(String name) {
+        return Identifier.fromNamespaceAndPath(
                 Lightsabers.MODID,
                 "block/holocron/" + name
-        ));
+        );
     }
 
-    private static ResourceLocation texture(String name) {
-        return ResourceLocation.fromNamespaceAndPath(
+    private static Identifier texture(String name) {
+        return Identifier.fromNamespaceAndPath(
                 Lightsabers.MODID,
                 "textures/item/" + name + ".png"
         );

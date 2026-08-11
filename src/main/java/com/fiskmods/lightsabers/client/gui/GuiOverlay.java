@@ -7,13 +7,12 @@ import com.fiskmods.lightsabers.common.data.effect.StatusEffect;
 import com.fiskmods.lightsabers.common.force.Power;
 import com.fiskmods.lightsabers.common.force.effect.PowerEffectActive;
 import com.fiskmods.lightsabers.helper.ALHelper;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
@@ -22,11 +21,11 @@ import net.neoforged.bus.api.SubscribeEvent;
 import java.util.List;
 
 public final class GuiOverlay {
-    private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier ICONS = Identifier.fromNamespaceAndPath(
             Lightsabers.MODID,
             "textures/gui/icons.png"
     );
-    private static final ResourceLocation WIDGETS = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier WIDGETS = Identifier.fromNamespaceAndPath(
             Lightsabers.MODID,
             "textures/gui/widgets.png"
     );
@@ -51,7 +50,7 @@ public final class GuiOverlay {
             return;
         }
 
-        GuiGraphics graphics = event.getGuiGraphics();
+        GuiGraphicsExtractor graphics = event.getGuiGraphics();
         int width = graphics.guiWidth();
         int height = graphics.guiHeight();
         renderActiveEffects(
@@ -75,7 +74,7 @@ public final class GuiOverlay {
     }
 
     private static void renderForceBar(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             int width,
             int height,
             LocalPlayer player
@@ -100,23 +99,55 @@ public final class GuiOverlay {
         int barBottom = (height + FORCE_BAR_LENGTH) / 2;
         int barTop = (height - FORCE_BAR_LENGTH) / 2;
 
-        RenderSystem.enableBlend();
-        graphics.pose().pushPose();
-        graphics.pose().translate(barX, barBottom, 0);
-        graphics.pose().mulPose(Axis.ZP.rotationDegrees(-90));
-        graphics.blit(ICONS, 0, 0, 0, 74, FORCE_BAR_LENGTH, FORCE_BAR_THICKNESS);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(barX, barBottom);
+        graphics.pose().rotate((float) -Math.PI / 2.0F);
+        graphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                ICONS,
+                0,
+                0,
+                0,
+                74,
+                FORCE_BAR_LENGTH,
+                FORCE_BAR_THICKNESS,
+                256,
+                256
+        );
         if (delayed > filled) {
-            graphics.blit(ICONS, 0, 0, 0, 79, delayed, FORCE_BAR_THICKNESS);
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    ICONS,
+                    0,
+                    0,
+                    0,
+                    79,
+                    delayed,
+                    FORCE_BAR_THICKNESS,
+                    256,
+                    256
+            );
         }
         if (filled > 0) {
-            graphics.blit(ICONS, 0, 0, 0, 84, filled, FORCE_BAR_THICKNESS);
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    ICONS,
+                    0,
+                    0,
+                    0,
+                    84,
+                    filled,
+                    FORCE_BAR_THICKNESS,
+                    256,
+                    256
+            );
         }
-        graphics.pose().popPose();
+        graphics.pose().popMatrix();
 
         Font font = Minecraft.getInstance().font;
         String current = String.valueOf(Mth.floor(ALDataInterp.FORCE_POWER.get(player)));
         int barCenterX = barX + FORCE_BAR_THICKNESS / 2;
-        graphics.drawString(
+        graphics.text(
                 font,
                 current,
                 barCenterX - font.width(current) / 2,
@@ -124,7 +155,6 @@ public final class GuiOverlay {
                 forceTextColor(filled, delayed),
                 true
         );
-        RenderSystem.disableBlend();
     }
 
     private static int forceTextColor(int filled, int delayed) {
@@ -154,7 +184,7 @@ public final class GuiOverlay {
     }
 
     private static void renderPowerSelector(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             int width,
             int height,
             LocalPlayer player
@@ -166,29 +196,52 @@ public final class GuiOverlay {
         int top = height - 22;
         int selected = Mth.clamp(ALData.SELECTED_POWER.get(player), 0, 2);
 
-        RenderSystem.enableBlend();
-        graphics.blit(WIDGETS, left, top, 0, 0, 62, 22);
+        graphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                WIDGETS,
+                left,
+                top,
+                0,
+                0,
+                62,
+                22,
+                256,
+                256
+        );
         List<Power> selectedPowers = ALData.SELECTED_POWERS.get(player);
         for (int i = 0; i < Math.min(selectedPowers.size(), 3); i++) {
             Power power = selectedPowers.get(i);
             if (power != null && power.hasIcon()) {
                 graphics.blit(
+                        RenderPipelines.GUI_TEXTURED,
                         ICONS,
                         left + 3 + i * 20,
                         top + 3,
                         power.getIconX() * 16,
                         power.getIconY() * 16,
                         16,
-                        16
+                        16,
+                        256,
+                        256
                 );
             }
         }
-        graphics.blit(WIDGETS, left - 1 + selected * 20, top - 1, 0, 22, 24, 24);
-        RenderSystem.disableBlend();
+        graphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                WIDGETS,
+                left - 1 + selected * 20,
+                top - 1,
+                0,
+                22,
+                24,
+                24,
+                256,
+                256
+        );
     }
 
     private static void renderStatusEffects(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             int width,
             int height,
             LocalPlayer player
@@ -196,7 +249,6 @@ public final class GuiOverlay {
         Font font = Minecraft.getInstance().font;
         List<StatusEffect> effects = StatusEffect.get(player);
         int visibleIndex = 0;
-        RenderSystem.enableBlend();
         for (StatusEffect status : effects) {
             if (status.duration < 0) {
                 continue;
@@ -208,23 +260,37 @@ public final class GuiOverlay {
 
             int right = width - 3;
             int top = height - 54 - 28 * visibleIndex++;
-            graphics.blit(ICONS, right - 26, top, 0, 48, 26, 26);
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    ICONS,
+                    right - 26,
+                    top,
+                    0,
+                    48,
+                    26,
+                    26,
+                    256,
+                    256
+            );
             if (power.hasIcon()) {
                 graphics.blit(
+                        RenderPipelines.GUI_TEXTURED,
                         ICONS,
                         right - 21,
                         top + 5,
                         power.getIconX() * 16,
                         power.getIconY() * 16,
                         16,
-                        16
+                        16,
+                        256,
+                        256
                 );
             }
 
             String name = status.effect.getFormattedString(status);
             String duration = status.effect.getDurationString(status);
-            graphics.drawString(font, name, right - 30 - font.width(name), top + 4, -1, true);
-            graphics.drawString(
+            graphics.text(font, name, right - 30 - font.width(name), top + 4, -1, true);
+            graphics.text(
                     font,
                     duration,
                     right - 30 - font.width(duration),
@@ -233,6 +299,5 @@ public final class GuiOverlay {
                     true
             );
         }
-        RenderSystem.disableBlend();
     }
 }

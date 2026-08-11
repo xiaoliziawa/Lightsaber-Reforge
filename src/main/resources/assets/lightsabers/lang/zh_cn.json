@@ -225,6 +225,7 @@
   "itemGroup.lightsabers": "进阶光剑",
   "jei.lightsabers.chance": "概率：%s%%",
   "key.categories.lightsabers": "进阶光剑",
+  "key.category.lightsabers.lightsabers": "进阶光剑",
   "key.lightsabers.activate_lightsaber": "开关光剑",
   "key.lightsabers.activate_power": "使用当前原力能力",
   "key.lightsabers.flip_double_lightsaber": "切换双刃光剑方向",

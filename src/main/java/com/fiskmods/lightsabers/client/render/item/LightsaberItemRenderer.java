@@ -1,7 +1,5 @@
 package com.fiskmods.lightsabers.client.render.item;
 
-import com.fiskmods.lightsabers.Lightsabers;
-import com.fiskmods.lightsabers.client.integration.epicfight.EpicFightClientIntegration;
 import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberBladeRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberRenderer;
@@ -16,17 +14,44 @@ import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import com.mojang.serialization.MapCodec;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.special.SpecialModelRenderer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.ItemOwner;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
+import org.jspecify.annotations.Nullable;
 
-public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
+public class LightsaberItemRenderer
+        implements SpecialModelRenderer<LightsaberItemRenderer.RenderArgument> {
     public static boolean guiBladePreview;
+    private static final LightsaberItemRenderer INSTANCE =
+            new LightsaberItemRenderer();
+    private static final Vector3fc[] EXTENTS = {
+            new Vector3f(-2.0F, -2.0F, -2.0F),
+            new Vector3f(-2.0F, -2.0F, 2.0F),
+            new Vector3f(-2.0F, 2.0F, -2.0F),
+            new Vector3f(-2.0F, 2.0F, 2.0F),
+            new Vector3f(2.0F, -2.0F, -2.0F),
+            new Vector3f(2.0F, -2.0F, 2.0F),
+            new Vector3f(2.0F, 2.0F, -2.0F),
+            new Vector3f(2.0F, 2.0F, 2.0F)
+    };
+    private static final Supplier<Vector3fc[]> EXTENTS_SUPPLIER = () -> EXTENTS;
     private static final float PART_MODEL_SCALE = 1.6F;
     private static final float SHORT_POMMEL_MODEL_SCALE = 3.2F;
     private static final float MAX_PART_MODEL_HEIGHT = 80.0F;
@@ -104,13 +129,6 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final float SPEAR_GROUND_SCALE = 2.5F;
     private static final float SPEAR_DISPLAY_SCALE = 2.5F;
 
-    public LightsaberItemRenderer() {
-        super(
-                Minecraft.getInstance().getBlockEntityRenderDispatcher(),
-                Minecraft.getInstance().getEntityModels()
-        );
-    }
-
     public static double getThirdPersonBladeLength(ItemStack stack) {
         if (ItemLightsaberBase.isSpearLightsaber(stack)) {
             return SpearLightsaberObjRenderer.getBladeModelLength() * SPEAR_THIRD_PERSON_SCALE;
@@ -122,14 +140,26 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
     }
 
     @Override
-    public void renderByItem(
-            ItemStack stack,
-            ItemDisplayContext displayContext,
+    public void submit(
+            @Nullable RenderArgument argument,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
-            int packedOverlay
+            int packedOverlay,
+            boolean hasFoil,
+            int outlineColor
     ) {
+        if (argument == null) {
+            return;
+        }
+        ItemStack stack = argument.stack();
+        ItemDisplayContext displayContext = argument.displayContext();
+        boolean bladePreview = argument.bladePreview();
+        boolean inWorld = displayContext != ItemDisplayContext.GUI;
+        boolean deferGlow = switch (displayContext) {
+            case GUI, FIRST_PERSON_LEFT_HAND, FIRST_PERSON_RIGHT_HAND -> false;
+            default -> true;
+        };
         ItemLightsaberPart partItem = stack.getItem() instanceof ItemLightsaberPart item
                 ? item
                 : null;
@@ -141,17 +171,7 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
         poseStack.translate(0.5F, 0.5F, 0.5F);
         boolean doubleLightsaber = stack.getItem() instanceof ItemDoubleLightsaber;
         boolean doublePose = doubleLightsaber;
-        if (doublePose
-                && isThirdPerson(displayContext)
-                && Lightsabers.isEpicFightLoaded
-                && EpicFightClientIntegration.isBattleModeHeldStack(stack)) {
-            doublePose = false;
-        }
-        boolean spinningDefense = spinning
-                && partItem == null
-                && isThirdPerson(displayContext)
-                && Lightsabers.isEpicFightLoaded
-                && EpicFightClientIntegration.isBattleModeUsingStack(stack);
+        boolean spinningDefense = false;
         applyDisplayTransform(
                 displayContext,
                 partItem != null,
@@ -173,17 +193,17 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                     stack,
                     partItem.partType,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay
             );
-        } else if (displayContext == ItemDisplayContext.GUI && !guiBladePreview) {
+        } else if (displayContext == ItemDisplayContext.GUI && !bladePreview) {
             if (stack.getItem() instanceof ItemDoubleLightsaber) {
                 HiltModelRenderer.render(
                         ItemDoubleLightsaber.get(stack),
                         stack,
                         poseStack,
-                        buffer,
+                        collector,
                         packedLight,
                         packedOverlay
                 );
@@ -192,7 +212,7 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                         LightsaberData.get(stack),
                         stack,
                         poseStack,
-                        buffer,
+                        collector,
                         packedLight,
                         packedOverlay
                 );
@@ -202,20 +222,22 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                     ItemDoubleLightsaber.get(stack),
                     stack,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay,
-                    displayContext != ItemDisplayContext.GUI
+                    inWorld,
+                    deferGlow
             );
         } else {
             LightsaberRenderer.render(
                     LightsaberData.get(stack),
                     stack,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay,
-                    displayContext != ItemDisplayContext.GUI
+                    inWorld,
+                    deferGlow
             );
         }
         LightsaberBladeRenderer.bladeRoll = 0.0F;
@@ -226,7 +248,7 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
             ItemStack stack,
             PartType type,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay
     ) {
@@ -238,7 +260,7 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                     hilt,
                     type,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay
             );
@@ -251,7 +273,7 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                     hilt,
                     type,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay
             );
@@ -269,7 +291,7 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
                 hilt,
                 type,
                 poseStack,
-                buffer,
+                collector,
                 packedLight,
                 packedOverlay
         );
@@ -334,7 +356,7 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
             return;
         }
         float partialTick = Minecraft.getInstance()
-                .getTimer()
+                .getDeltaTracker()
                 .getGameTimeDeltaPartialTick(true);
         float walk = player.walkAnimation.speed(partialTick);
         float swing = getHandSwingProgress(player, handSide, partialTick);
@@ -553,8 +575,89 @@ public class LightsaberItemRenderer extends BlockEntityWithoutLevelRenderer {
         return SpinningLightsaberObjRenderer.isSupported(LightsaberData.get(stack));
     }
 
-    private boolean isThirdPerson(ItemDisplayContext displayContext) {
-        return displayContext == ItemDisplayContext.THIRD_PERSON_LEFT_HAND
-                || displayContext == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
+    @Override
+    public void getExtents(Consumer<Vector3fc> output) {
+        for (Vector3fc extent : EXTENTS) {
+            output.accept(extent);
+        }
+    }
+
+    @Override
+    public RenderArgument extractArgument(ItemStack stack) {
+        return new RenderArgument(
+                stack.copy(),
+                ItemDisplayContext.NONE,
+                guiBladePreview
+        );
+    }
+
+    public record RenderArgument(
+            ItemStack stack,
+            ItemDisplayContext displayContext,
+            boolean bladePreview
+    ) {
+    }
+
+    public record Unbaked() implements ItemModel.Unbaked {
+        public static final MapCodec<Unbaked> MAP_CODEC =
+                MapCodec.unit(new Unbaked());
+
+        @Override
+        public void resolveDependencies(Resolver resolver) {
+        }
+
+        @Override
+        public ItemModel bake(ItemModel.BakingContext context, Matrix4fc transformation) {
+            return new BakedItemModel(new Matrix4f(transformation));
+        }
+
+        @Override
+        public MapCodec<Unbaked> type() {
+            return MAP_CODEC;
+        }
+    }
+
+    private record BakedItemModel(Matrix4fc transformation) implements ItemModel {
+        @Override
+        public void update(
+                ItemStackRenderState output,
+                ItemStack item,
+                ItemModelResolver resolver,
+                ItemDisplayContext displayContext,
+                @Nullable ClientLevel level,
+                @Nullable ItemOwner owner,
+                int seed
+        ) {
+            output.appendModelIdentityElement(this);
+            output.appendModelIdentityElement(ItemRenderIdentity.of(
+                    item,
+                    displayContext
+            ));
+            boolean bladePreview = guiBladePreview;
+            output.appendModelIdentityElement(bladePreview);
+            if (bladePreview) {
+                output.setOversizedInGui(true);
+            }
+            ItemStackRenderState.LayerRenderState layer = output.newLayer();
+            layer.setLocalTransform(transformation);
+            layer.setExtents(ItemRenderExtents.forDisplayContext(
+                    displayContext,
+                    EXTENTS_SUPPLIER
+            ));
+            layer.setupSpecialModel(
+                    INSTANCE,
+                    new RenderArgument(
+                            displayContext == ItemDisplayContext.GROUND
+                                    ? item.copy()
+                                    : item,
+                            displayContext,
+                            bladePreview
+                    )
+            );
+            if (item.hasFoil()) {
+                layer.setFoilType(ItemStackRenderState.FoilType.STANDARD);
+            }
+            output.setAnimated();
+        }
     }
 }

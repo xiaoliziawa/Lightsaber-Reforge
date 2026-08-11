@@ -9,15 +9,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.TieredItem;
-import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -27,8 +25,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -36,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class BlockCrystal extends BaseEntityBlock {
     public static final MapCodec<BlockCrystal> CODEC = simpleCodec(BlockCrystal::new);
-    public static final DirectionProperty FACING = BlockStateProperties.FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 
     private static final double CRYSTAL_WIDTH = 6.0D;
     private static final double CRYSTAL_HEIGHT = 6.0D;
@@ -88,17 +85,28 @@ public class BlockCrystal extends BaseEntityBlock {
     @Override
     public BlockState updateShape(
             BlockState state,
-            Direction direction,
-            BlockState neighborState,
-            LevelAccessor level,
+            LevelReader level,
+            ScheduledTickAccess ticks,
             BlockPos pos,
-            BlockPos neighborPos
+            Direction direction,
+            BlockPos neighborPos,
+            BlockState neighborState,
+            RandomSource random
     ) {
         if (direction == state.getValue(FACING).getOpposite()
                 && !state.canSurvive(level, pos)) {
             return Blocks.AIR.defaultBlockState();
         }
-        return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+        return super.updateShape(
+                state,
+                level,
+                ticks,
+                pos,
+                direction,
+                neighborPos,
+                neighborState,
+                random
+        );
     }
 
     @Override
@@ -153,26 +161,16 @@ public class BlockCrystal extends BaseEntityBlock {
 
     @Override
     public ItemStack getCloneItemStack(
-            BlockState state,
-            HitResult target,
             LevelReader level,
             BlockPos pos,
+            BlockState state,
+            boolean includeData,
             Player player
     ) {
         if (level.getBlockEntity(pos) instanceof TileEntityCrystal crystal) {
             return ItemCrystal.createBlock(crystal.getColor());
         }
         return ItemCrystal.createBlock(CrystalColor.DEEP_BLUE);
-    }
-
-    @Override
-    public boolean canHarvestBlock(
-            BlockState state,
-            BlockGetter level,
-            BlockPos pos,
-            Player player
-    ) {
-        return hasRequiredPickaxe(player.getMainHandItem());
     }
 
     @Override
@@ -213,15 +211,8 @@ public class BlockCrystal extends BaseEntityBlock {
         return new TileEntityCrystal(pos, state);
     }
 
-    @SuppressWarnings("deprecation")
-    private static boolean hasRequiredPickaxe(ItemStack stack) {
-        if (!stack.is(ItemTags.PICKAXES)
-                || !(stack.getItem() instanceof TieredItem tieredItem)) {
-            return false;
-        }
-
-        Tier tier = tieredItem.getTier();
-        return tier == Tiers.NETHERITE
-                || tier.getAttackDamageBonus() >= Tiers.NETHERITE.getAttackDamageBonus();
+    private boolean hasRequiredPickaxe(ItemStack stack) {
+        return stack.is(ItemTags.PICKAXES)
+                && stack.isCorrectToolForDrops(defaultBlockState());
     }
 }

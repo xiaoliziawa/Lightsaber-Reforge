@@ -51,7 +51,7 @@ public class PowerEffectLightning extends PowerEffectStatus {
 
         LivingEntity target = ForceTargeting.findLookTarget(player, TARGET_RANGE);
         if (target != null) {
-            if (!target.level().isClientSide) {
+            if (!target.level().isClientSide()) {
                 target.hurt(
                         ALDamageSources.causeForceLightningDamage(player),
                         4 + amplifier * 2

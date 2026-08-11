@@ -1,38 +1,40 @@
 package com.fiskmods.lightsabers.client.render.lightsaber;
 
 import com.fiskmods.lightsabers.Lightsabers;
+import com.fiskmods.lightsabers.client.render.RenderSubmissionHelper;
 import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
 import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelManager;
-import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.event.ModelEvent;
-
 import java.util.IdentityHashMap;
 import java.util.Map;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.resources.model.geometry.QuadCollection;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.model.standalone.SimpleUnbakedStandaloneModel;
+import net.neoforged.neoforge.client.model.standalone.StandaloneModelKey;
 
 public final class SpinningLightsaberObjRenderer {
     public static final float MODEL_UNITS_PER_BLOCK = 8.0F;
     public static final int BLADE_LENGTH = 80;
 
-    private static final ModelResourceLocation GRIP_MODEL = model("grip");
-    private static final ModelResourceLocation OUTER_MODEL = model("outer");
-    private static final ModelResourceLocation UPPER_EMITTER_MODEL = model("upper_emitter");
-    private static final ModelResourceLocation LOWER_EMITTER_MODEL = model("lower_emitter");
-    private static final ModelResourceLocation SWITCH_MODEL = model("switch");
+    private static final StandaloneModelKey<QuadCollection> GRIP_MODEL =
+            modelKey("grip");
+    private static final StandaloneModelKey<QuadCollection> OUTER_MODEL =
+            modelKey("outer");
+    private static final StandaloneModelKey<QuadCollection> UPPER_EMITTER_MODEL =
+            modelKey("upper_emitter");
+    private static final StandaloneModelKey<QuadCollection> LOWER_EMITTER_MODEL =
+            modelKey("lower_emitter");
+    private static final StandaloneModelKey<QuadCollection> SWITCH_MODEL =
+            modelKey("switch");
 
     private static final float OBJ_SCALE = 1.0F / MODEL_UNITS_PER_BLOCK;
     private static final float DISPLAY_SCALE = 1.35F;
@@ -55,11 +57,9 @@ public final class SpinningLightsaberObjRenderer {
     private static final float ROTATION_ACCELERATION = 8.0F;
     private static final float MAX_ROTATION_DECELERATION = 96.0F;
     private static final float EXTRA_DECELERATION_TURN_SPEED = 48.0F;
-    private static final RenderType MODEL_RENDER_TYPE = RenderType.entityCutoutNoCull(
-            InventoryMenu.BLOCK_ATLAS
-    );
 
-    private static final Map<ItemStack, AnimationState> ANIMATION_STATES = new IdentityHashMap<>();
+    private static final Map<ItemStack, AnimationState> ANIMATION_STATES =
+            new IdentityHashMap<>();
     private static ClientLevel animationLevel;
 
     private SpinningLightsaberObjRenderer() {
@@ -69,12 +69,12 @@ public final class SpinningLightsaberObjRenderer {
         return LightsaberBladeRenderer.getBladeLength(BLADE_LENGTH) * DISPLAY_SCALE;
     }
 
-    public static void registerModels(ModelEvent.RegisterAdditional event) {
-        event.register(GRIP_MODEL);
-        event.register(OUTER_MODEL);
-        event.register(UPPER_EMITTER_MODEL);
-        event.register(LOWER_EMITTER_MODEL);
-        event.register(SWITCH_MODEL);
+    public static void registerModels(ModelEvent.RegisterStandalone event) {
+        register(event, GRIP_MODEL, "grip");
+        register(event, OUTER_MODEL, "outer");
+        register(event, UPPER_EMITTER_MODEL, "upper_emitter");
+        register(event, LOWER_EMITTER_MODEL, "lower_emitter");
+        register(event, SWITCH_MODEL, "switch");
     }
 
     public static boolean isSupported(LightsaberData data) {
@@ -89,7 +89,7 @@ public final class SpinningLightsaberObjRenderer {
             LightsaberData data,
             ItemStack stack,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay
     ) {
@@ -97,68 +97,39 @@ public final class SpinningLightsaberObjRenderer {
             return;
         }
 
-        Minecraft minecraft = Minecraft.getInstance();
-        ModelManager modelManager = minecraft.getModelManager();
-        ItemRenderer itemRenderer = minecraft.getItemRenderer();
-        float rotation = getRotation(minecraft, stack);
+        float rotation = getRotation(Minecraft.getInstance(), stack);
         poseStack.pushPose();
         poseStack.mulPose(Axis.XP.rotationDegrees(MODEL_ORIENTATION_ROTATION));
         poseStack.scale(DISPLAY_SCALE, DISPLAY_SCALE, DISPLAY_SCALE);
         poseStack.pushPose();
         poseStack.scale(OBJ_SCALE, OBJ_SCALE, OBJ_SCALE);
-        renderModel(
-                itemRenderer,
-                modelManager.getModel(GRIP_MODEL),
-                stack,
-                poseStack,
-                buffer,
-                packedLight,
-                packedOverlay
-        );
-        renderModel(
-                itemRenderer,
-                modelManager.getModel(SWITCH_MODEL),
-                stack,
-                poseStack,
-                buffer,
-                packedLight,
-                packedOverlay
-        );
+        renderModel(GRIP_MODEL, stack, poseStack, collector, packedLight, packedOverlay);
+        renderModel(SWITCH_MODEL, stack, poseStack, collector, packedLight, packedOverlay);
+        poseStack.popPose();
+
+        poseStack.pushPose();
+        poseStack.mulPose(Axis.XP.rotationDegrees(rotation));
+        poseStack.scale(OBJ_SCALE, OBJ_SCALE, OBJ_SCALE);
+        renderModel(OUTER_MODEL, stack, poseStack, collector, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.mulPose(Axis.XP.rotationDegrees(rotation));
         poseStack.scale(OBJ_SCALE, OBJ_SCALE, OBJ_SCALE);
         renderModel(
-                itemRenderer,
-                modelManager.getModel(OUTER_MODEL),
+                UPPER_EMITTER_MODEL,
                 stack,
                 poseStack,
-                buffer,
-                packedLight,
-                packedOverlay
-        );
-        poseStack.popPose();
-
-        poseStack.pushPose();
-        poseStack.mulPose(Axis.XP.rotationDegrees(rotation));
-        poseStack.scale(OBJ_SCALE, OBJ_SCALE, OBJ_SCALE);
-        renderModel(
-                itemRenderer,
-                modelManager.getModel(UPPER_EMITTER_MODEL),
-                stack,
-                poseStack,
-                buffer,
+                collector,
                 packedLight,
                 packedOverlay
         );
         if (hasLowerEmitter(data)) {
             renderModel(
-                    itemRenderer,
-                    modelManager.getModel(LOWER_EMITTER_MODEL),
+                    LOWER_EMITTER_MODEL,
                     stack,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay
             );
@@ -172,7 +143,7 @@ public final class SpinningLightsaberObjRenderer {
                     data.get(PartType.POMMEL),
                     PartType.POMMEL,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay
             );
@@ -185,8 +156,9 @@ public final class SpinningLightsaberObjRenderer {
             LightsaberData data,
             ItemStack stack,
             PoseStack poseStack,
-            MultiBufferSource buffer,
-            boolean inWorld
+            SubmitNodeCollector collector,
+            boolean inWorld,
+            boolean deferGlow
     ) {
         if (!isSupported(data)) {
             return;
@@ -206,8 +178,9 @@ public final class SpinningLightsaberObjRenderer {
                 data,
                 stack,
                 poseStack,
-                buffer,
+                collector,
                 inWorld,
+                deferGlow,
                 BLADE_LENGTH,
                 false
         );
@@ -227,8 +200,9 @@ public final class SpinningLightsaberObjRenderer {
                 data,
                 stack,
                 poseStack,
-                buffer,
+                collector,
                 inWorld,
+                deferGlow,
                 BLADE_LENGTH,
                 false
         );
@@ -240,14 +214,11 @@ public final class SpinningLightsaberObjRenderer {
     public static void renderPart(
             PartType type,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay
     ) {
-        Minecraft minecraft = Minecraft.getInstance();
-        ModelManager modelManager = minecraft.getModelManager();
-        ItemRenderer itemRenderer = minecraft.getItemRenderer();
-        ModelResourceLocation model = switch (type) {
+        StandaloneModelKey<QuadCollection> model = switch (type) {
             case EMITTER -> UPPER_EMITTER_MODEL;
             case SWITCH_SECTION -> SWITCH_MODEL;
             case BODY -> GRIP_MODEL;
@@ -269,11 +240,10 @@ public final class SpinningLightsaberObjRenderer {
         poseStack.scale(OBJ_SCALE, OBJ_SCALE, OBJ_SCALE);
         poseStack.translate(-offsetX, -offsetY, 0.0F);
         renderModel(
-                itemRenderer,
-                modelManager.getModel(model),
+                model,
                 ItemStack.EMPTY,
                 poseStack,
-                buffer,
+                collector,
                 packedLight,
                 packedOverlay
         );
@@ -281,26 +251,24 @@ public final class SpinningLightsaberObjRenderer {
     }
 
     private static void renderModel(
-            ItemRenderer itemRenderer,
-            BakedModel model,
+            StandaloneModelKey<QuadCollection> key,
             ItemStack stack,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay
     ) {
-        itemRenderer.renderModelLists(
+        QuadCollection model = Minecraft.getInstance()
+                .getModelManager()
+                .getStandaloneModel(key);
+        RenderSubmissionHelper.submitQuads(
+                collector,
+                poseStack,
                 model,
-                ItemStack.EMPTY,
                 packedLight,
                 packedOverlay,
-                poseStack,
-                ItemRenderer.getFoilBuffer(
-                        buffer,
-                        MODEL_RENDER_TYPE,
-                        true,
-                        stack.hasFoil()
-                )
+                stack.hasFoil(),
+                0
         );
     }
 
@@ -325,7 +293,7 @@ public final class SpinningLightsaberObjRenderer {
         }
 
         double animationTime = minecraft.level.getGameTime()
-                + minecraft.getTimer().getGameTimeDeltaPartialTick(true);
+                + minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(true);
         state.update(animationTime, active);
         float rotation = state.rotationAngle;
         if (state.isFinished()) {
@@ -347,6 +315,26 @@ public final class SpinningLightsaberObjRenderer {
         return false;
     }
 
+    private static StandaloneModelKey<QuadCollection> modelKey(String name) {
+        Identifier id = modelId(name);
+        return new StandaloneModelKey<>(id::toString);
+    }
+
+    private static void register(
+            ModelEvent.RegisterStandalone event,
+            StandaloneModelKey<QuadCollection> key,
+            String name
+    ) {
+        event.register(key, SimpleUnbakedStandaloneModel.quadCollection(modelId(name)));
+    }
+
+    private static Identifier modelId(String name) {
+        return Identifier.fromNamespaceAndPath(
+                Lightsabers.MODID,
+                "item/spinning/" + name
+        );
+    }
+
     private static final class AnimationState {
         private float rotationAngle;
         private float rotationSpeed;
@@ -362,7 +350,10 @@ public final class SpinningLightsaberObjRenderer {
 
             float delta = Double.isNaN(lastAnimationTime)
                     ? 0.0F
-                    : (float) Math.min(Math.max(animationTime - lastAnimationTime, 0.0D), 0.25D);
+                    : (float) Math.min(
+                            Math.max(animationTime - lastAnimationTime, 0.0D),
+                            0.25D
+                    );
             lastAnimationTime = animationTime;
 
             if (active) {
@@ -407,7 +398,9 @@ public final class SpinningLightsaberObjRenderer {
         }
 
         private void updateDeceleration(float delta) {
-            if (decelerationRemaining <= 0.0F || rotationSpeed <= 0.0F || delta <= 0.0F) {
+            if (decelerationRemaining <= 0.0F
+                    || rotationSpeed <= 0.0F
+                    || delta <= 0.0F) {
                 return;
             }
 
@@ -434,12 +427,5 @@ public final class SpinningLightsaberObjRenderer {
                     && rotationSpeed <= 0.0F
                     && decelerationRemaining <= 0.0F;
         }
-    }
-
-    private static ModelResourceLocation model(String name) {
-        return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(
-                Lightsabers.MODID,
-                "item/spinning/" + name
-        ));
     }
 }

@@ -4,7 +4,7 @@ import com.fiskmods.lightsabers.common.item.ItemDoubleLightsaber;
 import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
@@ -27,25 +27,20 @@ public final class LightsaberClientItemExtensions implements IClientItemExtensio
     public static final EnumProxy<HumanoidModel.ArmPose> SABER_POSE = new EnumProxy<>(
             HumanoidModel.ArmPose.class,
             true,
+            true,
             (IArmPoseTransformer) LightsaberClientItemExtensions::applySaberPose
     );
     public static final EnumProxy<HumanoidModel.ArmPose> DOUBLE_SABER_POSE = new EnumProxy<>(
             HumanoidModel.ArmPose.class,
             true,
+            false,
             (IArmPoseTransformer) LightsaberClientItemExtensions::applyDoubleSaberPose
     );
 
     public static final LightsaberClientItemExtensions INSTANCE =
             new LightsaberClientItemExtensions();
 
-    private final LightsaberItemRenderer renderer = new LightsaberItemRenderer();
-
     private LightsaberClientItemExtensions() {
-    }
-
-    @Override
-    public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-        return renderer;
     }
 
     @Override
@@ -66,7 +61,7 @@ public final class LightsaberClientItemExtensions implements IClientItemExtensio
 
     private static void applySaberPose(
             HumanoidModel<?> model,
-            LivingEntity entity,
+            HumanoidRenderState renderState,
             HumanoidArm arm
     ) {
         int side = arm == HumanoidArm.RIGHT ? 1 : -1;
@@ -85,7 +80,7 @@ public final class LightsaberClientItemExtensions implements IClientItemExtensio
 
     private static void applyDoubleSaberPose(
             HumanoidModel<?> model,
-            LivingEntity entity,
+            HumanoidRenderState renderState,
             HumanoidArm arm
     ) {
         int side = arm == HumanoidArm.RIGHT ? 1 : -1;

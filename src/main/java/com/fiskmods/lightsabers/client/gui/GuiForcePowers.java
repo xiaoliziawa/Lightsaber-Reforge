@@ -10,34 +10,36 @@ import com.fiskmods.lightsabers.common.force.PowerManager;
 import com.fiskmods.lightsabers.common.force.PowerStats;
 import com.fiskmods.lightsabers.common.network.ALNetworkManager;
 import com.fiskmods.lightsabers.common.network.MessageUnlockPower;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.math.Axis;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
-    private static final ResourceLocation GUI_TEXTURE = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier GUI_TEXTURE = Identifier.fromNamespaceAndPath(
             Lightsabers.MODID,
             "textures/gui/container/force_powers.png"
     );
-    private static final ResourceLocation ICONS_TEXTURE = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier ICONS_TEXTURE = Identifier.fromNamespaceAndPath(
             Lightsabers.MODID,
             "textures/gui/icons.png"
     );
-    private static final ResourceLocation[][] FORCESTONE_TEXTURES = {
+    private static final Identifier[][] FORCESTONE_TEXTURES = {
             {
                     blockTexture("dark_forcestone"),
                     blockTexture("dark_forcestone_inscribed"),
@@ -69,6 +71,9 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
     private static final int AVAILABLE_CONNECTION_COLOR = 0xFF00FF00;
     private static final int LOCKED_CONNECTION_COLOR = 0xFF000000;
     private static final int STATUS_COLOR = 0x9090FF;
+    private static final int TITLE_COLOR = 0xFF404040;
+    private static final int POSITIVE_STATUS_COLOR = 0xFF80FF80;
+    private static final int NEGATIVE_STATUS_COLOR = 0xFFD74848;
     private static final float MIN_ZOOM = 1.0F;
     private static final float MAX_ZOOM = 2.0F;
     private static final float ZOOM_STEP = 0.25F;
@@ -98,9 +103,7 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
             Inventory playerInventory,
             Component title
     ) {
-        super(menu, playerInventory, title);
-        imageWidth = PANEL_WIDTH;
-        imageHeight = PANEL_HEIGHT;
+        super(menu, playerInventory, title, PANEL_WIDTH, PANEL_HEIGHT);
         powerManager = new PowerManager(playerInventory.player);
         backgroundSeed = playerInventory.player.getUUID().hashCode();
 
@@ -132,19 +135,24 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        renderTooltip(guiGraphics, mouseX, mouseY);
+    public void extractRenderState(
+            GuiGraphicsExtractor guiGraphics,
+            int mouseX,
+            int mouseY,
+            float partialTick
+    ) {
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         renderPowerTooltip(guiGraphics, mouseX, mouseY);
     }
 
     @Override
-    protected void renderBg(
-            GuiGraphics guiGraphics,
-            float partialTick,
+    public void extractBackground(
+            GuiGraphicsExtractor guiGraphics,
             int mouseX,
-            int mouseY
+            int mouseY,
+            float partialTick
     ) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, partialTick);
         int treeLeft = leftPos + TREE_X;
         int treeTop = topPos + TREE_Y;
         guiGraphics.enableScissor(
@@ -153,33 +161,32 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
                 treeLeft + TREE_WIDTH,
                 treeTop + TREE_HEIGHT
         );
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(treeLeft, treeTop, 0.0F);
-        guiGraphics.pose().scale(1.0F / zoom, 1.0F / zoom, 1.0F);
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().translate(treeLeft, treeTop);
+        guiGraphics.pose().scale(1.0F / zoom, 1.0F / zoom);
         renderForcestoneBackground(guiGraphics);
         renderConnections(guiGraphics);
         renderPowerNodes(guiGraphics);
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().popMatrix();
         guiGraphics.disableScissor();
 
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
         guiGraphics.blit(
+                RenderPipelines.GUI_TEXTURED,
                 GUI_TEXTURE,
                 leftPos,
                 topPos,
                 0,
                 0,
                 PANEL_WIDTH,
-                PANEL_HEIGHT
+                PANEL_HEIGHT,
+                256,
+                256
         );
-        RenderSystem.disableBlend();
     }
 
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.drawString(font, title, 15, 5, 0x404040, false);
+    protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+        guiGraphics.text(font, title, 15, 5, TITLE_COLOR, false);
         if (minecraft == null || minecraft.player == null) {
             return;
         }
@@ -187,27 +194,29 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
         Player player = minecraft.player;
         float forceXp = ALData.FORCE_XP.get(player);
         byte basePower = ALData.BASE_POWER.get(player);
-        guiGraphics.drawString(
+        guiGraphics.text(
                 font,
                 Component.translatable("gui.forcePowers.xp", Mth.floor(forceXp)),
                 15,
                 imageHeight - 26,
-                forceXp > 0 ? 0x80FF80 : 0xD74848,
+                forceXp > 0 ? POSITIVE_STATUS_COLOR : NEGATIVE_STATUS_COLOR,
                 true
         );
-        guiGraphics.drawString(
+        guiGraphics.text(
                 font,
                 Component.translatable("gui.forcePowers.basePower", basePower),
                 15,
                 imageHeight - 15,
-                basePower > 0 ? 0x80FF80 : 0xD74848,
+                basePower > 0 ? POSITIVE_STATUS_COLOR : NEGATIVE_STATUS_COLOR,
                 true
         );
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0 && isInsideTree(mouseX, mouseY)) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        if (event.button() == 0 && isInsideTree(mouseX, mouseY)) {
             draggingTree = true;
             dragMoved = false;
             pressedMouseX = mouseX;
@@ -217,18 +226,18 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
             pressedPower = getPowerAt(mouseX, mouseY);
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
     public boolean mouseDragged(
-            double mouseX,
-            double mouseY,
-            int button,
+            MouseButtonEvent event,
             double dragX,
             double dragY
     ) {
-        if (button == 0 && draggingTree) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        if (event.button() == 0 && draggingTree) {
             double totalX = mouseX - pressedMouseX;
             double totalY = mouseY - pressedMouseY;
             if (!dragMoved
@@ -244,12 +253,14 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
             previousMouseY = mouseY;
             return true;
         }
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        return super.mouseDragged(event, dragX, dragY);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (button == 0 && draggingTree) {
+    public boolean mouseReleased(MouseButtonEvent event) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        if (event.button() == 0 && draggingTree) {
             Power releasedPower = getPowerAt(mouseX, mouseY);
             Power clickedPower = pressedPower;
             boolean shouldInvest = !dragMoved
@@ -264,7 +275,7 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
             }
             return true;
         }
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
     @Override
@@ -299,7 +310,7 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
         return false;
     }
 
-    private void renderForcestoneBackground(GuiGraphics guiGraphics) {
+    private void renderForcestoneBackground(GuiGraphicsExtractor guiGraphics) {
         int scrollFloorX = Mth.floor(scrollX);
         int scrollFloorY = Mth.floor(scrollY);
         int tileOffsetX = Math.floorMod(
@@ -329,13 +340,12 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
                     0.2F,
                     0.8F
             );
-            RenderSystem.setShaderColor(brightness, brightness, brightness, 1.0F);
-
             int column = 0;
             for (int x = -tileOffsetX; x < contentWidth; x += BACKGROUND_TILE_SIZE) {
                 int worldTileX = firstTileX + column;
-                ResourceLocation texture = getForcestoneTexture(worldTileX, worldTileY);
+                Identifier texture = getForcestoneTexture(worldTileX, worldTileY);
                 guiGraphics.blit(
+                        RenderPipelines.GUI_TEXTURED,
                         texture,
                         x,
                         y,
@@ -344,16 +354,16 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
                         BACKGROUND_TILE_SIZE,
                         BACKGROUND_TILE_SIZE,
                         BACKGROUND_TILE_SIZE,
-                        BACKGROUND_TILE_SIZE
+                        BACKGROUND_TILE_SIZE,
+                        ARGB.gray(brightness)
                 );
                 column++;
             }
             row++;
         }
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
-    private void renderConnections(GuiGraphics guiGraphics) {
+    private void renderConnections(GuiGraphicsExtractor guiGraphics) {
         int scrollFloorX = Mth.floor(scrollX);
         int scrollFloorY = Mth.floor(scrollY);
         for (Power power : Power.POWERS) {
@@ -380,9 +390,7 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
         }
     }
 
-    private void renderPowerNodes(GuiGraphics guiGraphics) {
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
+    private void renderPowerNodes(GuiGraphicsExtractor guiGraphics) {
         int scrollFloorX = Mth.floor(scrollX);
         int scrollFloorY = Mth.floor(scrollY);
         for (Power power : Power.POWERS) {
@@ -396,42 +404,41 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
             boolean unlocked = powerManager.hasPowerUnlocked(power);
             boolean available = powerManager.canUnlockPower(power);
             float brightness = getNodeBrightness(unlocked, available, hierarchy);
-            RenderSystem.setShaderColor(brightness, brightness, brightness, 1.0F);
             guiGraphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
                     GUI_TEXTURE,
                     nodeX - NODE_FRAME_OFFSET,
                     nodeY - NODE_FRAME_OFFSET,
                     0,
                     PANEL_HEIGHT,
                     NODE_FRAME_SIZE,
-                    NODE_FRAME_SIZE
+                    NODE_FRAME_SIZE,
+                    256,
+                    256,
+                    ARGB.gray(brightness)
             );
 
             if (power.hasIcon()) {
                 float iconBrightness = available ? brightness : 0.1F;
-                RenderSystem.setShaderColor(
-                        iconBrightness,
-                        iconBrightness,
-                        iconBrightness,
-                        1.0F
-                );
                 guiGraphics.blit(
+                        RenderPipelines.GUI_TEXTURED,
                         ICONS_TEXTURE,
                         nodeX + NODE_ICON_OFFSET,
                         nodeY + NODE_ICON_OFFSET,
                         power.getIconX() * 16,
                         power.getIconY() * 16,
                         16,
-                        16
+                        16,
+                        256,
+                        256,
+                        ARGB.gray(iconBrightness)
                 );
             }
         }
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.disableBlend();
     }
 
     private void drawConnection(
-            GuiGraphics guiGraphics,
+            GuiGraphicsExtractor guiGraphics,
             int startX,
             int startY,
             int endX,
@@ -445,15 +452,15 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
             return;
         }
 
-        float angle = (float) Math.toDegrees(Math.atan2(deltaY, deltaX));
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(startX, startY, 0.0F);
-        guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(angle));
+        float angle = (float) Math.atan2(deltaY, deltaX);
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().translate(startX, startY);
+        guiGraphics.pose().rotate(angle);
         guiGraphics.fill(0, -1, length, 1, color);
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().popMatrix();
     }
 
-    private void renderPowerTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    private void renderPowerTooltip(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         Power power = getPowerAt(mouseX, mouseY);
         if (power == null || minecraft == null || minecraft.player == null) {
             return;
@@ -474,7 +481,13 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
                             power.parent.getLocalizedName()
                     ).withStyle(ChatFormatting.DARK_RED)
             );
-            guiGraphics.renderComponentTooltip(font, lines, mouseX, mouseY);
+            guiGraphics.setTooltipForNextFrame(
+                    font,
+                    lines,
+                    Optional.empty(),
+                    mouseX,
+                    mouseY
+            );
             return;
         }
 
@@ -548,7 +561,13 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
                         Math.max(xpCost - investedXp, 0)
                 );
         lines.add(status.copy().withStyle(style -> style.withColor(STATUS_COLOR)));
-        guiGraphics.renderComponentTooltip(font, lines, mouseX, mouseY);
+        guiGraphics.setTooltipForNextFrame(
+                font,
+                lines,
+                Optional.empty(),
+                mouseX,
+                mouseY
+        );
     }
 
     private Power getPowerAt(double mouseX, double mouseY) {
@@ -612,7 +631,7 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
         }
     }
 
-    private ResourceLocation getForcestoneTexture(int tileX, int tileY) {
+    private Identifier getForcestoneTexture(int tileX, int tileY) {
         int depthRollBound = Math.max(1 + (tileX + 10) / 6, 1);
         int depthRoll = Math.floorMod(mixTileCoordinates(tileX, tileY, 0), depthRollBound);
         int sideIndex = depthRoll + tileX - 1 < 20 ? 0 : 1;
@@ -706,8 +725,8 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
         return value > 0 ? "+" + value : Integer.toString(value);
     }
 
-    private static ResourceLocation blockTexture(String name) {
-        return ResourceLocation.fromNamespaceAndPath(
+    private static Identifier blockTexture(String name) {
+        return Identifier.fromNamespaceAndPath(
                 Lightsabers.MODID,
                 "textures/block/" + name + ".png"
         );

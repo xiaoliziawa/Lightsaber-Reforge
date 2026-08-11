@@ -4,6 +4,8 @@ import java.util.function.Supplier;
 
 import com.fiskmods.lightsabers.Lightsabers;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
@@ -20,7 +22,7 @@ public final class ModEntities {
                     .sized(1.0F, 0.125F)
                     .clientTrackingRange(64)
                     .updateInterval(1)
-                    .build("lightsabers:lightsaber")
+                    .build(entityTypeKey("lightsaber"))
     );
     public static final Supplier<EntityType<EntitySithGhost>> SITH_GHOST =
             ENTITY_TYPES.register(
@@ -29,7 +31,7 @@ public final class ModEntities {
                             .sized(0.6F, 1.8F)
                             .clientTrackingRange(64)
                             .updateInterval(3)
-                            .build("lightsabers:sith_ghost")
+                            .build(entityTypeKey("sith_ghost"))
             );
     public static final Supplier<EntityType<EntityForceLightning>> FORCE_LIGHTNING =
             ENTITY_TYPES.register(
@@ -41,7 +43,7 @@ public final class ModEntities {
                             .sized(0.1F, 0.1F)
                             .clientTrackingRange(128)
                             .updateInterval(1)
-                            .build("lightsabers:force_lightning")
+                            .build(entityTypeKey("force_lightning"))
             );
 
     private ModEntities() {
@@ -54,5 +56,12 @@ public final class ModEntities {
 
     private static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(SITH_GHOST.get(), EntitySithGhost.createAttributes().build());
+    }
+
+    private static ResourceKey<EntityType<?>> entityTypeKey(String path) {
+        return ResourceKey.create(
+                Registries.ENTITY_TYPE,
+                Identifier.fromNamespaceAndPath(Lightsabers.MODID, path)
+        );
     }
 }

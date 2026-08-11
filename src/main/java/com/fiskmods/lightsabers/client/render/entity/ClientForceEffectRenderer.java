@@ -1,6 +1,7 @@
 package com.fiskmods.lightsabers.client.render.entity;
 
 import com.fiskmods.lightsabers.client.render.EnergyBeamRenderer;
+import com.fiskmods.lightsabers.client.render.lightsaber.DeferredGlowRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberRenderTypes;
 import com.fiskmods.lightsabers.common.data.ALDataInterp;
 import com.fiskmods.lightsabers.common.data.effect.Effect;
@@ -10,16 +11,22 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import fiskfille.utils.helper.VectorHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.ExtractLevelRenderStateEvent;
+import net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import org.joml.Matrix4f;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public enum ClientForceEffectRenderer {
     INSTANCE;
@@ -44,6 +51,11 @@ public enum ClientForceEffectRenderer {
     private static final double STASIS_BEAM_HALF_WIDTH = 0.018D;
     private static final double CHOKE_BEAM_HALF_WIDTH = 0.022D;
     private static final double FIELD_ROTATION_SPEED = 0.035D;
+    private static final ContextKey<ForceEffectRenderState> RENDER_STATE_KEY =
+            new ContextKey<>(Identifier.fromNamespaceAndPath(
+                    "lightsabers",
+                    "force_effects"
+            ));
 
     @SubscribeEvent
     public void onClientTick(ClientTickEvent.Post event) {
@@ -60,79 +72,123 @@ public enum ClientForceEffectRenderer {
     }
 
     @SubscribeEvent
-    public void onRenderLevelStage(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
+    public void onExtractLevelRenderState(ExtractLevelRenderStateEvent event) {
+        ClientLevel level = event.getLevel();
+        List<Player> casters = new ArrayList<>();
+        for (Player player : level.players()) {
+            if (StatusEffect.has(player, Effect.LIGHTNING)
+                    || ALDataInterp.DRAIN_LIFE_TIMER.get(player) > 0.0F) {
+                casters.add(player);
+            }
+        }
+        List<LivingEntity> targets = new ArrayList<>();
+        for (Entity loadedEntity : level.entitiesForRendering()) {
+            if (loadedEntity instanceof LivingEntity entity
+                    && (StatusEffect.has(entity, Effect.STUN)
+                            || StatusEffect.has(entity, Effect.CHOKE))) {
+                targets.add(entity);
+            }
+        }
+        if (casters.isEmpty() && targets.isEmpty()) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
-        ClientLevel level = minecraft.level;
-        if (level == null) {
+        event.getRenderState().setRenderData(
+                RENDER_STATE_KEY,
+                new ForceEffectRenderState(
+                        List.copyOf(casters),
+                        List.copyOf(targets),
+                        event.getDeltaTracker().getGameTimeDeltaPartialTick(true),
+                        event.getCamera().position(),
+                        minecraft.player
+                )
+        );
+    }
+
+    @SubscribeEvent
+    public void onSubmitCustomGeometry(SubmitCustomGeometryEvent event) {
+        ForceEffectRenderState state = event.getLevelRenderState()
+                .getRenderData(RENDER_STATE_KEY);
+        if (state == null) {
             return;
         }
-
-        float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
-        Vec3 camera = event.getCamera().getPosition();
-        MultiBufferSource.BufferSource buffer = minecraft.renderBuffers().bufferSource();
         PoseStack poseStack = event.getPoseStack();
+        SubmitNodeCollector collector = event.getSubmitNodeCollector();
         poseStack.pushPose();
-        poseStack.translate(-camera.x, -camera.y, -camera.z);
+        poseStack.translate(-state.camera.x, -state.camera.y, -state.camera.z);
 
-        renderCasterEffects(level, partialTick, poseStack, buffer, camera, minecraft.player);
-        renderTargetEffects(level, partialTick, poseStack, buffer, camera);
+        renderCasterEffects(state, poseStack, collector);
+        renderTargetEffects(state, poseStack, collector);
 
-        buffer.endBatch(LightsaberRenderTypes.FORCE_EFFECT_GLOW);
-        buffer.endBatch(LightsaberRenderTypes.FORCE_EFFECT_CORE);
         poseStack.popPose();
     }
 
     private static void renderCasterEffects(
-            ClientLevel level,
-            float partialTick,
+            ForceEffectRenderState state,
             PoseStack poseStack,
-            MultiBufferSource buffer,
-            Vec3 camera,
-            Player localPlayer
+            SubmitNodeCollector collector
     ) {
-        for (Player caster : level.players()) {
-            boolean lightning = StatusEffect.has(caster, Effect.LIGHTNING);
-            boolean draining = ALDataInterp.DRAIN_LIFE_TIMER.get(caster) > 0.0F;
-            if (!lightning && !draining) {
-                continue;
-            }
-            boolean firstPerson = caster == localPlayer
+        for (Player caster : state.casters) {
+            boolean firstPerson = caster == state.localPlayer
                     && Minecraft.getInstance().options.getCameraType().isFirstPerson();
             RenderForceLightning.renderForCaster(
                     caster,
-                    partialTick,
+                    state.partialTick,
                     poseStack,
-                    buffer,
+                    collector,
                     Vec3.ZERO,
-                    camera,
+                    state.camera,
                     firstPerson
             );
         }
     }
 
     private static void renderTargetEffects(
-            ClientLevel level,
-            float partialTick,
+            ForceEffectRenderState state,
             PoseStack poseStack,
-            MultiBufferSource buffer,
-            Vec3 camera
+            SubmitNodeCollector collector
     ) {
-        VertexConsumer glow = buffer.getBuffer(LightsaberRenderTypes.FORCE_EFFECT_GLOW);
-        Matrix4f matrix = poseStack.last().pose();
-        for (Entity loadedEntity : level.entitiesForRendering()) {
-            if (!(loadedEntity instanceof LivingEntity entity)) {
-                continue;
-            }
+        DeferredGlowRenderer.submitGeometry(
+                collector,
+                poseStack,
+                LightsaberRenderTypes.FORCE_EFFECT_GLOW,
+                LightsaberRenderTypes.FORCE_EFFECT_GLOW,
+                true,
+                (renderPose, glow) -> renderTargetEffects(
+                        state,
+                        renderPose.last().pose(),
+                        glow
+                )
+        );
+    }
+
+    private static void renderTargetEffects(
+            ForceEffectRenderState state,
+            Matrix4f matrix,
+            VertexConsumer glow
+    ) {
+        for (LivingEntity entity : state.targets) {
             StatusEffect stasis = StatusEffect.get(entity, Effect.STUN);
             if (stasis != null) {
-                renderStasis(glow, matrix, entity, stasis, partialTick, camera);
+                renderStasis(
+                        glow,
+                        matrix,
+                        entity,
+                        stasis,
+                        state.partialTick,
+                        state.camera
+                );
             }
             StatusEffect choke = StatusEffect.get(entity, Effect.CHOKE);
             if (choke != null) {
-                renderChoke(glow, matrix, entity, choke, partialTick, camera);
+                renderChoke(
+                        glow,
+                        matrix,
+                        entity,
+                        choke,
+                        state.partialTick,
+                        state.camera
+                );
             }
         }
     }
@@ -387,5 +443,14 @@ public enum ClientForceEffectRenderer {
                 color,
                 alpha
         );
+    }
+
+    private record ForceEffectRenderState(
+            List<Player> casters,
+            List<LivingEntity> targets,
+            float partialTick,
+            Vec3 camera,
+            Player localPlayer
+    ) {
     }
 }

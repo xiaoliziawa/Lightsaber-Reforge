@@ -1,12 +1,16 @@
 package com.fiskmods.lightsabers.client.input;
 
+import com.fiskmods.lightsabers.Lightsabers;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import org.lwjgl.glfw.GLFW;
 
 public final class ALKeyMappings {
-    private static final String CATEGORY = "key.categories.lightsabers";
+    private static final KeyMapping.Category CATEGORY = new KeyMapping.Category(
+            Identifier.fromNamespaceAndPath(Lightsabers.MODID, "lightsabers")
+    );
 
     public static final KeyMapping ACTIVATE_LIGHTSABER = new KeyMapping(
             "key.lightsabers.activate_lightsaber",
@@ -37,6 +41,7 @@ public final class ALKeyMappings {
     }
 
     public static void register(RegisterKeyMappingsEvent event) {
+        event.registerCategory(CATEGORY);
         event.register(ACTIVATE_LIGHTSABER);
         event.register(ACTIVATE_POWER);
         event.register(SELECT_POWER);

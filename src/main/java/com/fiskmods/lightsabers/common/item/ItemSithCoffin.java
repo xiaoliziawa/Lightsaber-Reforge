@@ -12,8 +12,8 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class ItemSithCoffin extends BlockItem {
-    public ItemSithCoffin(BlockSithCoffin block) {
-        super(block, new Item.Properties());
+    public ItemSithCoffin(BlockSithCoffin block, Item.Properties properties) {
+        super(block, properties.useBlockDescriptionPrefix());
     }
 
     @Override

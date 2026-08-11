@@ -10,9 +10,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
-import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -130,7 +129,7 @@ public class BlockSithCoffin extends BaseEntityBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(
+    protected InteractionResult useItemOn(
             ItemStack stack,
             BlockState state,
             Level level,
@@ -139,20 +138,20 @@ public class BlockSithCoffin extends BaseEntityBlock {
             InteractionHand hand,
             BlockHitResult hitResult
     ) {
-        if (level.isClientSide) {
-            return ItemInteractionResult.SUCCESS;
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
 
         BlockPos basePos = getBasePos(state, pos);
         if (!(level.getBlockEntity(basePos) instanceof TileEntitySithCoffin coffin)) {
-            return ItemInteractionResult.CONSUME;
+            return InteractionResult.CONSUME;
         }
 
         if (!coffin.hasBeenOpened()
                 || coffin.getLidOpenTimer() == 0
                 || player.isShiftKeyDown()) {
             coffin.toggleLid();
-            return ItemInteractionResult.CONSUME;
+            return InteractionResult.CONSUME;
         }
 
         if (coffin.getLidOpenTimer() == TileEntitySithCoffin.LID_OPEN_MAX
@@ -170,7 +169,7 @@ public class BlockSithCoffin extends BaseEntityBlock {
                     buffer -> buffer.writeBlockPos(basePos)
             );
         }
-        return ItemInteractionResult.CONSUME;
+        return InteractionResult.CONSUME;
     }
 
     @Override
@@ -201,47 +200,40 @@ public class BlockSithCoffin extends BaseEntityBlock {
             BlockState state,
             Player player
     ) {
-        if (!level.isClientSide && !player.isCreative()) {
+        if (!level.isClientSide() && !player.isCreative()) {
             popResource(level, pos, new ItemStack(this));
         }
         return super.playerWillDestroy(level, pos, state, player);
     }
 
     @Override
-    public void onRemove(
+    protected void affectNeighborsAfterRemoval(
             BlockState state,
-            Level level,
+            ServerLevel level,
             BlockPos pos,
-            BlockState newState,
             boolean isMoving
     ) {
-        if (!state.is(newState.getBlock())) {
-            if (state.getValue(PART) == Part.BASE) {
-                if (level instanceof ServerLevel
-                        && level.getBlockEntity(pos) instanceof TileEntitySithCoffin coffin) {
-                    Containers.dropContents(level, pos, coffin);
-                    level.updateNeighbourForOutputSignal(pos, this);
-                }
-                removeMatchingPart(
-                        level,
-                        getFrontPos(pos, state.getValue(HorizontalDirectionalBlock.FACING)),
-                        state.getValue(HorizontalDirectionalBlock.FACING),
-                        Part.FRONT,
-                        isMoving
-                );
-            } else {
-                BlockPos basePos = getBasePos(state, pos);
-                BlockState baseState = level.getBlockState(basePos);
-                if (isMatchingPart(
-                        baseState,
-                        state.getValue(HorizontalDirectionalBlock.FACING),
-                        Part.BASE
-                )) {
-                    level.removeBlock(basePos, isMoving);
-                }
+        if (state.getValue(PART) == Part.BASE) {
+            level.updateNeighbourForOutputSignal(pos, this);
+            removeMatchingPart(
+                    level,
+                    getFrontPos(pos, state.getValue(HorizontalDirectionalBlock.FACING)),
+                    state.getValue(HorizontalDirectionalBlock.FACING),
+                    Part.FRONT,
+                    isMoving
+            );
+        } else {
+            BlockPos basePos = getBasePos(state, pos);
+            BlockState baseState = level.getBlockState(basePos);
+            if (isMatchingPart(
+                    baseState,
+                    state.getValue(HorizontalDirectionalBlock.FACING),
+                    Part.BASE
+            )) {
+                level.removeBlock(basePos, isMoving);
             }
         }
-        super.onRemove(state, level, pos, newState, isMoving);
+        super.affectNeighborsAfterRemoval(state, level, pos, isMoving);
     }
 
     @Override
@@ -250,7 +242,12 @@ public class BlockSithCoffin extends BaseEntityBlock {
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+    public int getAnalogOutputSignal(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Direction direction
+    ) {
         BlockPos basePos = getBasePos(state, pos);
         return AbstractContainerMenu.getRedstoneSignalFromContainer(
                 level.getBlockEntity(basePos) instanceof TileEntitySithCoffin coffin
@@ -301,7 +298,7 @@ public class BlockSithCoffin extends BaseEntityBlock {
         return createTickerHelper(
                 blockEntityType,
                 ModBlockEntities.SITH_COFFIN.get(),
-                level.isClientSide
+                level.isClientSide()
                         ? TileEntitySithCoffin::clientTick
                         : TileEntitySithCoffin::serverTick
         );

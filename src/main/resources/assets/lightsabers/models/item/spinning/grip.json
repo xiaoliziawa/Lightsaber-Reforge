@@ -6,6 +6,8 @@
   "flip_v": false,
   "emissive_ambient": false,
   "textures": {
-    "particle": "minecraft:block/white_concrete"
+    "particle": "minecraft:block/white_concrete",
+    "gray": "minecraft:block/gray_concrete",
+    "white": "minecraft:block/white_concrete"
   }
 }

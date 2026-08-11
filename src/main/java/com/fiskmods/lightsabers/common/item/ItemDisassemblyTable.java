@@ -12,8 +12,8 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class ItemDisassemblyTable extends BlockItem {
-    public ItemDisassemblyTable(BlockDisassemblyStation block) {
-        super(block, new Item.Properties());
+    public ItemDisassemblyTable(BlockDisassemblyStation block, Item.Properties properties) {
+        super(block, properties.useBlockDescriptionPrefix());
     }
 
     @Override

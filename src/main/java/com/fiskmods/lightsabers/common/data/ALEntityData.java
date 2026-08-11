@@ -44,12 +44,12 @@ public final class ALEntityData implements ModAttachments.PersistentData {
 
     @Override
     public void load(CompoundTag tag) {
-        forcePushed = tag.getBoolean("ForcePushed");
+        forcePushed = tag.getBooleanOr("ForcePushed", false);
         activeEffects.clear();
-        if (tag.contains("Effects", Tag.TAG_LIST)) {
-            ListTag effectsTag = tag.getList("Effects", Tag.TAG_COMPOUND);
+        if (tag.getList("Effects").isPresent()) {
+            ListTag effectsTag = tag.getListOrEmpty("Effects");
             for (int i = 0; i < effectsTag.size(); i++) {
-                StatusEffect effect = StatusEffect.readFromNBT(effectsTag.getCompound(i));
+                StatusEffect effect = StatusEffect.readFromNBT(effectsTag.getCompoundOrEmpty(i));
                 if (effect != null) {
                     activeEffects.add(effect);
                 }

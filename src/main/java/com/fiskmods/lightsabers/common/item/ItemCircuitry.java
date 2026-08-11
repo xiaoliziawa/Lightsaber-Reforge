@@ -4,8 +4,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public class ItemCircuitry extends Item implements ILightsaberComponent {
-    public ItemCircuitry() {
-        super(new Item.Properties());
+    public ItemCircuitry(Item.Properties properties) {
+        super(properties);
     }
 
     @Override

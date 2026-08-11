@@ -32,6 +32,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -168,7 +170,7 @@ public class TileEntityDisassemblyStation extends BlockEntity implements Worldly
         }
 
         for (Map.Entry<ItemStack, Float> entry : getOutput(inputStack).entrySet()) {
-            if (entry.getValue() > level.random.nextFloat()) {
+            if (entry.getValue() > level.getRandom().nextFloat()) {
                 addOutputItem(level, entry.getKey());
             }
         }
@@ -339,21 +341,21 @@ public class TileEntityDisassemblyStation extends BlockEntity implements Worldly
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
         items.clear();
-        ContainerHelper.loadAllItems(tag, items, registries);
-        fuelTicks = tag.getShort(BURN_TIME_TAG);
-        progress = tag.getShort(DISASSEMBLY_TIME_TAG);
+        ContainerHelper.loadAllItems(input, items);
+        fuelTicks = input.getShortOr(BURN_TIME_TAG, (short) 0);
+        progress = input.getShortOr(DISASSEMBLY_TIME_TAG, (short) 0);
         maxFuelTicks = getItemBurnTime(items.get(FUEL));
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.putShort(BURN_TIME_TAG, (short) fuelTicks);
-        tag.putShort(DISASSEMBLY_TIME_TAG, (short) progress);
-        ContainerHelper.saveAllItems(tag, items, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putShort(BURN_TIME_TAG, (short) fuelTicks);
+        output.putShort(DISASSEMBLY_TIME_TAG, (short) progress);
+        ContainerHelper.saveAllItems(output, items);
     }
 
     public static int getItemBurnTime(ItemStack stack) {

@@ -4,41 +4,40 @@ import java.util.function.Supplier;
 
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class ModItems {
-    public static final DeferredRegister<Item> ITEMS =
-            DeferredRegister.create(Registries.ITEM, Lightsabers.MODID);
+    public static final DeferredRegister.Items ITEMS =
+            DeferredRegister.createItems(Lightsabers.MODID);
 
     public static final Supplier<ItemLightsaber> LIGHTSABER =
-            ITEMS.register("lightsaber", ItemLightsaber::new);
+            ITEMS.registerItem("lightsaber", ItemLightsaber::new);
     public static final Supplier<ItemDoubleLightsaber> DOUBLE_LIGHTSABER =
-            ITEMS.register("double_lightsaber", ItemDoubleLightsaber::new);
+            ITEMS.registerItem("double_lightsaber", ItemDoubleLightsaber::new);
     public static final Supplier<ItemCircuitry> CIRCUITRY =
-            ITEMS.register("lightsaber_circuitry", ItemCircuitry::new);
+            ITEMS.registerItem("lightsaber_circuitry", ItemCircuitry::new);
     public static final Supplier<ItemFocusingCrystal> FOCUSING_CRYSTAL =
-            ITEMS.register("focusing_crystal", ItemFocusingCrystal::new);
+            ITEMS.registerItem("focusing_crystal", ItemFocusingCrystal::new);
     public static final Supplier<ItemCrystalPouch> CRYSTAL_POUCH =
-            ITEMS.register("crystal_pouch", ItemCrystalPouch::new);
-    public static final Supplier<ItemLightsaberPart> EMITTER = ITEMS.register(
+            ITEMS.registerItem("crystal_pouch", ItemCrystalPouch::new);
+    public static final Supplier<ItemLightsaberPart> EMITTER = ITEMS.registerItem(
             "lightsaber_blade_emitter",
-            () -> new ItemLightsaberPart(PartType.EMITTER)
+            properties -> new ItemLightsaberPart(properties, PartType.EMITTER)
     );
-    public static final Supplier<ItemLightsaberPart> SWITCH_SECTION = ITEMS.register(
+    public static final Supplier<ItemLightsaberPart> SWITCH_SECTION = ITEMS.registerItem(
             "lightsaber_switch_module",
-            () -> new ItemLightsaberPart(PartType.SWITCH_SECTION)
+            properties -> new ItemLightsaberPart(properties, PartType.SWITCH_SECTION)
     );
-    public static final Supplier<ItemLightsaberPart> GRIP = ITEMS.register(
+    public static final Supplier<ItemLightsaberPart> GRIP = ITEMS.registerItem(
             "lightsaber_grip",
-            () -> new ItemLightsaberPart(PartType.BODY)
+            properties -> new ItemLightsaberPart(properties, PartType.BODY)
     );
-    public static final Supplier<ItemLightsaberPart> POMMEL = ITEMS.register(
+    public static final Supplier<ItemLightsaberPart> POMMEL = ITEMS.registerItem(
             "lightsaber_pommel",
-            () -> new ItemLightsaberPart(PartType.POMMEL)
+            properties -> new ItemLightsaberPart(properties, PartType.POMMEL)
     );
 
     public static Item circuitry;

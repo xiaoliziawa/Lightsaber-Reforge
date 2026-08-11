@@ -8,7 +8,7 @@ import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import yesman.epicfight.api.animation.LivingMotions;
@@ -29,7 +29,7 @@ import java.util.WeakHashMap;
 public final class EpicFightClientIntegration {
     private static final int MAX_BLOCK_LIGHT = 15;
     private static final IdentifierProvider LIGHTSABER_TRAIL_MODIFIER =
-            IdentifierProvider.constant(ResourceLocation.fromNamespaceAndPath(
+            IdentifierProvider.constant(Identifier.fromNamespaceAndPath(
                     Lightsabers.MODID,
                     "lightsaber_trail_modifier"
             ));

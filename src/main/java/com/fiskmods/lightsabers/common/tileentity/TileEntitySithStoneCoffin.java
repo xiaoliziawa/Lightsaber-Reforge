@@ -9,14 +9,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -25,6 +25,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,7 +96,7 @@ public class TileEntitySithStoneCoffin extends BlockEntity {
         BlockState state = getBlockState();
         Direction facing = state.getValue(HorizontalDirectionalBlock.FACING);
         EntitySithGhost ghost = new EntitySithGhost(ModEntities.SITH_GHOST.get(), serverLevel);
-        ghost.moveTo(
+        ghost.snapTo(
                 worldPosition.getX() + 0.5D,
                 worldPosition.getY() + 3.0D / 16.0D,
                 worldPosition.getZ() + 0.5D,
@@ -104,7 +106,7 @@ public class TileEntitySithStoneCoffin extends BlockEntity {
         ghost.finalizeSpawn(
                 serverLevel,
                 serverLevel.getCurrentDifficultyAt(worldPosition),
-                MobSpawnType.TRIGGERED,
+                EntitySpawnReason.TRIGGERED,
                 null
         );
         ghost.tickCount = -ghost.getRandom().nextInt(20);
@@ -191,10 +193,12 @@ public class TileEntitySithStoneCoffin extends BlockEntity {
 
     public void loadEquipmentFromItem(ItemStack stack) {
         CompoundTag tag = ItemDataHelper.getCustomData(stack);
-        equipment = tag != null
-                && tag.contains(EQUIPMENT_TAG, Tag.TAG_COMPOUND)
-                && level != null
-                ? ItemStack.parseOptional(level.registryAccess(), tag.getCompound(EQUIPMENT_TAG))
+        equipment = tag != null && level != null
+                ? tag.read(
+                        EQUIPMENT_TAG,
+                        ItemStack.CODEC,
+                        level.registryAccess().createSerializationContext(NbtOps.INSTANCE)
+                ).orElse(ItemStack.EMPTY)
                 : ItemStack.EMPTY;
         setChanged();
     }
@@ -208,39 +212,37 @@ public class TileEntitySithStoneCoffin extends BlockEntity {
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains(COFFIN_X_TAG, Tag.TAG_INT)
-                && tag.contains(COFFIN_Y_TAG, Tag.TAG_INT)
-                && tag.contains(COFFIN_Z_TAG, Tag.TAG_INT)) {
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        if (input.getInt(COFFIN_X_TAG).isPresent()
+                && input.getInt(COFFIN_Y_TAG).isPresent()
+                && input.getInt(COFFIN_Z_TAG).isPresent()) {
             mainCoffinPos = new BlockPos(
-                    tag.getInt(COFFIN_X_TAG),
-                    tag.getInt(COFFIN_Y_TAG),
-                    tag.getInt(COFFIN_Z_TAG)
+                    input.getIntOr(COFFIN_X_TAG, 0),
+                    input.getIntOr(COFFIN_Y_TAG, 0),
+                    input.getIntOr(COFFIN_Z_TAG, 0)
             );
         } else {
             mainCoffinPos = null;
         }
-        equipment = tag.contains(EQUIPMENT_TAG, Tag.TAG_COMPOUND)
-                ? ItemStack.parseOptional(registries, tag.getCompound(EQUIPMENT_TAG))
-                : ItemStack.EMPTY;
-        baseplateOnly = tag.getBoolean(BASEPLATE_ONLY_TAG);
-        taskFinished = tag.getBoolean(TASK_FINISHED_TAG);
+        equipment = input.read(EQUIPMENT_TAG, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        baseplateOnly = input.getBooleanOr(BASEPLATE_ONLY_TAG, false);
+        taskFinished = input.getBooleanOr(TASK_FINISHED_TAG, false);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
         if (mainCoffinPos != null) {
-            tag.putInt(COFFIN_X_TAG, mainCoffinPos.getX());
-            tag.putInt(COFFIN_Y_TAG, mainCoffinPos.getY());
-            tag.putInt(COFFIN_Z_TAG, mainCoffinPos.getZ());
+            output.putInt(COFFIN_X_TAG, mainCoffinPos.getX());
+            output.putInt(COFFIN_Y_TAG, mainCoffinPos.getY());
+            output.putInt(COFFIN_Z_TAG, mainCoffinPos.getZ());
         }
         if (!equipment.isEmpty()) {
-            tag.put(EQUIPMENT_TAG, equipment.save(registries, new CompoundTag()));
+            output.store(EQUIPMENT_TAG, ItemStack.CODEC, equipment);
         }
-        tag.putBoolean(BASEPLATE_ONLY_TAG, baseplateOnly);
-        tag.putBoolean(TASK_FINISHED_TAG, taskFinished);
+        output.putBoolean(BASEPLATE_ONLY_TAG, baseplateOnly);
+        output.putBoolean(TASK_FINISHED_TAG, taskFinished);
     }
 
     @Override
@@ -255,14 +257,7 @@ public class TileEntitySithStoneCoffin extends BlockEntity {
     }
 
     @Override
-    public void onDataPacket(
-            Connection connection,
-            ClientboundBlockEntityDataPacket packet,
-            HolderLookup.Provider registries
-    ) {
-        CompoundTag tag = packet.getTag();
-        if (!tag.isEmpty()) {
-            loadWithComponents(tag, registries);
-        }
+    public void onDataPacket(Connection connection, ValueInput input) {
+        loadWithComponents(input);
     }
 }

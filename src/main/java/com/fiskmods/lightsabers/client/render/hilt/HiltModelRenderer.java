@@ -1,19 +1,20 @@
 package com.fiskmods.lightsabers.client.render.hilt;
 
 import com.fiskmods.lightsabers.client.model.legacy.LegacyModelBase;
+import com.fiskmods.lightsabers.client.render.RenderSubmissionHelper;
 import com.fiskmods.lightsabers.client.render.lightsaber.SpearLightsaberObjRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.SpinningLightsaberObjRenderer;
 import com.fiskmods.lightsabers.common.hilt.Hilt;
-import com.fiskmods.lightsabers.common.hilt.HiltManager;
 import com.fiskmods.lightsabers.common.hilt.Hilt.Part;
+import com.fiskmods.lightsabers.common.hilt.HiltManager;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.feature.ItemFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.world.item.ItemStack;
 
 public final class HiltModelRenderer {
@@ -32,18 +33,18 @@ public final class HiltModelRenderer {
     public static void render(
             LightsaberData data,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay
     ) {
-        render(data, ItemStack.EMPTY, poseStack, buffer, packedLight, packedOverlay);
+        render(data, ItemStack.EMPTY, poseStack, collector, packedLight, packedOverlay);
     }
 
     public static void render(
             LightsaberData data,
             ItemStack stack,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay
     ) {
@@ -52,7 +53,7 @@ public final class HiltModelRenderer {
                     data,
                     stack,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay
             );
@@ -62,7 +63,7 @@ public final class HiltModelRenderer {
             SpearLightsaberObjRenderer.renderHilt(
                     stack,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay
             );
@@ -91,7 +92,7 @@ public final class HiltModelRenderer {
                     type,
                     stack,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay
             );
@@ -103,18 +104,18 @@ public final class HiltModelRenderer {
     public static void render(
             LightsaberData[] sabers,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay
     ) {
-        render(sabers, ItemStack.EMPTY, poseStack, buffer, packedLight, packedOverlay);
+        render(sabers, ItemStack.EMPTY, poseStack, collector, packedLight, packedOverlay);
     }
 
     public static void render(
             LightsaberData[] sabers,
             ItemStack stack,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay
     ) {
@@ -126,7 +127,7 @@ public final class HiltModelRenderer {
                 poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
             }
             poseStack.translate(0.0F, -data.getHeight() / 32.0F, 0.0F);
-            render(data, stack, poseStack, buffer, packedLight, packedOverlay);
+            render(data, stack, poseStack, collector, packedLight, packedOverlay);
             poseStack.popPose();
         }
     }
@@ -135,7 +136,7 @@ public final class HiltModelRenderer {
             Hilt hilt,
             PartType type,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay
     ) {
@@ -143,7 +144,7 @@ public final class HiltModelRenderer {
             SpinningLightsaberObjRenderer.renderPart(
                     type,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay
             );
@@ -153,7 +154,7 @@ public final class HiltModelRenderer {
             SpearLightsaberObjRenderer.renderPart(
                     type,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay
             );
@@ -172,7 +173,7 @@ public final class HiltModelRenderer {
                 type,
                 ItemStack.EMPTY,
                 poseStack,
-                buffer,
+                collector,
                 packedLight,
                 packedOverlay
         );
@@ -216,17 +217,50 @@ public final class HiltModelRenderer {
             PartType type,
             ItemStack stack,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay
     ) {
         LegacyModelBase model = renderer.getModel(type);
-        VertexConsumer consumer = ItemRenderer.getFoilBuffer(
-                buffer,
-                RenderType.entityCutoutNoCull(renderer.getTexture(type)),
-                true,
-                stack.hasFoil()
+        RenderType renderType = RenderTypes.entityCutout(renderer.getTexture(type));
+        submitModelGeometry(
+                collector,
+                poseStack,
+                renderType,
+                model,
+                packedLight,
+                packedOverlay
         );
-        model.render(poseStack, consumer, packedLight, packedOverlay);
+        if (stack.hasFoil()) {
+            submitModelGeometry(
+                    collector,
+                    poseStack,
+                    ItemFeatureRenderer.getFoilRenderType(renderType, true),
+                    model,
+                    packedLight,
+                    packedOverlay
+            );
+        }
+    }
+
+    private static void submitModelGeometry(
+            SubmitNodeCollector collector,
+            PoseStack poseStack,
+            RenderType renderType,
+            LegacyModelBase model,
+            int packedLight,
+            int packedOverlay
+    ) {
+        RenderSubmissionHelper.submitGeometry(
+                collector,
+                poseStack,
+                renderType,
+                (renderPose, consumer) -> model.render(
+                        renderPose,
+                        consumer,
+                        packedLight,
+                        packedOverlay
+                )
+        );
     }
 }

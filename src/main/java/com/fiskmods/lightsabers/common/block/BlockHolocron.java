@@ -11,7 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -61,7 +61,7 @@ public class BlockHolocron extends BaseEntityBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(
+    protected InteractionResult useItemOn(
             ItemStack stack,
             BlockState state,
             Level level,
@@ -71,14 +71,14 @@ public class BlockHolocron extends BaseEntityBlock {
             BlockHitResult hitResult
     ) {
         if (player.isShiftKeyDown()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
-        if (level.isClientSide) {
-            return ItemInteractionResult.SUCCESS;
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
         if (!(player instanceof ServerPlayer serverPlayer)
                 || !(level.getBlockEntity(pos) instanceof TileEntityHolocron holocron)) {
-            return ItemInteractionResult.CONSUME;
+            return InteractionResult.CONSUME;
         }
 
         serverPlayer.openMenu(
@@ -89,7 +89,7 @@ public class BlockHolocron extends BaseEntityBlock {
                 ),
                 buffer -> buffer.writeBlockPos(pos)
         );
-        return ItemInteractionResult.CONSUME;
+        return InteractionResult.CONSUME;
     }
 
     @Override

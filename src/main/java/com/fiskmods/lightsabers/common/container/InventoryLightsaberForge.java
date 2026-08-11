@@ -12,6 +12,8 @@ public class InventoryLightsaberForge extends SimpleContainer {
     private static final int FIRST_OPTIONAL_SLOT = 6;
 
     private LightsaberData result;
+    private Runnable changeListener = () -> {
+    };
 
     public InventoryLightsaberForge() {
         super(INVENTORY_SIZE);
@@ -52,5 +54,15 @@ public class InventoryLightsaberForge extends SimpleContainer {
 
     public LightsaberData getResult() {
         return result;
+    }
+
+    public void setChangeListener(Runnable changeListener) {
+        this.changeListener = changeListener;
+    }
+
+    @Override
+    public void setChanged() {
+        super.setChanged();
+        changeListener.run();
     }
 }

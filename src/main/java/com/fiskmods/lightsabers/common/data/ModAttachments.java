@@ -1,8 +1,10 @@
 package com.fiskmods.lightsabers.common.data;
 
 import com.fiskmods.lightsabers.Lightsabers;
-import net.minecraft.core.HolderLookup;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
@@ -13,6 +15,8 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import java.util.function.Supplier;
 
 public final class ModAttachments {
+    private static final MapCodec<CompoundTag> COMPOUND_CODEC =
+            MapCodec.assumeMapUnsafe(CompoundTag.CODEC);
     private static final DeferredRegister<AttachmentType<?>> ATTACHMENTS =
             DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, Lightsabers.MODID);
 
@@ -39,24 +43,24 @@ public final class ModAttachments {
         ATTACHMENTS.register(modEventBus);
     }
 
-    private static <T extends PersistentData> IAttachmentSerializer<CompoundTag, T> serializer(
+    private static <T extends PersistentData> IAttachmentSerializer<T> serializer(
             Supplier<T> factory
     ) {
         return new IAttachmentSerializer<>() {
             @Override
             public T read(
                     IAttachmentHolder holder,
-                    CompoundTag tag,
-                    HolderLookup.Provider provider
+                    ValueInput input
             ) {
                 T data = factory.get();
-                data.load(tag);
+                data.load(input.read(COMPOUND_CODEC).orElseGet(CompoundTag::new));
                 return data;
             }
 
             @Override
-            public CompoundTag write(T attachment, HolderLookup.Provider provider) {
-                return attachment.save();
+            public boolean write(T attachment, ValueOutput output) {
+                output.store(COMPOUND_CODEC, attachment.save());
+                return true;
             }
         };
     }

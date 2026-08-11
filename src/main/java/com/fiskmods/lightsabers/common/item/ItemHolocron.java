@@ -8,8 +8,8 @@ import net.minecraft.world.item.Item;
 public final class ItemHolocron extends BlockItem {
     private final HolocronType type;
 
-    public ItemHolocron(BlockHolocron block) {
-        super(block, new Item.Properties().stacksTo(1));
+    public ItemHolocron(BlockHolocron block, Item.Properties properties) {
+        super(block, properties.stacksTo(1).useBlockDescriptionPrefix());
         type = block.getType();
     }
 

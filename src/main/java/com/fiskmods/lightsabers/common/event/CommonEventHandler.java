@@ -30,7 +30,8 @@ import com.fiskmods.lightsabers.common.network.MessagePlayerJoin;
 import com.fiskmods.lightsabers.common.network.MessageUpdateEffects;
 import fiskfille.utils.helper.FiskServerUtils;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -39,7 +40,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -64,13 +65,13 @@ public final class CommonEventHandler {
     private static final double SPINNING_DEFLECT_RADIUS = 1.25D;
     private static final double SPINNING_DEFLECT_MIN_SPEED = 1.0D;
 
-    private static final ResourceLocation STUN_SPEED_MODIFIER_ID =
-            ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier STUN_SPEED_MODIFIER_ID =
+            Identifier.fromNamespaceAndPath(
                     Lightsabers.MODID,
                     "stun_movement_lock"
             );
-    private static final ResourceLocation FORCE_SPEED_MODIFIER_ID =
-            ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier FORCE_SPEED_MODIFIER_ID =
+            Identifier.fromNamespaceAndPath(
                     Lightsabers.MODID,
                     "force_speed_boost"
             );
@@ -137,7 +138,7 @@ public final class CommonEventHandler {
     @SubscribeEvent
     public void onPlayerTickPost(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
-        LogicalSide side = player.level().isClientSide ? LogicalSide.CLIENT : LogicalSide.SERVER;
+        LogicalSide side = player.level().isClientSide() ? LogicalSide.CLIENT : LogicalSide.SERVER;
         if (side == LogicalSide.SERVER) {
             handleSpinningLightsaber(player);
         }
@@ -224,7 +225,7 @@ public final class CommonEventHandler {
         }
 
         float cost = Power.REBOUND.getUseCost(player);
-        float amount = Math.min(
+        float amount = (float) Math.min(
                 Math.max(event.getDistance() - 3.0F, 0.0F),
                 Mth.floor(force / cost)
         );
@@ -233,7 +234,7 @@ public final class CommonEventHandler {
         }
 
         event.setDistance(event.getDistance() - amount);
-        if (!player.level().isClientSide) {
+        if (!player.level().isClientSide()) {
             ALDataInterp.FORCE_POWER.incr(player, -cost * amount);
         }
         if (Lightsabers.proxy.isClientPlayer(player)) {
@@ -296,7 +297,8 @@ public final class CommonEventHandler {
             return;
         }
 
-        if (!player.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) {
+        if (player.level() instanceof ServerLevel level
+                && !level.getGameRules().get(GameRules.KEEP_INVENTORY)) {
             ALData.FORCE_XP.set(
                     player,
                     (float) Mth.floor(ALData.FORCE_XP.get(player) * 0.7F)
@@ -434,7 +436,7 @@ public final class CommonEventHandler {
             if (effect == null) {
                 continue;
             }
-            if (!target.level().isClientSide && isDamageTick(effect)) {
+            if (!target.level().isClientSide() && isDamageTick(effect)) {
                 float damage = PowerEffectDrain.getAbsorbAmount(effect.amplifier)
                         * (float) STATUS_DAMAGE_INTERVAL / PowerEffectDrain.DURATION;
                 target.invulnerableTime = 0;
@@ -453,7 +455,7 @@ public final class CommonEventHandler {
             if (effect == null) {
                 continue;
             }
-            if (!target.level().isClientSide && isDamageTick(effect)) {
+            if (!target.level().isClientSide() && isDamageTick(effect)) {
                 float damage = PowerEffectChoke.getDamagePerSecond(effect.amplifier)
                         * STATUS_DAMAGE_INTERVAL / 20.0F;
                 target.invulnerableTime = 0;
@@ -537,7 +539,7 @@ public final class CommonEventHandler {
                 entity.zo - entity.getZ()
         );
         float damage = (float) Math.max(movement.length() * 5.0D - 3.0D, 0.0D);
-        if (damage > 0 && !entity.level().isClientSide) {
+        if (damage > 0 && !entity.level().isClientSide()) {
             entity.hurt(ALDamageSources.causeIntoWallDamage(entity), damage);
         }
     }
@@ -549,6 +551,7 @@ public final class CommonEventHandler {
         ALEntityData data = ALEntityData.getData(entity);
         handleForcePushCollision(entity, data);
         tickStatusEffects(entity, data);
+        PowerEffectMeditation.updateAbsorptionCapacity(entity);
         applyMovementEffects(entity);
     }
 
@@ -577,7 +580,7 @@ public final class CommonEventHandler {
                     0
             );
         }
-        if (changed && !entity.level().isClientSide) {
+        if (changed && !entity.level().isClientSide()) {
             ALNetworkManager.sendToTrackingAndSelf(
                     entity,
                     new MessageUpdateEffects(entity, data.activeEffects)
@@ -595,7 +598,6 @@ public final class CommonEventHandler {
 
         if (StatusEffect.has(entity, Effect.STUN)) {
             speed.addTransientModifier(STUN_SPEED_MODIFIER);
-            entity.hasImpulse = false;
             Vec3 movement = entity.getDeltaMovement();
             entity.setDeltaMovement(movement.x, -0.2D, movement.z);
             entity.setJumping(false);

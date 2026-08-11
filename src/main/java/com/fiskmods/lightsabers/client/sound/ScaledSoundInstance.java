@@ -6,7 +6,7 @@ import net.minecraft.client.sounds.AudioStream;
 import net.minecraft.client.sounds.SoundBufferLibrary;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.client.sounds.WeighedSoundEvents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,8 +15,8 @@ import java.util.concurrent.CompletableFuture;
 public record ScaledSoundInstance(SoundInstance delegate, float volumeScale)
         implements SoundInstance {
     @Override
-    public ResourceLocation getLocation() {
-        return delegate.getLocation();
+    public Identifier getIdentifier() {
+        return delegate.getIdentifier();
     }
 
     @Override

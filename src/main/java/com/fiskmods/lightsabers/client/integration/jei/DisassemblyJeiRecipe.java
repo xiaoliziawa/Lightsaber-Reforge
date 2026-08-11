@@ -5,7 +5,7 @@ import com.fiskmods.lightsabers.common.hilt.Hilt;
 import com.fiskmods.lightsabers.common.item.ItemDoubleLightsaber;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.tileentity.TileEntityDisassemblyStation;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Comparator;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public record DisassemblyJeiRecipe(
-        ResourceLocation id,
+        Identifier id,
         ItemStack input,
         List<Output> outputs
 ) {
@@ -25,7 +25,7 @@ public record DisassemblyJeiRecipe(
                 : single;
         String type = doubleBladed ? "double" : "single";
         return new DisassemblyJeiRecipe(
-                ResourceLocation.fromNamespaceAndPath(
+                Identifier.fromNamespaceAndPath(
                         Lightsabers.MODID,
                         LightsaberForgeJeiRecipe.recipeId("disassembly", hilt).getPath()
                                 + "/" + type

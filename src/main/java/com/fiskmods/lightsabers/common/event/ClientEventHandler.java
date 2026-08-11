@@ -22,28 +22,70 @@ import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
 import com.fiskmods.lightsabers.helper.ALHelper;
 import com.fiskmods.lightsabers.helper.ALRenderHelper;
+import com.google.common.reflect.TypeToken;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.event.RenderLivingEvent;
 import net.neoforged.neoforge.client.event.RenderPlayerEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.renderstate.RegisterRenderStateModifiersEvent;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 
 public final class ClientEventHandler {
-    private static final ItemStack[] STASHED_ARMOR = new ItemStack[4];
-    private static boolean armorHidden;
+    private static final ContextKey<LivingEntity> RENDERED_ENTITY_KEY =
+            new ContextKey<>(Identifier.fromNamespaceAndPath(
+                    Lightsabers.MODID,
+                    "rendered_entity"
+            ));
+
+    public static void registerRenderStateModifiers(
+            RegisterRenderStateModifiersEvent event
+    ) {
+        event.registerEntityModifier(
+                new TypeToken<LivingEntityRenderer<
+                        LivingEntity,
+                        LivingEntityRenderState,
+                        ?
+                >>() {
+                },
+                ClientEventHandler::extractLivingRenderData
+        );
+    }
+
+    private static void extractLivingRenderData(
+            LivingEntity entity,
+            LivingEntityRenderState renderState
+    ) {
+        renderState.setRenderData(RENDERED_ENTITY_KEY, entity);
+        if (entity instanceof Player
+                && renderState instanceof HumanoidRenderState humanoidState
+                && StatusEffect.has(entity, Effect.STEALTH)) {
+            humanoidState.headEquipment = ItemStack.EMPTY;
+            humanoidState.chestEquipment = ItemStack.EMPTY;
+            humanoidState.legsEquipment = ItemStack.EMPTY;
+            humanoidState.feetEquipment = ItemStack.EMPTY;
+        }
+    }
+
+    public static LivingEntity getRenderedEntity(
+            LivingEntityRenderState renderState
+    ) {
+        return renderState.getRenderData(RENDERED_ENTITY_KEY);
+    }
 
     @SubscribeEvent
     public void onClientTick(ClientTickEvent.Post event) {
@@ -91,7 +133,7 @@ public final class ClientEventHandler {
         if (player.getOffhandItem().is(ModItems.lightsaber)) {
             lightsaber = player.getOffhandItem();
         } else {
-            for (ItemStack stack : player.getInventory().items) {
+            for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
                 if (stack.is(ModItems.lightsaber)) {
                     lightsaber = stack;
                     break;
@@ -121,7 +163,7 @@ public final class ClientEventHandler {
         StatusEffect gaze = StatusEffect.get(player, Effect.GAZE);
         ALRenderHelper.setGazeAmplifier(gaze == null ? -1 : gaze.amplifier);
 
-        ResourceLocation requested = null;
+        Identifier requested = null;
         if (ModConfig.enableShaders && gaze != null) {
             requested = ALRenderHelper.SHADER_BLUE;
         } else if (ModConfig.enableShaders && StatusEffect.has(player, Effect.STEALTH)) {
@@ -143,35 +185,23 @@ public final class ClientEventHandler {
     }
 
     private static void stopPostEffect(Minecraft minecraft) {
-        if (minecraft.gameRenderer.currentEffect() != null) {
-            String active = minecraft.gameRenderer.currentEffect().getName();
-            if (active.equals(ALRenderHelper.SHADER_BLUE.toString())
-                    || active.equals(ALRenderHelper.SHADER_GRAY.toString())
-                    || active.equals(ALRenderHelper.SHADER_BLUR.toString())) {
+        Identifier active = minecraft.gameRenderer.currentPostEffect();
+        if (active != null) {
+            if (active.equals(ALRenderHelper.SHADER_BLUE)
+                    || active.equals(ALRenderHelper.SHADER_GRAY)
+                    || active.equals(ALRenderHelper.SHADER_BLUR)) {
                 ALRenderHelper.stopShaders();
             }
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onRenderPlayerPre(RenderPlayerEvent.Pre event) {
-        Player player = event.getEntity();
-        if (!StatusEffect.has(player, Effect.STEALTH)) {
+    @SubscribeEvent
+    public void onRenderPlayerPost(RenderPlayerEvent.Post<?> event) {
+        LivingEntity renderedEntity = event.getRenderState()
+                .getRenderData(RENDERED_ENTITY_KEY);
+        if (!(renderedEntity instanceof Player player)) {
             return;
         }
-
-        NonNullList<ItemStack> armor = player.getInventory().armor;
-        for (int slot = 0; slot < armor.size(); slot++) {
-            STASHED_ARMOR[slot] = armor.get(slot);
-            armor.set(slot, ItemStack.EMPTY);
-        }
-        armorHidden = true;
-    }
-
-    @SubscribeEvent
-    public void onRenderPlayerPost(RenderPlayerEvent.Post event) {
-        Player player = event.getEntity();
-        restoreHiddenArmor(player);
         if (!StatusEffect.has(player, Effect.STEALTH)) {
             renderStoredLightsaber(event, player);
         }
@@ -183,18 +213,6 @@ public final class ClientEventHandler {
         }
     }
 
-    private static void restoreHiddenArmor(Player player) {
-        if (!armorHidden) {
-            return;
-        }
-        NonNullList<ItemStack> armor = player.getInventory().armor;
-        for (int slot = 0; slot < armor.size(); slot++) {
-            armor.set(slot, STASHED_ARMOR[slot]);
-            STASHED_ARMOR[slot] = ItemStack.EMPTY;
-        }
-        armorHidden = false;
-    }
-
     private static final float BELT_OFFSET_X = 0.2F;
     private static final float BELT_OFFSET_Y = -0.55F;
     private static final float BELT_OFFSET_Z = 0.15F;
@@ -202,7 +220,10 @@ public final class ClientEventHandler {
     private static final float BELT_ROT_X = 10.0F;
     private static final float BELT_SCALE = 0.15F;
 
-    private static void renderStoredLightsaber(RenderPlayerEvent.Post event, Player player) {
+    private static void renderStoredLightsaber(
+            RenderPlayerEvent.Post<?> event,
+            Player player
+    ) {
         LightsaberData data = ALData.LIGHTSABER.get(player);
         if (data == null
                 || data == LightsaberData.EMPTY
@@ -211,14 +232,11 @@ public final class ClientEventHandler {
             return;
         }
 
-        float bodyYaw = Mth.rotLerp(
-                event.getPartialTick(),
-                player.yBodyRotO,
-                player.yBodyRot
-        );
         PoseStack poseStack = event.getPoseStack();
         poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - bodyYaw));
+        poseStack.mulPose(Axis.YP.rotationDegrees(
+                180.0F - event.getRenderState().bodyRot
+        ));
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         poseStack.translate(0.0F, -1.501F, 0.0F);
         event.getRenderer().getModel().body.translateAndRotate(poseStack);
@@ -236,18 +254,22 @@ public final class ClientEventHandler {
         HiltModelRenderer.render(
                 data,
                 poseStack,
-                event.getMultiBufferSource(),
-                event.getPackedLight(),
+                event.getSubmitNodeCollector(),
+                event.getRenderState().lightCoords,
                 OverlayTexture.NO_OVERLAY
         );
         poseStack.popPose();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onRenderLivingPre(RenderLivingEvent.Pre<?, ?> event) {
+    public void onRenderLivingPre(RenderLivingEvent.Pre<?, ?, ?> event) {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer viewer = minecraft.player;
-        LivingEntity entity = event.getEntity();
+        LivingEntity entity = event.getRenderState()
+                .getRenderData(RENDERED_ENTITY_KEY);
+        if (entity == null) {
+            return;
+        }
         if (viewer == null || entity == viewer) {
             return;
         }

@@ -16,59 +16,59 @@ public final class ModBlockEntities {
     public static final Supplier<BlockEntityType<TileEntityCrystal>> CRYSTAL =
             BLOCK_ENTITY_TYPES.register(
                     "lightsaber_crystal",
-                    () -> BlockEntityType.Builder.of(
+                    () -> new BlockEntityType<>(
                             TileEntityCrystal::new,
                             ModBlocks.LIGHTSABER_CRYSTAL.get()
-                    ).build(null)
+                    )
             );
     public static final Supplier<BlockEntityType<TileEntityLightsaberStand>>
             LIGHTSABER_STAND = BLOCK_ENTITY_TYPES.register(
                     "lightsaber_stand",
-                    () -> BlockEntityType.Builder.of(
+                    () -> new BlockEntityType<>(
                             TileEntityLightsaberStand::new,
                             ModBlocks.LIGHTSABER_STAND.get()
-                    ).build(null)
+                    )
             );
     public static final Supplier<BlockEntityType<TileEntityCrystalDisplayStand>>
             CRYSTAL_DISPLAY_STAND = BLOCK_ENTITY_TYPES.register(
                     "crystal_display_stand",
-                    () -> BlockEntityType.Builder.of(
+                    () -> new BlockEntityType<>(
                             TileEntityCrystalDisplayStand::new,
                             ModBlocks.CRYSTAL_DISPLAY_STAND.get()
-                    ).build(null)
+                    )
             );
     public static final Supplier<BlockEntityType<TileEntityDisassemblyStation>>
             DISASSEMBLY_STATION = BLOCK_ENTITY_TYPES.register(
                     "disassembly_station",
-                    () -> BlockEntityType.Builder.of(
+                    () -> new BlockEntityType<>(
                             TileEntityDisassemblyStation::new,
                             ModBlocks.DISASSEMBLY_STATION.get()
-                    ).build(null)
+                    )
             );
     public static final Supplier<BlockEntityType<TileEntityHolocron>> HOLOCRON =
             BLOCK_ENTITY_TYPES.register(
                     "holocron",
-                    () -> BlockEntityType.Builder.of(
+                    () -> new BlockEntityType<>(
                             TileEntityHolocron::new,
                             ModBlocks.JEDI_HOLOCRON.get(),
                             ModBlocks.HOLOCRON.get()
-                    ).build(null)
+                    )
             );
     public static final Supplier<BlockEntityType<TileEntitySithCoffin>> SITH_COFFIN =
             BLOCK_ENTITY_TYPES.register(
                     "sith_coffin",
-                    () -> BlockEntityType.Builder.of(
+                    () -> new BlockEntityType<>(
                             TileEntitySithCoffin::new,
                             ModBlocks.SITH_COFFIN.get()
-                    ).build(null)
+                    )
             );
     public static final Supplier<BlockEntityType<TileEntitySithStoneCoffin>>
             SITH_STONE_COFFIN = BLOCK_ENTITY_TYPES.register(
                     "sith_stone_coffin",
-                    () -> BlockEntityType.Builder.of(
+                    () -> new BlockEntityType<>(
                             TileEntitySithStoneCoffin::new,
                             ModBlocks.SITH_STONE_COFFIN.get()
-                    ).build(null)
+                    )
             );
 
     private ModBlockEntities() {

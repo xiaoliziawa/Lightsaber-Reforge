@@ -1,6 +1,6 @@
 package fiskfille.utils.registry;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Objects;
 
@@ -8,7 +8,7 @@ public class FiskRegistryEntry<T> {
     @SuppressWarnings("unchecked")
     public final FiskDelegate<T> delegate = new FiskDelegate<>((T) this, (Class<T>) getClass());
 
-    private ResourceLocation registryName;
+    private Identifier registryName;
 
     @SuppressWarnings("unchecked")
     public final T setRegistryName(String name) {
@@ -18,20 +18,20 @@ public class FiskRegistryEntry<T> {
             );
         }
 
-        registryName = Objects.requireNonNull(ResourceLocation.tryParse(name));
+        registryName = Objects.requireNonNull(Identifier.tryParse(name));
         delegate.setName(registryName.toString());
         return (T) this;
     }
 
-    public final T setRegistryName(ResourceLocation name) {
+    public final T setRegistryName(Identifier name) {
         return setRegistryName(name.toString());
     }
 
     public final T setRegistryName(String domain, String name) {
-        return setRegistryName(ResourceLocation.fromNamespaceAndPath(domain, name));
+        return setRegistryName(Identifier.fromNamespaceAndPath(domain, name));
     }
 
-    public final ResourceLocation getRegistryName() {
+    public final Identifier getRegistryName() {
         return registryName;
     }
 

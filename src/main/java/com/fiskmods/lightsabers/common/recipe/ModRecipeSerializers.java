@@ -5,7 +5,6 @@ import java.util.function.Supplier;
 import com.fiskmods.lightsabers.Lightsabers;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -16,7 +15,10 @@ public final class ModRecipeSerializers {
     public static final Supplier<RecipeSerializer<RecipesDoubleLightsaber>>
             DOUBLE_LIGHTSABER = RECIPE_SERIALIZERS.register(
                     "double_lightsaber",
-                    () -> new SimpleCraftingRecipeSerializer<>(RecipesDoubleLightsaber::new)
+                    () -> new RecipeSerializer<>(
+                            RecipesDoubleLightsaber.MAP_CODEC,
+                            RecipesDoubleLightsaber.STREAM_CODEC
+                    )
             );
 
     private ModRecipeSerializers() {

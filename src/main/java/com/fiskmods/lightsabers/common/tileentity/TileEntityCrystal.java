@@ -8,6 +8,8 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.Random;
 
@@ -32,7 +34,7 @@ public class TileEntityCrystal extends BlockEntity {
 
         crystalColor = color;
         setChanged();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(
                     worldPosition,
                     getBlockState(),
@@ -55,15 +57,15 @@ public class TileEntityCrystal extends BlockEntity {
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        crystalColor = CrystalColor.get(tag.getInt(COLOR_TAG));
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        crystalColor = CrystalColor.get(input.getIntOr(COLOR_TAG, 0));
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.putInt(COLOR_TAG, crystalColor.id);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putInt(COLOR_TAG, crystalColor.id);
     }
 
     @Override

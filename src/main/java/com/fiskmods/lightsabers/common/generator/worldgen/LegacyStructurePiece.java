@@ -45,15 +45,15 @@ public final class LegacyStructurePiece extends StructurePiece {
 
     public LegacyStructurePiece(CompoundTag tag) {
         super(ModWorldgen.LEGACY_PIECE.get(), tag);
-        structure = EnumStructure.valueOf(tag.getString(STRUCTURE_TAG));
+        structure = EnumStructure.valueOf(tag.getStringOr(STRUCTURE_TAG, ""));
         origin = new BlockPos(
-                tag.getInt(ORIGIN_X_TAG),
-                tag.getInt(ORIGIN_Y_TAG),
-                tag.getInt(ORIGIN_Z_TAG)
+                tag.getIntOr(ORIGIN_X_TAG, 0),
+                tag.getIntOr(ORIGIN_Y_TAG, 0),
+                tag.getIntOr(ORIGIN_Z_TAG, 0)
         );
-        seed = tag.getLong(SEED_TAG);
+        seed = tag.getLongOr(SEED_TAG, 0L);
         sithTombStairLength = tag.contains(SITH_TOMB_STAIR_LENGTH_TAG)
-                ? tag.getInt(SITH_TOMB_STAIR_LENGTH_TAG)
+                ? tag.getIntOr(SITH_TOMB_STAIR_LENGTH_TAG, 0)
                 : UNRESOLVED_STAIR_LENGTH;
     }
 

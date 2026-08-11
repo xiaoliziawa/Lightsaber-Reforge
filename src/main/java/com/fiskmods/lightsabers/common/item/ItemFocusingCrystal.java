@@ -9,15 +9,16 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 
-import java.util.List;
 import java.util.Random;
+import java.util.function.Consumer;
 
 public class ItemFocusingCrystal extends Item implements ILightsaberComponent {
     private static final String CRYSTAL_ID_TAG = "FocusingCrystalId";
 
-    public ItemFocusingCrystal() {
-        super(new Item.Properties().rarity(Rarity.EPIC));
+    public ItemFocusingCrystal(Item.Properties properties) {
+        super(properties.rarity(Rarity.EPIC));
     }
 
     @Override
@@ -34,17 +35,18 @@ public class ItemFocusingCrystal extends Item implements ILightsaberComponent {
     public void appendHoverText(
             ItemStack stack,
             Item.TooltipContext context,
-            List<Component> tooltip,
+            TooltipDisplay display,
+            Consumer<Component> tooltip,
             TooltipFlag flag
     ) {
-        tooltip.add(Component.translatable(get(stack).getUnlocalizedName())
+        tooltip.accept(Component.translatable(get(stack).getUnlocalizedName())
                 .withStyle(ChatFormatting.GRAY));
     }
 
     public static FocusingCrystal get(ItemStack stack) {
         CompoundTag tag = ItemDataHelper.getCustomData(stack);
         int id = tag != null && tag.contains(CRYSTAL_ID_TAG)
-                ? tag.getInt(CRYSTAL_ID_TAG)
+                ? tag.getIntOr(CRYSTAL_ID_TAG, 0)
                 : stack.getDamageValue();
         return get(id);
     }

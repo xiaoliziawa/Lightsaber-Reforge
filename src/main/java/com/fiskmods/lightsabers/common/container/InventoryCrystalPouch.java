@@ -6,6 +6,7 @@ import com.fiskmods.lightsabers.common.lightsaber.CrystalColor;
 import com.fiskmods.lightsabers.helper.ItemDataHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
@@ -30,7 +31,7 @@ public class InventoryCrystalPouch extends SimpleContainer {
         this.itemSlot = itemSlot;
 
         ItemStack pouchStack = getPouchStack();
-        uuid = player.level().isClientSide
+        uuid = player.level().isClientSide()
                 ? ItemCrystalPouch.getUUID(pouchStack)
                 : ItemCrystalPouch.getOrCreateUUID(pouchStack);
         readFromNBT(ItemDataHelper.getCustomData(pouchStack));
@@ -72,19 +73,22 @@ public class InventoryCrystalPouch extends SimpleContainer {
     }
 
     public void readFromNBT(CompoundTag tag) {
-        if (tag == null || !tag.contains(SLOTS_TAG, Tag.TAG_LIST)) {
+        if (tag == null || tag.getList(SLOTS_TAG).isEmpty()) {
             return;
         }
 
         loading = true;
         try {
             clearContent();
-            ListTag slots = tag.getList(SLOTS_TAG, Tag.TAG_COMPOUND);
+            ListTag slots = tag.getListOrEmpty(SLOTS_TAG);
             for (int i = 0; i < slots.size(); i++) {
-                CompoundTag slotTag = slots.getCompound(i);
-                int slot = Byte.toUnsignedInt(slotTag.getByte(SLOT_TAG));
+                CompoundTag slotTag = slots.getCompoundOrEmpty(i);
+                int slot = Byte.toUnsignedInt(slotTag.getByteOr(SLOT_TAG, (byte) 0));
                 if (slot < getContainerSize()) {
-                    ItemStack stack = ItemStack.parseOptional(player.registryAccess(), slotTag);
+                    ItemStack stack = slotTag.read(
+                            ItemStack.MAP_CODEC,
+                            player.registryAccess().createSerializationContext(NbtOps.INSTANCE)
+                    ).orElse(ItemStack.EMPTY);
                     if (canPlaceItem(slot, stack)) {
                         setItem(slot, stack);
                     }
@@ -100,9 +104,11 @@ public class InventoryCrystalPouch extends SimpleContainer {
         for (int slot = 0; slot < getContainerSize(); slot++) {
             ItemStack stack = getItem(slot);
             if (!stack.isEmpty()) {
-                CompoundTag slotTag = (CompoundTag) stack.save(
-                        player.registryAccess(),
-                        new CompoundTag()
+                CompoundTag slotTag = new CompoundTag();
+                slotTag.store(
+                        ItemStack.MAP_CODEC,
+                        player.registryAccess().createSerializationContext(NbtOps.INSTANCE),
+                        stack
                 );
                 slotTag.putByte(SLOT_TAG, (byte) slot);
                 slots.add(slotTag);
@@ -120,7 +126,7 @@ public class InventoryCrystalPouch extends SimpleContainer {
     @Override
     public void setChanged() {
         super.setChanged();
-        if (!loading && !player.level().isClientSide && stillValid(player)) {
+        if (!loading && !player.level().isClientSide() && stillValid(player)) {
             ItemDataHelper.updateCustomData(getPouchStack(), this::writeToNBT);
         }
     }

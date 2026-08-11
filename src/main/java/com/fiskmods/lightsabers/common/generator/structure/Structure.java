@@ -169,11 +169,13 @@ public abstract class Structure {
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             BlockPos neighborPos = pos.relative(direction);
             state = state.updateShape(
-                    direction,
-                    worldObj.getBlockState(neighborPos),
+                    worldObj,
                     worldObj,
                     pos,
-                    neighborPos
+                    direction,
+                    neighborPos,
+                    worldObj.getBlockState(neighborPos),
+                    worldObj.getRandom()
             );
         }
         return state;
@@ -187,11 +189,13 @@ public abstract class Structure {
                 continue;
             }
             BlockState connectedState = neighborState.updateShape(
-                    direction.getOpposite(),
-                    state,
+                    worldObj,
                     worldObj,
                     neighborPos,
-                    pos
+                    direction.getOpposite(),
+                    pos,
+                    state,
+                    worldObj.getRandom()
             );
             if (connectedState != neighborState) {
                 worldObj.setBlock(neighborPos, connectedState, Block.UPDATE_CLIENTS);

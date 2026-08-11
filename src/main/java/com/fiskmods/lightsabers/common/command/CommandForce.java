@@ -54,7 +54,7 @@ public final class CommandForce {
 
     private static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal("force")
-                .requires(source -> source.hasPermission(2));
+                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS));
         root.then(createNumericBranch("xp"));
         root.then(createNumericBranch("base")
                 .then(Commands.literal("reset")
@@ -150,7 +150,7 @@ public final class CommandForce {
                         .then(generateX);
 
         return Commands.literal("structure")
-                .requires(source -> source.hasPermission(3))
+                .requires(Commands.hasPermission(Commands.LEVEL_ADMINS))
                 .then(Commands.literal("locate").then(structureArgument(true).then(range)))
                 .then(Commands.literal("generate").then(generateStructure));
     }
@@ -179,7 +179,7 @@ public final class CommandForce {
         ServerLevel level = context.getSource().getLevel();
         if (level.dimension() != Level.OVERWORLD
                 || level.isFlat()
-                || !level.getServer().getWorldData().worldGenOptions().generateStructures()) {
+                || !level.getServer().getWorldGenSettings().options().generateStructures()) {
             context.getSource().sendFailure(Component.translatable(
                     "commands.force.structure.locate.doesNotGenerate",
                     StringArgumentType.getString(context, STRUCTURE)
@@ -197,12 +197,12 @@ public final class CommandForce {
             return 0;
         }
 
-        Registry<Structure> registry = level.registryAccess().registryOrThrow(
+        Registry<Structure> registry = level.registryAccess().lookupOrThrow(
                 Registries.STRUCTURE
         );
         List<Holder<Structure>> structures = Arrays.stream(EnumStructure.values())
                 .filter(candidate -> requested == null || requested == candidate)
-                .map(candidate -> registry.getHolderOrThrow(ModWorldgen.key(candidate)))
+                .map(candidate -> registry.getOrThrow(ModWorldgen.key(candidate)))
                 .map(holder -> (Holder<Structure>) holder)
                 .toList();
         Pair<BlockPos, Holder<Structure>> result = level.getChunkSource()
@@ -222,7 +222,7 @@ public final class CommandForce {
         }
         EnumStructure found = result.getSecond()
                 .unwrapKey()
-                .map(key -> getStructure(key.location().getPath()))
+                .map(key -> getStructure(key.identifier().getPath()))
                 .orElse(requested);
         BlockPos position = result.getFirst();
         context.getSource().sendSuccess(
@@ -253,8 +253,8 @@ public final class CommandForce {
         }
         Registry<Structure> registry = context.getSource()
                 .registryAccess()
-                .registryOrThrow(Registries.STRUCTURE);
-        Holder.Reference<Structure> holder = registry.getHolderOrThrow(
+                .lookupOrThrow(Registries.STRUCTURE);
+        Holder.Reference<Structure> holder = registry.getOrThrow(
                 ModWorldgen.key(structure)
         );
         return PlaceCommand.placeStructure(

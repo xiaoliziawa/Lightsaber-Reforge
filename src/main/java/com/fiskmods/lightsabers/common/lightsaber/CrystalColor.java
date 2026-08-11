@@ -1,6 +1,6 @@
 package com.fiskmods.lightsabers.common.lightsaber;
 
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 

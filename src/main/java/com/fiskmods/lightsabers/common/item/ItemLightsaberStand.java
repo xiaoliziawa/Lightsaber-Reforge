@@ -5,7 +5,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
 public class ItemLightsaberStand extends BlockItem {
-    public ItemLightsaberStand(Block block) {
-        super(block, new Item.Properties());
+    public ItemLightsaberStand(Block block, Item.Properties properties) {
+        super(block, properties.useBlockDescriptionPrefix());
     }
 }

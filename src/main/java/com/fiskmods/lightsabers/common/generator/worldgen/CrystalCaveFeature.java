@@ -65,7 +65,10 @@ public final class CrystalCaveFeature extends Feature<CrystalCaveConfiguration> 
         }
 
         WorldGenLevel level = context.level();
-        ChunkPos chunk = new ChunkPos(context.origin());
+        ChunkPos chunk = new ChunkPos(
+                context.origin().getX() >> 4,
+                context.origin().getZ() >> 4
+        );
         if (!hasCrystalCaveStart(level, chunk)) {
             return false;
         }
@@ -94,17 +97,17 @@ public final class CrystalCaveFeature extends Feature<CrystalCaveConfiguration> 
     }
 
     private static boolean hasCrystalCaveStart(WorldGenLevel level, ChunkPos chunk) {
-        Registry<Structure> structures = level.registryAccess().registryOrThrow(
+        Registry<Structure> structures = level.registryAccess().lookupOrThrow(
                 Registries.STRUCTURE
         );
-        Structure crystalCave = structures.get(ModWorldgen.CRYSTAL_CAVE);
+        Structure crystalCave = structures.getValue(ModWorldgen.CRYSTAL_CAVE);
         if (crystalCave == null) {
             return false;
         }
 
         StructureStart start = level.getChunk(
-                chunk.x,
-                chunk.z,
+                chunk.x(),
+                chunk.z(),
                 ChunkStatus.STRUCTURE_STARTS
         ).getStartForStructure(crystalCave);
         return start != null && start.isValid();
@@ -130,7 +133,7 @@ public final class CrystalCaveFeature extends Feature<CrystalCaveConfiguration> 
             for (int localZ = 0; localZ < CHUNK_SIZE; localZ++) {
                 int z = chunk.getMinBlockZ() + localZ;
                 int maxY = getCaveScanMaxY(level, x, z);
-                for (int y = level.getMinBuildHeight(); y < maxY; y++) {
+                for (int y = level.getMinY(); y < maxY; y++) {
                     pos.set(x, y, z);
                     if (level.isEmptyBlock(pos) && currentIndex++ == targetIndex) {
                         return pos.immutable();
@@ -150,7 +153,7 @@ public final class CrystalCaveFeature extends Feature<CrystalCaveConfiguration> 
     ) {
         int x = chunk.getMinBlockX() + random.nextInt(CHUNK_SIZE);
         int z = chunk.getMinBlockZ() + random.nextInt(CHUNK_SIZE);
-        int minY = level.getMinBuildHeight() + CHAMBER_MIN_BOTTOM_CLEARANCE;
+        int minY = level.getMinY() + CHAMBER_MIN_BOTTOM_CLEARANCE;
         int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z);
         int maxY = Math.min(
                 crystalMaxY - CHAMBER_VERTICAL_RADIUS,
@@ -169,7 +172,7 @@ public final class CrystalCaveFeature extends Feature<CrystalCaveConfiguration> 
             for (int localZ = 0; localZ < CHUNK_SIZE; localZ++) {
                 int z = chunk.getMinBlockZ() + localZ;
                 int maxY = getCaveScanMaxY(level, x, z);
-                for (int y = level.getMinBuildHeight(); y < maxY; y++) {
+                for (int y = level.getMinY(); y < maxY; y++) {
                     pos.set(x, y, z);
                     if (level.isEmptyBlock(pos)) {
                         airBlocks++;
@@ -183,7 +186,7 @@ public final class CrystalCaveFeature extends Feature<CrystalCaveConfiguration> 
 
     private static int getCaveScanMaxY(WorldGenLevel level, int x, int z) {
         int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z);
-        return Math.min(surfaceY - SURFACE_CLEARANCE, level.getMaxBuildHeight());
+        return Math.min(surfaceY - SURFACE_CLEARANCE, level.getMaxY() + 1);
     }
 
     private static void carveChamber(
@@ -381,8 +384,8 @@ public final class CrystalCaveFeature extends Feature<CrystalCaveConfiguration> 
             CrystalCaveConfiguration config,
             GenerationBounds bounds
     ) {
-        int minY = level.getMinBuildHeight();
-        int maxY = Math.min(config.crystalMaxY(), level.getMaxBuildHeight());
+        int minY = level.getMinY();
+        int maxY = Math.min(config.crystalMaxY(), level.getMaxY() + 1);
         if (maxY <= minY) {
             return;
         }
@@ -479,10 +482,10 @@ public final class CrystalCaveFeature extends Feature<CrystalCaveConfiguration> 
         private static GenerationBounds around(ChunkPos chunk, WorldGenLevel level) {
             return new GenerationBounds(
                     chunk.getMinBlockX() - CHUNK_SIZE * SAFE_CHUNK_RADIUS,
-                    level.getMinBuildHeight(),
+                    level.getMinY(),
                     chunk.getMinBlockZ() - CHUNK_SIZE * SAFE_CHUNK_RADIUS,
                     chunk.getMaxBlockX() + CHUNK_SIZE * SAFE_CHUNK_RADIUS,
-                    level.getMaxBuildHeight() - 1,
+                    level.getMaxY(),
                     chunk.getMaxBlockZ() + CHUNK_SIZE * SAFE_CHUNK_RADIUS
             );
         }

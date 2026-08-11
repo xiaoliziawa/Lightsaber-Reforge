@@ -6,6 +6,7 @@
   "flip_v": false,
   "emissive_ambient": true,
   "textures": {
-    "particle": "lightsabers:block/jedi_holocron_side"
+    "particle": "lightsabers:block/jedi_holocron_side",
+    "jedi_side": "lightsabers:block/jedi_holocron_side"
   }
 }

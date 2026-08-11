@@ -2,7 +2,7 @@ package com.fiskmods.lightsabers.common.sound;
 
 import com.fiskmods.lightsabers.Lightsabers;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -45,7 +45,7 @@ public final class ModSounds {
     }
 
     private static DeferredHolder<SoundEvent, SoundEvent> register(String name) {
-        ResourceLocation location = ResourceLocation.fromNamespaceAndPath(
+        Identifier location = Identifier.fromNamespaceAndPath(
                 Lightsabers.MODID,
                 name
         );

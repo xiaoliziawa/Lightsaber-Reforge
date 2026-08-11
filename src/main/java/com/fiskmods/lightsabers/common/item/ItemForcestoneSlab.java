@@ -1,6 +1,7 @@
 package com.fiskmods.lightsabers.common.item;
 
 import com.fiskmods.lightsabers.common.block.BlockModSlab;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -9,13 +10,15 @@ import net.minecraft.world.level.block.Block;
 public class ItemForcestoneSlab extends BlockItem {
     private static final String VARIANT_PROPERTY = BlockModSlab.VARIANT.getName();
 
-    public ItemForcestoneSlab(Block block) {
-        super(block, new Item.Properties());
+    public ItemForcestoneSlab(Block block, Item.Properties properties) {
+        super(block, properties.useBlockDescriptionPrefix());
     }
 
     @Override
-    public String getDescriptionId(ItemStack stack) {
-        return getDescriptionId() + "." + getVariant(stack).getSerializedName();
+    public Component getName(ItemStack stack) {
+        return Component.translatable(
+                getDescriptionId() + "." + getVariant(stack).getSerializedName()
+        );
     }
 
     public static ItemStack create(Block block, BlockModSlab.Variant variant) {

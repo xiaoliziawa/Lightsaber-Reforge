@@ -3,7 +3,7 @@ package com.fiskmods.lightsabers.client.model.legacy;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.core.Direction;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import org.joml.Quaternionf;
 
 import java.util.ArrayList;
@@ -143,7 +143,7 @@ public class LegacyModelRenderer {
                         context.consumer(),
                         context.packedLight(),
                         context.packedOverlay(),
-                        FastColor.ARGB32.colorFromFloat(
+                        ARGB.colorFromFloat(
                                 context.alpha(),
                                 context.red(),
                                 context.green(),

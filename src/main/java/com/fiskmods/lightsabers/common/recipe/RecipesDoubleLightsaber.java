@@ -2,19 +2,22 @@ package com.fiskmods.lightsabers.common.recipe;
 
 import com.fiskmods.lightsabers.common.item.ItemDoubleLightsaber;
 import com.fiskmods.lightsabers.common.item.ModItems;
+import com.fiskmods.lightsabers.common.item.ModItems;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
-import net.minecraft.core.HolderLookup;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
 public class RecipesDoubleLightsaber extends CustomRecipe {
-    public RecipesDoubleLightsaber(CraftingBookCategory category) {
-        super(category);
-    }
+    public static final RecipesDoubleLightsaber INSTANCE = new RecipesDoubleLightsaber();
+    public static final MapCodec<RecipesDoubleLightsaber> MAP_CODEC = MapCodec.unit(INSTANCE);
+    public static final StreamCodec<RegistryFriendlyByteBuf, RecipesDoubleLightsaber> STREAM_CODEC =
+            StreamCodec.unit(INSTANCE);
 
     @Override
     public boolean matches(CraftingInput crafting, Level level) {
@@ -22,7 +25,7 @@ public class RecipesDoubleLightsaber extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput crafting, HolderLookup.Provider registries) {
+    public ItemStack assemble(CraftingInput crafting) {
         int upperSlot = findUpperSlot(crafting);
         if (upperSlot < 0) {
             return ItemStack.EMPTY;
@@ -35,17 +38,7 @@ public class RecipesDoubleLightsaber extends CustomRecipe {
     }
 
     @Override
-    public ItemStack getResultItem(HolderLookup.Provider registries) {
-        return new ItemStack(ModItems.DOUBLE_LIGHTSABER.get());
-    }
-
-    @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width >= 1 && height >= 2;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<? extends CustomRecipe> getSerializer() {
         return ModRecipeSerializers.DOUBLE_LIGHTSABER.get();
     }
 

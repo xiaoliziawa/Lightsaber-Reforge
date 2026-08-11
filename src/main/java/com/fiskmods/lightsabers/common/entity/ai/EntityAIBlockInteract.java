@@ -1,6 +1,7 @@
 package com.fiskmods.lightsabers.common.entity.ai;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
@@ -28,7 +29,7 @@ public abstract class EntityAIBlockInteract extends Goal {
     public boolean canUse() {
         if (!entity.horizontalCollision
                 || !(entity.getNavigation() instanceof GroundPathNavigation navigation)
-                || !navigation.canOpenDoors()) {
+                || !navigation.getNodeEvaluator().canOpenDoors()) {
             return false;
         }
 
@@ -77,10 +78,14 @@ public abstract class EntityAIBlockInteract extends Goal {
     }
 
     private boolean setInteractionBlock(BlockPos pos) {
-        BlockState state = entity.level().getBlockState(pos);
+        if (!(entity.level() instanceof ServerLevel level)) {
+            return false;
+        }
+
+        BlockState state = level.getBlockState(pos);
         if (state.isAir()
-                || state.getDestroySpeed(entity.level(), pos) < 0.0F
-                || !CommonHooks.canEntityDestroy(entity.level(), pos, entity)) {
+                || state.getDestroySpeed(level, pos) < 0.0F
+                || !CommonHooks.canEntityDestroy(level, pos, entity)) {
             return false;
         }
         interactionPos = pos.immutable();

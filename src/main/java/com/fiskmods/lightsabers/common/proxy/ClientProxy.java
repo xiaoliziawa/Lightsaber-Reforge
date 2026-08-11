@@ -8,7 +8,6 @@ import com.fiskmods.lightsabers.client.gui.GuiDisassemblyStation;
 import com.fiskmods.lightsabers.client.gui.GuiForcePowers;
 import com.fiskmods.lightsabers.client.gui.GuiSithCoffin;
 import com.fiskmods.lightsabers.client.gui.GuiOverlay;
-import com.fiskmods.lightsabers.client.integration.epicfight.EpicFightClientIntegration;
 import com.fiskmods.lightsabers.client.input.ALKeyMappings;
 import com.fiskmods.lightsabers.client.input.ClientInputHandler;
 import com.fiskmods.lightsabers.client.model.ModelSithGhost;
@@ -22,12 +21,17 @@ import com.fiskmods.lightsabers.client.render.entity.ClientForceEffectRenderer;
 import com.fiskmods.lightsabers.client.render.HolocronObjRenderer;
 import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.DeferredGlowRenderer;
+import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberRenderTypes;
 import com.fiskmods.lightsabers.client.render.lightsaber.SpearLightsaberObjRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.SpinningLightsaberObjRenderer;
 import com.fiskmods.lightsabers.client.render.item.LightsaberItemDecorator;
 import com.fiskmods.lightsabers.client.render.item.CrystalClientItemExtensions;
+import com.fiskmods.lightsabers.client.render.item.CrystalColorTintSource;
+import com.fiskmods.lightsabers.client.render.item.CrystalItemRenderer;
 import com.fiskmods.lightsabers.client.render.item.HolocronClientItemExtensions;
+import com.fiskmods.lightsabers.client.render.item.HolocronItemRenderer;
 import com.fiskmods.lightsabers.client.render.item.LightsaberClientItemExtensions;
+import com.fiskmods.lightsabers.client.render.item.LightsaberItemRenderer;
 import com.fiskmods.lightsabers.client.render.tile.RenderCrystal;
 import com.fiskmods.lightsabers.client.render.tile.RenderLightsaberStand;
 import com.fiskmods.lightsabers.client.render.tile.RenderCrystalDisplayStand;
@@ -42,55 +46,74 @@ import com.fiskmods.lightsabers.common.container.ModMenus;
 import com.fiskmods.lightsabers.common.data.effect.Effect;
 import com.fiskmods.lightsabers.common.entity.ModEntities;
 import com.fiskmods.lightsabers.common.event.ClientEventHandler;
-import com.fiskmods.lightsabers.common.item.ItemCrystal;
-import com.fiskmods.lightsabers.common.item.ItemForcestone;
-import com.fiskmods.lightsabers.common.item.ItemForcestoneSlab;
 import com.fiskmods.lightsabers.common.item.ModItems;
 import com.fiskmods.lightsabers.common.tileentity.TileEntityCrystal;
 import com.fiskmods.lightsabers.common.tileentity.ModBlockEntities;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterItemDecorationsEvent;
+import net.neoforged.neoforge.client.event.RegisterItemModelsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
+import java.util.List;
+
 public final class ClientProxy extends CommonProxy {
     private static final int OPAQUE_WHITE = 0xFFFFFFFF;
-    private static final ResourceLocation FORCESTONE_VARIANT_PROPERTY =
-            ResourceLocation.fromNamespaceAndPath(Lightsabers.MODID, "forcestone_variant");
-    private static final ResourceLocation FORCESTONE_SLAB_VARIANT_PROPERTY =
-            ResourceLocation.fromNamespaceAndPath(Lightsabers.MODID, "forcestone_slab_variant");
+    private static final BlockTintSource CRYSTAL_BLOCK_TINT = new BlockTintSource() {
+        @Override
+        public int color(BlockState state) {
+            return OPAQUE_WHITE;
+        }
+
+        @Override
+        public int colorInWorld(
+                BlockState state,
+                BlockAndTintGetter level,
+                BlockPos pos
+        ) {
+            return level.getBlockEntity(pos) instanceof TileEntityCrystal crystal
+                    ? ARGB.opaque(crystal.getColor().getRenderColor())
+                    : OPAQUE_WHITE;
+        }
+    };
 
     @Override
     public void registerModEvents(IEventBus modEventBus) {
         modEventBus.addListener(this::clientSetup);
         modEventBus.addListener(this::registerRenderers);
         modEventBus.addListener(this::registerLayerDefinitions);
+        modEventBus.addListener(LightsaberRenderTypes::registerPipelines);
         modEventBus.addListener(HolocronObjRenderer::registerModels);
         modEventBus.addListener(SpinningLightsaberObjRenderer::registerModels);
         modEventBus.addListener(SpearLightsaberObjRenderer::registerModels);
-        modEventBus.addListener(this::registerItemColors);
-        modEventBus.addListener(this::registerBlockColors);
+        modEventBus.addListener(this::registerItemModels);
+        modEventBus.addListener(this::registerItemTintSources);
+        modEventBus.addListener(this::registerBlockTintSources);
         modEventBus.addListener(this::registerItemDecorations);
         modEventBus.addListener(this::registerClientExtensions);
+        modEventBus.addListener(ClientEventHandler::registerRenderStateModifiers);
         modEventBus.addListener(this::registerMenuScreens);
         modEventBus.addListener(ALKeyMappings::register);
         NeoForge.EVENT_BUS.register(ClientInputHandler.INSTANCE);
@@ -100,9 +123,6 @@ public final class ClientProxy extends CommonProxy {
         NeoForge.EVENT_BUS.register(new GuiOverlay());
         NeoForge.EVENT_BUS.register(new ClientEventHandler());
         NeoForge.EVENT_BUS.register(new CommandExportIcon());
-        if (Lightsabers.isEpicFightLoaded) {
-            EpicFightClientIntegration.register();
-        }
     }
 
     @Override
@@ -112,7 +132,9 @@ public final class ClientProxy extends CommonProxy {
 
     @Override
     public float getRenderTick() {
-        return Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
+        return Minecraft.getInstance()
+                .getDeltaTracker()
+                .getGameTimeDeltaPartialTick(true);
     }
 
     @Override
@@ -147,7 +169,7 @@ public final class ClientProxy extends CommonProxy {
     @Override
     public void playLocalSound(Player player, String soundName, float volume, float pitch) {
         Minecraft.getInstance().getSoundManager().play(new SimpleSoundInstance(
-                ResourceLocation.parse(soundName),
+                Identifier.parse(soundName),
                 SoundSource.PLAYERS,
                 volume,
                 pitch,
@@ -229,7 +251,6 @@ public final class ClientProxy extends CommonProxy {
     private void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
             HiltModelRenderer.registerModels();
-            registerItemProperties();
         });
     }
 
@@ -241,22 +262,18 @@ public final class ClientProxy extends CommonProxy {
         event.register(ModMenus.SITH_COFFIN.get(), GuiSithCoffin::new);
     }
 
-    private void registerItemProperties() {
-        ItemProperties.register(
-                ModBlocks.LIGHT_FORCESTONE_ITEM.get(),
-                FORCESTONE_VARIANT_PROPERTY,
-                (stack, level, entity, seed) -> ItemForcestone.getModelPropertyValue(stack)
+    private void registerItemModels(RegisterItemModelsEvent event) {
+        event.register(
+                Identifier.fromNamespaceAndPath(Lightsabers.MODID, "lightsaber"),
+                LightsaberItemRenderer.Unbaked.MAP_CODEC
         );
-        ItemProperties.register(
-                ModBlocks.DARK_FORCESTONE_ITEM.get(),
-                FORCESTONE_VARIANT_PROPERTY,
-                (stack, level, entity, seed) -> ItemForcestone.getModelPropertyValue(stack)
+        event.register(
+                Identifier.fromNamespaceAndPath(Lightsabers.MODID, "crystal"),
+                CrystalItemRenderer.Unbaked.MAP_CODEC
         );
-        ItemProperties.register(
-                ModBlocks.FORCESTONE_SLAB_ITEM.get(),
-                FORCESTONE_SLAB_VARIANT_PROPERTY,
-                (stack, level, entity, seed) ->
-                        ItemForcestoneSlab.getModelPropertyValue(stack)
+        event.register(
+                Identifier.fromNamespaceAndPath(Lightsabers.MODID, "holocron"),
+                HolocronItemRenderer.Unbaked.MAP_CODEC
         );
     }
 
@@ -287,31 +304,16 @@ public final class ClientProxy extends CommonProxy {
         );
     }
 
-    private void registerItemColors(RegisterColorHandlersEvent.Item event) {
+    private void registerItemTintSources(RegisterColorHandlersEvent.ItemTintSources event) {
         event.register(
-                (stack, tintIndex) -> tintIndex == 0
-                        ? FastColor.ARGB32.opaque(ItemCrystal.get(stack).getRenderColor())
-                        : OPAQUE_WHITE,
-                ModBlocks.LIGHTSABER_CRYSTAL_ITEM.get()
-        );
-        event.register(
-                (stack, tintIndex) -> tintIndex == 1
-                        ? FastColor.ARGB32.opaque(ItemCrystal.get(stack).getRenderColor())
-                        : OPAQUE_WHITE,
-                ModItems.CRYSTAL_POUCH.get()
+                Identifier.fromNamespaceAndPath(Lightsabers.MODID, "crystal_color"),
+                CrystalColorTintSource.MAP_CODEC
         );
     }
 
-    private void registerBlockColors(RegisterColorHandlersEvent.Block event) {
+    private void registerBlockTintSources(RegisterColorHandlersEvent.BlockTintSources event) {
         event.register(
-                (state, level, pos, tintIndex) -> {
-                    if (level != null
-                            && pos != null
-                            && level.getBlockEntity(pos) instanceof TileEntityCrystal crystal) {
-                        return crystal.getColor().getRenderColor();
-                    }
-                    return 0xFFFFFF;
-                },
+                List.of(CRYSTAL_BLOCK_TINT),
                 ModBlocks.LIGHTSABER_CRYSTAL.get()
         );
     }

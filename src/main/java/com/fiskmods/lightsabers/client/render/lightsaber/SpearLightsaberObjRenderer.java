@@ -1,33 +1,35 @@
 package com.fiskmods.lightsabers.client.render.lightsaber;
 
 import com.fiskmods.lightsabers.Lightsabers;
+import com.fiskmods.lightsabers.client.render.RenderSubmissionHelper;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelManager;
-import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.resources.model.geometry.QuadCollection;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.model.standalone.SimpleUnbakedStandaloneModel;
+import net.neoforged.neoforge.client.model.standalone.StandaloneModelKey;
 
 public final class SpearLightsaberObjRenderer {
     public static final int BLADE_LENGTH = 26;
 
-    private static final ModelResourceLocation EMITTER_MODEL = model("emitter_head");
-    private static final ModelResourceLocation SWITCH_MODEL = model("switch_ring");
-    private static final ModelResourceLocation GRIP_MODEL = model("grip");
-    private static final ModelResourceLocation POMMEL_MODEL = model("pommel_cap");
-
+    private static final StandaloneModelKey<QuadCollection> EMITTER_MODEL =
+            modelKey("emitter_head");
+    private static final StandaloneModelKey<QuadCollection> SWITCH_MODEL =
+            modelKey("switch_ring");
+    private static final StandaloneModelKey<QuadCollection> GRIP_MODEL =
+            modelKey("grip");
+    private static final StandaloneModelKey<QuadCollection> POMMEL_MODEL =
+            modelKey("pommel_cap");
     private static final float PIXELS_PER_MODEL_UNIT = 9.0F;
     private static final float HILT_DISPLAY_SCALE = 1.3F;
-    private static final float MODEL_SCALE = PIXELS_PER_MODEL_UNIT / 16.0F * HILT_DISPLAY_SCALE;
+    private static final float MODEL_SCALE = PIXELS_PER_MODEL_UNIT
+            / 16.0F * HILT_DISPLAY_SCALE;
     private static final float MODEL_ORIENTATION_ROTATION = 180.0F;
     private static final float HILT_CENTER_Y = 0.3344F;
     private static final float BLADE_SOCKET_Y = 2.375F;
@@ -44,16 +46,14 @@ public final class SpearLightsaberObjRenderer {
     private static final float SWITCH_PART_TARGET_BLOCKS = 1.0F;
     private static final float BODY_PART_TARGET_BLOCKS = 2.4F;
     private static final float POMMEL_PART_TARGET_BLOCKS = 1.25F;
-    private static final RenderType MODEL_RENDER_TYPE = RenderType.entityCutoutNoCull(
-            InventoryMenu.BLOCK_ATLAS
-    );
 
     private SpearLightsaberObjRenderer() {
     }
 
     public static float getBladeModelLength() {
         return getSocketOffset()
-                + LightsaberBladeRenderer.getBladeLength(BLADE_LENGTH) * BLADE_MODEL_SCALE;
+                + LightsaberBladeRenderer.getBladeLength(BLADE_LENGTH)
+                        * BLADE_MODEL_SCALE;
     }
 
     private static float getSocketOffset() {
@@ -76,11 +76,11 @@ public final class SpearLightsaberObjRenderer {
         return targetBlocks / (extent * MODEL_SCALE);
     }
 
-    public static void registerModels(ModelEvent.RegisterAdditional event) {
-        event.register(EMITTER_MODEL);
-        event.register(SWITCH_MODEL);
-        event.register(GRIP_MODEL);
-        event.register(POMMEL_MODEL);
+    public static void registerModels(ModelEvent.RegisterStandalone event) {
+        register(event, EMITTER_MODEL, "emitter_head");
+        register(event, SWITCH_MODEL, "switch_ring");
+        register(event, GRIP_MODEL, "grip");
+        register(event, POMMEL_MODEL, "pommel_cap");
     }
 
     public static boolean isSupported(LightsaberData data) {
@@ -90,53 +90,18 @@ public final class SpearLightsaberObjRenderer {
     public static void renderHilt(
             ItemStack stack,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay
     ) {
-        Minecraft minecraft = Minecraft.getInstance();
-        ModelManager modelManager = minecraft.getModelManager();
-        ItemRenderer itemRenderer = minecraft.getItemRenderer();
         poseStack.pushPose();
         poseStack.mulPose(Axis.XP.rotationDegrees(MODEL_ORIENTATION_ROTATION));
         poseStack.scale(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
         poseStack.translate(0.0F, -HILT_CENTER_Y, 0.0F);
-        renderModel(
-                itemRenderer,
-                modelManager.getModel(EMITTER_MODEL),
-                stack,
-                poseStack,
-                buffer,
-                packedLight,
-                packedOverlay
-        );
-        renderModel(
-                itemRenderer,
-                modelManager.getModel(SWITCH_MODEL),
-                stack,
-                poseStack,
-                buffer,
-                packedLight,
-                packedOverlay
-        );
-        renderModel(
-                itemRenderer,
-                modelManager.getModel(GRIP_MODEL),
-                stack,
-                poseStack,
-                buffer,
-                packedLight,
-                packedOverlay
-        );
-        renderModel(
-                itemRenderer,
-                modelManager.getModel(POMMEL_MODEL),
-                stack,
-                poseStack,
-                buffer,
-                packedLight,
-                packedOverlay
-        );
+        renderModel(EMITTER_MODEL, stack, poseStack, collector, packedLight, packedOverlay);
+        renderModel(SWITCH_MODEL, stack, poseStack, collector, packedLight, packedOverlay);
+        renderModel(GRIP_MODEL, stack, poseStack, collector, packedLight, packedOverlay);
+        renderModel(POMMEL_MODEL, stack, poseStack, collector, packedLight, packedOverlay);
         poseStack.popPose();
     }
 
@@ -144,8 +109,9 @@ public final class SpearLightsaberObjRenderer {
             LightsaberData data,
             ItemStack stack,
             PoseStack poseStack,
-            MultiBufferSource buffer,
-            boolean inWorld
+            SubmitNodeCollector collector,
+            boolean inWorld,
+            boolean deferGlow
     ) {
         poseStack.pushPose();
         poseStack.translate(0.0F, -getSocketOffset(), 0.0F);
@@ -154,8 +120,9 @@ public final class SpearLightsaberObjRenderer {
                 data,
                 stack,
                 poseStack,
-                buffer,
+                collector,
                 inWorld,
+                deferGlow,
                 BLADE_LENGTH,
                 false
         );
@@ -165,14 +132,11 @@ public final class SpearLightsaberObjRenderer {
     public static void renderPart(
             PartType type,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay
     ) {
-        Minecraft minecraft = Minecraft.getInstance();
-        ModelManager modelManager = minecraft.getModelManager();
-        ItemRenderer itemRenderer = minecraft.getItemRenderer();
-        ModelResourceLocation model = switch (type) {
+        StandaloneModelKey<QuadCollection> model = switch (type) {
             case EMITTER -> EMITTER_MODEL;
             case SWITCH_SECTION -> SWITCH_MODEL;
             case BODY -> GRIP_MODEL;
@@ -189,11 +153,10 @@ public final class SpearLightsaberObjRenderer {
         poseStack.scale(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
         poseStack.translate(0.0F, -centerY, 0.0F);
         renderModel(
-                itemRenderer,
-                modelManager.getModel(model),
+                model,
                 ItemStack.EMPTY,
                 poseStack,
-                buffer,
+                collector,
                 packedLight,
                 packedOverlay
         );
@@ -201,33 +164,44 @@ public final class SpearLightsaberObjRenderer {
     }
 
     private static void renderModel(
-            ItemRenderer itemRenderer,
-            BakedModel model,
+            StandaloneModelKey<QuadCollection> key,
             ItemStack stack,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay
     ) {
-        itemRenderer.renderModelLists(
+        QuadCollection model = Minecraft.getInstance()
+                .getModelManager()
+                .getStandaloneModel(key);
+        RenderSubmissionHelper.submitQuads(
+                collector,
+                poseStack,
                 model,
-                ItemStack.EMPTY,
                 packedLight,
                 packedOverlay,
-                poseStack,
-                ItemRenderer.getFoilBuffer(
-                        buffer,
-                        MODEL_RENDER_TYPE,
-                        true,
-                        stack.hasFoil()
-                )
+                stack.hasFoil(),
+                0
         );
     }
 
-    private static ModelResourceLocation model(String name) {
-        return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(
+    private static StandaloneModelKey<QuadCollection> modelKey(String name) {
+        Identifier id = modelId(name);
+        return new StandaloneModelKey<>(id::toString);
+    }
+
+    private static void register(
+            ModelEvent.RegisterStandalone event,
+            StandaloneModelKey<QuadCollection> key,
+            String name
+    ) {
+        event.register(key, SimpleUnbakedStandaloneModel.quadCollection(modelId(name)));
+    }
+
+    private static Identifier modelId(String name) {
+        return Identifier.fromNamespaceAndPath(
                 Lightsabers.MODID,
                 "item/spear/" + name
-        ));
+        );
     }
 }

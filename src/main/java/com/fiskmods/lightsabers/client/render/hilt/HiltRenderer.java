@@ -7,7 +7,7 @@ import com.fiskmods.lightsabers.common.lightsaber.PartType;
 
 import fiskfille.utils.registry.FiskRegistryEntry;
 import fiskfille.utils.registry.FiskSimpleRegistry;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public abstract class HiltRenderer extends FiskRegistryEntry<HiltRenderer>
 {
@@ -56,9 +56,9 @@ public abstract class HiltRenderer extends FiskRegistryEntry<HiltRenderer>
         }
     }
     
-    public ResourceLocation getTexture(PartType type)
+    public Identifier getTexture(PartType type)
     {
-        return ResourceLocation.fromNamespaceAndPath(
+        return Identifier.fromNamespaceAndPath(
                 getDomain(),
                 String.format(
                         "textures/models/lightsaber/%s_%s.png",

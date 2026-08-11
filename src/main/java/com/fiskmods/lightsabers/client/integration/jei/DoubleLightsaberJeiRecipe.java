@@ -3,11 +3,11 @@ package com.fiskmods.lightsabers.client.integration.jei;
 import com.fiskmods.lightsabers.common.hilt.Hilt;
 import com.fiskmods.lightsabers.common.item.ItemDoubleLightsaber;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public record DoubleLightsaberJeiRecipe(
-        ResourceLocation id,
+        Identifier id,
         ItemStack upper,
         ItemStack lower,
         ItemStack output

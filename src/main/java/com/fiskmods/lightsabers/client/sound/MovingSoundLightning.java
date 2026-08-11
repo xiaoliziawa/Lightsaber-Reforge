@@ -4,7 +4,7 @@ import com.fiskmods.lightsabers.common.data.ALDataInterp;
 import com.fiskmods.lightsabers.common.force.effect.ForceTargeting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
@@ -19,7 +19,7 @@ public class MovingSoundLightning extends AbstractTickableSoundInstance {
     public MovingSoundLightning(Player caster) {
         super(
                 SoundEvent.createVariableRangeEvent(
-                        ResourceLocation.parse(ALSounds.player_force_lightning)
+                        Identifier.parse(ALSounds.player_force_lightning)
                 ),
                 SoundSource.PLAYERS,
                 RandomSource.create()

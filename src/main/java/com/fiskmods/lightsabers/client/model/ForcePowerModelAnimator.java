@@ -5,6 +5,7 @@ import com.fiskmods.lightsabers.common.data.effect.Effect;
 import com.fiskmods.lightsabers.common.data.effect.StatusEffect;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -19,14 +20,16 @@ public final class ForcePowerModelAnimator {
 
     public static void apply(
             HumanoidModel<?> model,
-            LivingEntity entity,
-            float ageInTicks,
-            float netHeadYaw,
-            float headPitch
+            HumanoidRenderState renderState,
+            LivingEntity entity
     ) {
-        float partialTick = Mth.clamp(ageInTicks - entity.tickCount, 0.0F, 1.0F);
-        applyCasterPose(model, entity, netHeadYaw, headPitch);
-        applyChokeTargetPose(model, entity, ageInTicks, partialTick);
+        applyCasterPose(model, entity, renderState.yRot, renderState.xRot);
+        applyChokeTargetPose(
+                model,
+                entity,
+                renderState.ageInTicks,
+                renderState.partialTick
+        );
     }
 
     private static void applyCasterPose(

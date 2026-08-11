@@ -2,13 +2,14 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.fiskmods.lightsabers.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_25",
   "mixins": [
-    "MixinEpicFightLivingEntityPatch"
   ],
   "client": [
     "MixinHumanoidModel",
-    "MixinMinecraft"
+    "MixinMinecraft",
+    "MinecraftAccessor",
+    "PostChainAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -325,7 +325,7 @@ public class LightsaberData extends AbstractLightsaberData implements ISerializa
         {
             if (tag instanceof NumericTag numericTag)
             {
-                return new LightsaberData(numericTag.getAsLong());
+                return new LightsaberData(numericTag.longValue());
             }
 
             return null;
@@ -348,14 +348,14 @@ public class LightsaberData extends AbstractLightsaberData implements ISerializa
      */
     public static LightsaberData readFromNBT(CompoundTag nbt)
     {
-        if (nbt.contains("Lightsaber", Tag.TAG_COMPOUND))
+        if (nbt.getCompound("Lightsaber").isPresent())
         {
-            CompoundTag compound = nbt.getCompound("Lightsaber");
-            LightsaberData data = new LightsaberData().set(CrystalColor.get(compound.getInt("color")));
+            CompoundTag compound = nbt.getCompoundOrEmpty("Lightsaber");
+            LightsaberData data = new LightsaberData().set(CrystalColor.get(compound.getIntOr("color", 0)));
 
-            if (compound.contains("FocusingCrystals", Tag.TAG_INT_ARRAY))
+            if (compound.getIntArray("FocusingCrystals").isPresent())
             {
-                for (int id : compound.getIntArray("FocusingCrystals"))
+                for (int id : compound.getIntArray("FocusingCrystals").orElse(new int[0]))
                 {
                     data.add(ItemFocusingCrystal.get(id));
                 }
@@ -371,15 +371,15 @@ public class LightsaberData extends AbstractLightsaberData implements ISerializa
 
             return data;
         }
-        else if (nbt.contains(ALConstants.TAG_LIGHTSABER, Tag.TAG_ANY_NUMERIC))
+        else if (nbt.getInt(ALConstants.TAG_LIGHTSABER).isPresent())
         {
-            return new LightsaberData(nbt.getLong(ALConstants.TAG_LIGHTSABER)).strip();
+            return new LightsaberData(nbt.getLongOr(ALConstants.TAG_LIGHTSABER, 0L)).strip();
         }
-        else if (nbt.contains(ALConstants.TAG_LIGHTSABER, Tag.TAG_STRING))
+        else if (nbt.getString(ALConstants.TAG_LIGHTSABER).isPresent())
         {
             try
             {
-                return new LightsaberData(Long.decode(nbt.getString(ALConstants.TAG_LIGHTSABER))).strip();
+                return new LightsaberData(Long.decode(nbt.getStringOr(ALConstants.TAG_LIGHTSABER, ""))).strip();
             }
             catch (NumberFormatException e)
             {

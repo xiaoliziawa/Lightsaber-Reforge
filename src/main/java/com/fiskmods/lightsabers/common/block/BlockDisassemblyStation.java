@@ -10,9 +10,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
-import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -102,7 +101,7 @@ public class BlockDisassemblyStation extends BaseEntityBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(
+    protected InteractionResult useItemOn(
             ItemStack stack,
             BlockState state,
             Level level,
@@ -111,16 +110,16 @@ public class BlockDisassemblyStation extends BaseEntityBlock {
             InteractionHand hand,
             BlockHitResult hitResult
     ) {
-        if (level.isClientSide) {
-            return ItemInteractionResult.SUCCESS;
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
         if (!(player instanceof ServerPlayer serverPlayer)) {
-            return ItemInteractionResult.CONSUME;
+            return InteractionResult.CONSUME;
         }
 
         BlockPos basePos = getBasePos(state, pos);
         if (!(level.getBlockEntity(basePos) instanceof TileEntityDisassemblyStation station)) {
-            return ItemInteractionResult.CONSUME;
+            return InteractionResult.CONSUME;
         }
 
         serverPlayer.openMenu(
@@ -135,7 +134,7 @@ public class BlockDisassemblyStation extends BaseEntityBlock {
                 ),
                 buffer -> buffer.writeBlockPos(basePos)
         );
-        return ItemInteractionResult.CONSUME;
+        return InteractionResult.CONSUME;
     }
 
     @Override
@@ -164,30 +163,23 @@ public class BlockDisassemblyStation extends BaseEntityBlock {
     }
 
     @Override
-    public void onRemove(
+    protected void affectNeighborsAfterRemoval(
             BlockState state,
-            Level level,
+            ServerLevel level,
             BlockPos pos,
-            BlockState newState,
             boolean isMoving
     ) {
-        if (!state.is(newState.getBlock())) {
-            if (state.getValue(PART) == Part.BASE) {
-                if (level instanceof ServerLevel
-                        && level.getBlockEntity(pos) instanceof TileEntityDisassemblyStation station) {
-                    Containers.dropContents(level, pos, station);
-                    level.updateNeighbourForOutputSignal(pos, this);
-                }
-                removeAdditionalParts(level, pos, state, isMoving);
-            } else {
-                BlockPos basePos = getBasePos(state, pos);
-                BlockState baseState = level.getBlockState(basePos);
-                if (baseState.is(this) && baseState.getValue(PART) == Part.BASE) {
-                    level.removeBlock(basePos, isMoving);
-                }
+        if (state.getValue(PART) == Part.BASE) {
+            level.updateNeighbourForOutputSignal(pos, this);
+            removeAdditionalParts(level, pos, state, isMoving);
+        } else {
+            BlockPos basePos = getBasePos(state, pos);
+            BlockState baseState = level.getBlockState(basePos);
+            if (baseState.is(this) && baseState.getValue(PART) == Part.BASE) {
+                level.removeBlock(basePos, isMoving);
             }
         }
-        super.onRemove(state, level, pos, newState, isMoving);
+        super.affectNeighborsAfterRemoval(state, level, pos, isMoving);
     }
 
     @Override
@@ -196,7 +188,12 @@ public class BlockDisassemblyStation extends BaseEntityBlock {
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+    public int getAnalogOutputSignal(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Direction direction
+    ) {
         BlockPos basePos = getBasePos(state, pos);
         return AbstractContainerMenu.getRedstoneSignalFromContainer(
                 level.getBlockEntity(basePos) instanceof TileEntityDisassemblyStation station
@@ -241,7 +238,7 @@ public class BlockDisassemblyStation extends BaseEntityBlock {
             BlockState state,
             BlockEntityType<T> blockEntityType
     ) {
-        if (level.isClientSide || state.getValue(PART) != Part.BASE) {
+        if (level.isClientSide() || state.getValue(PART) != Part.BASE) {
             return null;
         }
         return createTickerHelper(

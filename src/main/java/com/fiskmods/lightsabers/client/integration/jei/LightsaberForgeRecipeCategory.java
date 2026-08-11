@@ -7,12 +7,12 @@ import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public final class LightsaberForgeRecipeCategory
@@ -27,7 +27,7 @@ public final class LightsaberForgeRecipeCategory
     }
 
     @Override
-    public RecipeType<LightsaberForgeJeiRecipe> getRecipeType() {
+    public IRecipeType<LightsaberForgeJeiRecipe> getRecipeType() {
         return LightsabersJeiPlugin.LIGHTSABER_FORGE;
     }
 
@@ -65,22 +65,22 @@ public final class LightsaberForgeRecipeCategory
             int[] position = ContainerLightsaberForge.SLOTS[slot];
             builder.addInputSlot(position[0], position[1])
                     .setStandardSlotBackground()
-                    .addItemStack(input);
+                    .add(input);
         }
         builder.addOutputSlot(136, 76)
                 .setOutputSlotBackground()
-                .addItemStack(recipe.output());
+                .add(recipe.output());
     }
 
     @Override
     public void draw(
             LightsaberForgeJeiRecipe recipe,
             IRecipeSlotsView recipeSlotsView,
-            GuiGraphics guiGraphics,
+            GuiGraphicsExtractor guiGraphics,
             double mouseX,
             double mouseY
     ) {
-        guiGraphics.drawString(
+        guiGraphics.text(
                 Minecraft.getInstance().font,
                 recipe.heightText(),
                 43,
@@ -91,7 +91,7 @@ public final class LightsaberForgeRecipeCategory
     }
 
     @Override
-    public ResourceLocation getRegistryName(LightsaberForgeJeiRecipe recipe) {
+    public Identifier getIdentifier(LightsaberForgeJeiRecipe recipe) {
         return recipe.id();
     }
 }

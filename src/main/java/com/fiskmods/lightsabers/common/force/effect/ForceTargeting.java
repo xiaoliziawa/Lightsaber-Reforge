@@ -32,7 +32,6 @@ public final class ForceTargeting {
                 .expandTowards(limit.subtract(start))
                 .inflate(SEARCH_INFLATION);
         EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
-                player.level(),
                 player,
                 start,
                 limit,
@@ -41,7 +40,8 @@ public final class ForceTargeting {
                         && entity != player
                         && entity != player.getVehicle()
                         && !entity.isSpectator()
-                        && entity.isPickable()
+                        && entity.isPickable(),
+                start.distanceToSqr(limit)
         );
         return entityHit != null && entityHit.getEntity() instanceof LivingEntity livingEntity
                 ? livingEntity

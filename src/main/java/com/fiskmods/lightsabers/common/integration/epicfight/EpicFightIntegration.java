@@ -2,7 +2,7 @@ package com.fiskmods.lightsabers.common.integration.epicfight;
 
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.sound.ModSounds;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
@@ -80,7 +80,7 @@ public final class EpicFightIntegration {
         return playerPatch != null && playerPatch.isEpicFightMode();
     }
 
-    private static ResourceLocation weaponType(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Lightsabers.MODID, name);
+    private static Identifier weaponType(String name) {
+        return Identifier.fromNamespaceAndPath(Lightsabers.MODID, name);
     }
 }

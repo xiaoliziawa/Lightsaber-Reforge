@@ -5,11 +5,16 @@ import com.fiskmods.lightsabers.client.model.ModelSithGhost;
 import com.fiskmods.lightsabers.common.entity.EntitySithGhost;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.resources.Identifier;
 
 public class RenderSithGhost
-        extends HumanoidMobRenderer<EntitySithGhost, ModelSithGhost> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
+        extends HumanoidMobRenderer<
+                EntitySithGhost,
+                HumanoidRenderState,
+                ModelSithGhost
+        > {
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(
             Lightsabers.MODID,
             "textures/models/sith_ghost.png"
     );
@@ -19,7 +24,12 @@ public class RenderSithGhost
     }
 
     @Override
-    public ResourceLocation getTextureLocation(EntitySithGhost entity) {
+    public Identifier getTextureLocation(HumanoidRenderState state) {
         return TEXTURE;
+    }
+
+    @Override
+    public HumanoidRenderState createRenderState() {
+        return new HumanoidRenderState();
     }
 }

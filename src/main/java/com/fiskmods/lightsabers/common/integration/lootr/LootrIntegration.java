@@ -11,8 +11,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import noobanidus.mods.lootr.common.api.registry.LootrRegistry;
-import noobanidus.mods.lootr.common.block.entity.LootrInventoryBlockEntity;
+import noobanidus.mods.lootr.common.api.LootrRegistry;
+import noobanidus.mods.lootr.common.api.data.blockentity.ILootrBlockEntity;
 
 import java.util.Random;
 
@@ -29,7 +29,7 @@ public final class LootrIntegration {
             Direction facing,
             Random random
     ) {
-        Block lootrInventory = LootrRegistry.getInventoryBlock();
+        Block lootrInventory = LootrRegistry.getChestBlock();
         BlockState existing = level.getBlockState(pos);
         if (existing.is(Blocks.CHEST) || existing.is(lootrInventory)) {
             return false;
@@ -41,9 +41,9 @@ public final class LootrIntegration {
                 Block.UPDATE_CLIENTS
         );
 
-        if (level.getBlockEntity(pos) instanceof LootrInventoryBlockEntity inventory) {
-            inventory.setInfoReferenceInventory(createReferenceInventory(level, category, random));
-            inventory.setChanged();
+        if (level.getBlockEntity(pos) instanceof ILootrBlockEntity inventory) {
+            inventory.setDataReferenceInventory(createReferenceInventory(level, category, random));
+            inventory.asBlockEntity().setChanged();
             return true;
         }
         return false;

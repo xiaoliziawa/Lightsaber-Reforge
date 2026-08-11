@@ -1,141 +1,146 @@
 package com.fiskmods.lightsabers.client.render.lightsaber;
 
+import com.fiskmods.lightsabers.Lightsabers;
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
+import com.mojang.blaze3d.pipeline.DepthStencilState;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.rendertype.OutputTarget;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 
-public final class LightsaberRenderTypes extends RenderStateShard {
-    public static final RenderType BLADE_CORE = RenderType.create(
+public final class LightsaberRenderTypes {
+    private static final RenderPipeline CORE_PIPELINE = createPipeline(
+            "core",
+            ColorTargetState.DEFAULT,
+            DepthStencilState.DEFAULT
+    );
+    private static final RenderPipeline GLOW_PIPELINE = createPipeline(
+            "glow",
+            new ColorTargetState(BlendFunction.LIGHTNING),
+            new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false)
+    );
+    private static final RenderPipeline DARK_GLOW_PIPELINE = createPipeline(
+            "dark_glow",
+            new ColorTargetState(BlendFunction.TRANSLUCENT),
+            new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false)
+    );
+    private static final OutputTarget PARTICLES_TARGET = new OutputTarget(
+            "lightsabers_particles_target",
+            () -> Minecraft.getInstance().levelRenderer.getParticlesTarget()
+    );
+
+    public static final RenderType BLADE_CORE = createRenderType(
             "lightsabers_blade_core",
-            DefaultVertexFormat.POSITION_COLOR,
-            VertexFormat.Mode.QUADS,
+            CORE_PIPELINE,
+            OutputTarget.MAIN_TARGET,
             2048,
-            false,
-            false,
-            RenderType.CompositeState.builder()
-                    .setShaderState(POSITION_COLOR_SHADER)
-                    .setTextureState(NO_TEXTURE)
-                    .setTransparencyState(NO_TRANSPARENCY)
-                    .setCullState(NO_CULL)
-                    .setLightmapState(NO_LIGHTMAP)
-                    .setOverlayState(NO_OVERLAY)
-                    .setWriteMaskState(COLOR_DEPTH_WRITE)
-                    .setOutputState(ITEM_ENTITY_TARGET)
-                    .createCompositeState(false)
+            false
     );
-    public static final RenderType BLADE_GLOW = RenderType.create(
+    public static final RenderType BLADE_GLOW = createRenderType(
             "lightsabers_blade_glow",
-            DefaultVertexFormat.POSITION_COLOR,
-            VertexFormat.Mode.QUADS,
+            GLOW_PIPELINE,
+            OutputTarget.ITEM_ENTITY_TARGET,
             8192,
-            false,
-            true,
-            RenderType.CompositeState.builder()
-                    .setShaderState(POSITION_COLOR_SHADER)
-                    .setTextureState(NO_TEXTURE)
-                    .setTransparencyState(LIGHTNING_TRANSPARENCY)
-                    .setCullState(NO_CULL)
-                    .setLightmapState(NO_LIGHTMAP)
-                    .setOverlayState(NO_OVERLAY)
-                    .setWriteMaskState(COLOR_WRITE)
-                    .setOutputState(ITEM_ENTITY_TARGET)
-                    .createCompositeState(false)
+            true
     );
-    public static final RenderType BLADE_DARK_GLOW = RenderType.create(
+    public static final RenderType BLADE_GLOW_DIRECT = createRenderType(
+            "lightsabers_blade_glow_direct",
+            GLOW_PIPELINE,
+            OutputTarget.MAIN_TARGET,
+            8192,
+            true
+    );
+    public static final RenderType BLADE_DARK_GLOW = createRenderType(
             "lightsabers_blade_dark_glow",
-            DefaultVertexFormat.POSITION_COLOR,
-            VertexFormat.Mode.QUADS,
+            DARK_GLOW_PIPELINE,
+            OutputTarget.ITEM_ENTITY_TARGET,
             8192,
-            false,
-            true,
-            RenderType.CompositeState.builder()
-                    .setShaderState(POSITION_COLOR_SHADER)
-                    .setTextureState(NO_TEXTURE)
-                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                    .setCullState(NO_CULL)
-                    .setLightmapState(NO_LIGHTMAP)
-                    .setOverlayState(NO_OVERLAY)
-                    .setWriteMaskState(COLOR_WRITE)
-                    .setOutputState(ITEM_ENTITY_TARGET)
-                    .createCompositeState(false)
+            true
     );
-    public static final RenderType LIGHTNING_GLOW = RenderType.create(
+    public static final RenderType BLADE_DARK_GLOW_DIRECT = createRenderType(
+            "lightsabers_blade_dark_glow_direct",
+            DARK_GLOW_PIPELINE,
+            OutputTarget.MAIN_TARGET,
+            8192,
+            true
+    );
+    public static final RenderType LIGHTNING_GLOW = createRenderType(
             "lightsabers_lightning_glow",
-            DefaultVertexFormat.POSITION_COLOR,
-            VertexFormat.Mode.QUADS,
+            GLOW_PIPELINE,
+            OutputTarget.ITEM_ENTITY_TARGET,
             2048,
-            false,
-            true,
-            RenderType.CompositeState.builder()
-                    .setShaderState(POSITION_COLOR_SHADER)
-                    .setTextureState(NO_TEXTURE)
-                    .setTransparencyState(LIGHTNING_TRANSPARENCY)
-                    .setCullState(NO_CULL)
-                    .setLightmapState(NO_LIGHTMAP)
-                    .setOverlayState(NO_OVERLAY)
-                    .setWriteMaskState(COLOR_WRITE)
-                    .setOutputState(ITEM_ENTITY_TARGET)
-                    .createCompositeState(false)
+            true
     );
-    public static final RenderType LIGHTNING_CORE = RenderType.create(
+    public static final RenderType LIGHTNING_CORE = createRenderType(
             "lightsabers_lightning_core",
-            DefaultVertexFormat.POSITION_COLOR,
-            VertexFormat.Mode.QUADS,
+            CORE_PIPELINE,
+            OutputTarget.MAIN_TARGET,
             1024,
-            false,
-            false,
-            RenderType.CompositeState.builder()
-                    .setShaderState(POSITION_COLOR_SHADER)
-                    .setTextureState(NO_TEXTURE)
-                    .setTransparencyState(NO_TRANSPARENCY)
-                    .setCullState(NO_CULL)
-                    .setLightmapState(NO_LIGHTMAP)
-                    .setOverlayState(NO_OVERLAY)
-                    .setWriteMaskState(COLOR_DEPTH_WRITE)
-                    .setOutputState(ITEM_ENTITY_TARGET)
-                    .createCompositeState(false)
+            false
     );
-    public static final RenderType FORCE_EFFECT_GLOW = RenderType.create(
+    public static final RenderType FORCE_EFFECT_GLOW = createRenderType(
             "lightsabers_force_effect_glow",
-            DefaultVertexFormat.POSITION_COLOR,
-            VertexFormat.Mode.QUADS,
+            GLOW_PIPELINE,
+            PARTICLES_TARGET,
             16384,
-            false,
-            true,
-            RenderType.CompositeState.builder()
-                    .setShaderState(POSITION_COLOR_SHADER)
-                    .setTextureState(NO_TEXTURE)
-                    .setTransparencyState(LIGHTNING_TRANSPARENCY)
-                    .setCullState(NO_CULL)
-                    .setLightmapState(NO_LIGHTMAP)
-                    .setOverlayState(NO_OVERLAY)
-                    .setWriteMaskState(COLOR_WRITE)
-                    .setOutputState(PARTICLES_TARGET)
-                    .createCompositeState(false)
+            true
     );
-    public static final RenderType FORCE_EFFECT_CORE = RenderType.create(
+    public static final RenderType FORCE_EFFECT_CORE = createRenderType(
             "lightsabers_force_effect_core",
-            DefaultVertexFormat.POSITION_COLOR,
-            VertexFormat.Mode.QUADS,
+            CORE_PIPELINE,
+            OutputTarget.MAIN_TARGET,
             4096,
-            false,
-            false,
-            RenderType.CompositeState.builder()
-                    .setShaderState(POSITION_COLOR_SHADER)
-                    .setTextureState(NO_TEXTURE)
-                    .setTransparencyState(NO_TRANSPARENCY)
-                    .setCullState(NO_CULL)
-                    .setLightmapState(NO_LIGHTMAP)
-                    .setOverlayState(NO_OVERLAY)
-                    .setWriteMaskState(COLOR_DEPTH_WRITE)
-                    .setOutputState(PARTICLES_TARGET)
-                    .createCompositeState(false)
+            false
     );
-
     private LightsaberRenderTypes() {
-        super("lightsabers_render_types", () -> {
-        }, () -> {
-        });
+    }
+
+    public static void registerPipelines(RegisterRenderPipelinesEvent event) {
+        event.registerPipeline(CORE_PIPELINE);
+        event.registerPipeline(GLOW_PIPELINE);
+        event.registerPipeline(DARK_GLOW_PIPELINE);
+    }
+
+    private static RenderPipeline createPipeline(
+            String name,
+            ColorTargetState colorTargetState,
+            DepthStencilState depthStencilState
+    ) {
+        return RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
+                .withLocation(Identifier.fromNamespaceAndPath(
+                        Lightsabers.MODID,
+                        "pipeline/" + name
+                ))
+                .withVertexShader("core/position_color")
+                .withFragmentShader("core/position_color")
+                .withColorTargetState(colorTargetState)
+                .withCull(false)
+                .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
+                .withDepthStencilState(depthStencilState)
+                .build();
+    }
+
+    private static RenderType createRenderType(
+            String name,
+            RenderPipeline pipeline,
+            OutputTarget outputTarget,
+            int bufferSize,
+            boolean sortOnUpload
+    ) {
+        RenderSetup.RenderSetupBuilder setup = RenderSetup.builder(pipeline)
+                .setOutputTarget(outputTarget)
+                .bufferSize(bufferSize);
+        if (sortOnUpload) {
+            setup.sortOnUpload();
+        }
+        return RenderType.create(name, setup.createRenderSetup());
     }
 }

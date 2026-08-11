@@ -14,13 +14,15 @@ import net.minecraft.nbt.LongTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -29,10 +31,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 public class ItemDoubleLightsaber extends ItemLightsaberBase {
     private static final String FLIPPED_TAG = "Flipped";
     private static final float DOUBLE_ATTACK_DAMAGE = 20.0F;
+
+    public ItemDoubleLightsaber(Item.Properties properties) {
+        super(properties);
+    }
 
     @Override
     public float getAttackDamage(ItemStack stack) {
@@ -40,16 +47,14 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
-        if (!level.isClientSide) {
-            CompoundTag tag = ItemDataHelper.getCustomData(stack);
-            if (tag == null) {
-                return;
-            }
-            if (tag.contains("UpperLightsaber", Tag.TAG_COMPOUND)
-                    && tag.contains("LowerLightsaber", Tag.TAG_COMPOUND)) {
-                get(stack);
-            }
+    public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, EquipmentSlot slot) {
+        CompoundTag tag = ItemDataHelper.getCustomData(stack);
+        if (tag == null) {
+            return;
+        }
+        if (tag.getCompound("UpperLightsaber").isPresent()
+                && tag.getCompound("LowerLightsaber").isPresent()) {
+            get(stack);
         }
     }
 
@@ -57,22 +62,23 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
     public void appendHoverText(
             ItemStack stack,
             Item.TooltipContext context,
-            List<Component> tooltip,
+            TooltipDisplay display,
+            Consumer<Component> tooltip,
             TooltipFlag flag
     ) {
         LightsaberData[] sabers = get(stack);
         Hilt[][] hilts = {sabers[0].getHilt(), sabers[1].getHilt()};
-        tooltip.add(Component.translatable("lightsaber.color"));
-        tooltip.add(Component.literal("  " + sabers[0].getColor().getLocalizedName()));
+        tooltip.accept(Component.translatable("lightsaber.color"));
+        tooltip.accept(Component.literal("  " + sabers[0].getColor().getLocalizedName()));
         if (sabers[0].getColor() != sabers[1].getColor()) {
-            tooltip.add(Component.literal("  " + sabers[1].getColor().getLocalizedName()));
+            tooltip.accept(Component.literal("  " + sabers[1].getColor().getLocalizedName()));
         }
 
-        tooltip.add(Component.translatable("lightsaber.hilt"));
+        tooltip.accept(Component.translatable("lightsaber.hilt"));
         if (sabers[0].isHiltUniform() && sabers[1].isHiltUniform()) {
-            tooltip.add(Component.literal("  " + hilts[0][0].getLocalizedName()));
+            tooltip.accept(Component.literal("  " + hilts[0][0].getLocalizedName()));
             if (hilts[0][0] != hilts[1][0]) {
-                tooltip.add(Component.literal("  " + hilts[1][0].getLocalizedName()));
+                tooltip.accept(Component.literal("  " + hilts[1][0].getLocalizedName()));
             }
         } else {
             for (int i = 0; i < (sabers[0].getHiltBits() == sabers[1].getHiltBits() ? 1 : 2); i++) {
@@ -81,7 +87,7 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
                     Collections.reverse(orderedHilts);
                 }
                 for (Hilt hilt : orderedHilts) {
-                    tooltip.add(Component.literal("  " + hilt.getLocalizedName()));
+                    tooltip.accept(Component.literal("  " + hilt.getLocalizedName()));
                 }
             }
         }
@@ -91,21 +97,21 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
                 sabers[1].getFocusingCrystals()
         };
         if (crystals[0].length > 0 || crystals[1].length > 0) {
-            tooltip.add(Component.translatable("lightsaber.focusingCrystals"));
+            tooltip.accept(Component.translatable("lightsaber.focusingCrystals"));
         }
         String[] sides = {"upper", "lower"};
         for (int i = 0; i < sides.length; i++) {
             if (crystals[i].length == 0) {
                 continue;
             }
-            tooltip.add(Component.translatable("lightsaber." + sides[i]).plainCopy().append("  "));
+            tooltip.accept(Component.translatable("lightsaber." + sides[i]).plainCopy().append("  "));
             for (FocusingCrystal crystal : crystals[i]) {
-                tooltip.add(Component.literal("    " + crystal.getLocalizedName()));
+                tooltip.accept(Component.literal("    " + crystal.getLocalizedName()));
             }
         }
 
         if (flag.isAdvanced()) {
-            tooltip.add(Component.translatable(
+            tooltip.accept(Component.translatable(
                     "lightsaber.code.double",
                     Long.toHexString(sabers[0].hash).toUpperCase(Locale.ROOT),
                     Long.toHexString(sabers[1].hash).toUpperCase(Locale.ROOT)
@@ -114,7 +120,7 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
     }
 
     @Override
-    public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+    public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         super.hurtEnemy(stack, target, attacker);
         float width = attacker.getBbWidth() * 2;
         Vec3 center = VectorHelper.getOffsetCoords(attacker, 0, 0, -0.2F);
@@ -134,17 +140,16 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
         )) {
             entity.hurt(ALDamageSources.causeLightsaberDamage(attacker), damage);
         }
-        return true;
     }
 
     public static LightsaberData[] readFromNBT(CompoundTag tag) {
         LightsaberData[] sabers = {LightsaberData.EMPTY, LightsaberData.EMPTY};
-        if (tag.contains("UpperLightsaber", Tag.TAG_COMPOUND)
-                && tag.contains("LowerLightsaber", Tag.TAG_COMPOUND)) {
+        if (tag.getCompound("UpperLightsaber").isPresent()
+                && tag.getCompound("LowerLightsaber").isPresent()) {
             ListTag list = new ListTag();
             String[] oldKeys = {"UpperLightsaber", "LowerLightsaber"};
             for (int i = 0; i < oldKeys.length; i++) {
-                CompoundTag oldTag = tag.getCompound(oldKeys[i]);
+                CompoundTag oldTag = tag.getCompoundOrEmpty(oldKeys[i]);
                 oldTag.put("Lightsaber", oldTag.copy());
                 sabers[i] = LightsaberData.readFromNBT(oldTag);
                 list.add(LongTag.valueOf(sabers[i].hash));
@@ -157,7 +162,7 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
                 for (int i = 0; i < Math.min(list.size(), sabers.length); i++) {
                     Tag entry = list.get(i);
                     if (entry instanceof NumericTag numericTag) {
-                        sabers[i] = new LightsaberData(numericTag.getAsLong()).strip();
+                        sabers[i] = new LightsaberData(numericTag.longValue()).strip();
                     }
                 }
             } else if (lightsaberTag instanceof LongArrayTag array) {
@@ -180,8 +185,8 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
             return new LightsaberData[] {LightsaberData.EMPTY, LightsaberData.EMPTY};
         }
 
-        boolean legacyFormat = tag.contains("UpperLightsaber", Tag.TAG_COMPOUND)
-                && tag.contains("LowerLightsaber", Tag.TAG_COMPOUND);
+        boolean legacyFormat = tag.getCompound("UpperLightsaber").isPresent()
+                && tag.getCompound("LowerLightsaber").isPresent();
         LightsaberData[] sabers = readFromNBT(tag);
         if (legacyFormat) {
             ItemDataHelper.setCustomData(stack, tag);
@@ -191,7 +196,7 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
 
     public static boolean isFlipped(ItemStack stack) {
         CompoundTag tag = ItemDataHelper.getCustomData(stack);
-        return !stack.isEmpty() && tag != null && tag.getBoolean(FLIPPED_TAG);
+        return !stack.isEmpty() && tag != null && tag.getBooleanOr(FLIPPED_TAG, false);
     }
 
     public static void toggleOrientation(ItemStack stack) {
@@ -200,7 +205,7 @@ public class ItemDoubleLightsaber extends ItemLightsaberBase {
         }
 
         ItemDataHelper.updateCustomData(stack, tag -> {
-            if (tag.getBoolean(FLIPPED_TAG)) {
+            if (tag.getBooleanOr(FLIPPED_TAG, false)) {
                 tag.remove(FLIPPED_TAG);
             } else {
                 tag.putBoolean(FLIPPED_TAG, true);

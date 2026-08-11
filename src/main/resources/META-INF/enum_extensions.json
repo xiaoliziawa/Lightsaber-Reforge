@@ -3,7 +3,7 @@
     {
       "enum": "net/minecraft/client/model/HumanoidModel$ArmPose",
       "name": "LIGHTSABERS_SABER",
-      "constructor": "(ZLnet/neoforged/neoforge/client/IArmPoseTransformer;)V",
+      "constructor": "(ZZLnet/neoforged/neoforge/client/IArmPoseTransformer;)V",
       "parameters": {
         "class": "com/fiskmods/lightsabers/client/render/item/LightsaberClientItemExtensions",
         "field": "SABER_POSE"
@@ -12,7 +12,7 @@
     {
       "enum": "net/minecraft/client/model/HumanoidModel$ArmPose",
       "name": "LIGHTSABERS_DOUBLE_SABER",
-      "constructor": "(ZLnet/neoforged/neoforge/client/IArmPoseTransformer;)V",
+      "constructor": "(ZZLnet/neoforged/neoforge/client/IArmPoseTransformer;)V",
       "parameters": {
         "class": "com/fiskmods/lightsabers/client/render/item/LightsaberClientItemExtensions",
         "field": "DOUBLE_SABER_POSE"

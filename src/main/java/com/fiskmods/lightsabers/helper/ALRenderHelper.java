@@ -1,26 +1,29 @@
 package com.fiskmods.lightsabers.helper;
 
 import com.fiskmods.lightsabers.Lightsabers;
+import com.fiskmods.lightsabers.mixin.PostChainAccessor;
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.PostChain;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
 public final class ALRenderHelper {
-    public static final ResourceLocation SHADER_GRAY = ResourceLocation.fromNamespaceAndPath(
+    public static final Identifier SHADER_GRAY = Identifier.fromNamespaceAndPath(
             Lightsabers.MODID,
-            "shaders/post/desaturate.json"
+            "desaturate"
     );
-    public static final ResourceLocation SHADER_BLUE = ResourceLocation.fromNamespaceAndPath(
+    public static final Identifier SHADER_BLUE = Identifier.fromNamespaceAndPath(
             Lightsabers.MODID,
-            "shaders/post/blue.json"
+            "blue"
     );
-    public static final ResourceLocation SHADER_BLUR = ResourceLocation.fromNamespaceAndPath(
+    public static final Identifier SHADER_BLUR = Identifier.fromNamespaceAndPath(
             Lightsabers.MODID,
-            "shaders/post/mild_phosphor.json"
+            "mild_phosphor"
     );
 
     public static boolean overrideColor;
@@ -57,7 +60,9 @@ public final class ALRenderHelper {
     public static float median(double current, double previous) {
         return (float) (previous
                 + (current - previous)
-                * Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
+                * Minecraft.getInstance()
+                        .getDeltaTracker()
+                        .getGameTimeDeltaPartialTick(true));
     }
 
     public static void startGlScissor(int x, int y, int width, int height) {
@@ -73,23 +78,45 @@ public final class ALRenderHelper {
         );
         int scaledWidth = Math.max(0, (int) Math.ceil(width * scale));
         int scaledHeight = Math.max(0, (int) Math.ceil(height * scale));
-        RenderSystem.enableScissor(scaledX, scaledY, scaledWidth, scaledHeight);
+        RenderSystem.enableScissorForRenderTypeDraws(
+                scaledX,
+                scaledY,
+                scaledWidth,
+                scaledHeight
+        );
     }
 
     public static void endGlScissor() {
-        RenderSystem.disableScissor();
+        RenderSystem.disableScissorForRenderTypeDraws();
     }
 
-    public static void startShaders(ResourceLocation location) {
+    public static void startShaders(Identifier location) {
         Minecraft minecraft = Minecraft.getInstance();
-        PostChain currentEffect = minecraft.gameRenderer.currentEffect();
-        if (currentEffect == null || !currentEffect.getName().equals(location.toString())) {
-            minecraft.gameRenderer.loadEffect(location);
+        if (!location.equals(minecraft.gameRenderer.currentPostEffect())) {
+            if (location.equals(SHADER_BLUR)) {
+                resetPersistentTargets(minecraft, location);
+            }
+            minecraft.gameRenderer.setPostEffect(location);
         }
     }
 
     public static void stopShaders() {
-        Minecraft.getInstance().gameRenderer.shutdownEffect();
+        Minecraft.getInstance().gameRenderer.clearPostEffect();
+    }
+
+    private static void resetPersistentTargets(
+            Minecraft minecraft,
+            Identifier location
+    ) {
+        PostChain postChain = minecraft.getShaderManager()
+                .getPostChain(location, LevelTargetBundle.MAIN_TARGETS);
+        if (!(postChain instanceof PostChainAccessor accessor)) {
+            return;
+        }
+        for (RenderTarget target : accessor.lightsabers$getPersistentTargets().values()) {
+            target.destroyBuffers();
+        }
+        accessor.lightsabers$getPersistentTargets().clear();
     }
 
     public static boolean canGazeEntity(

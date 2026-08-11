@@ -12,14 +12,14 @@ import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 import java.util.Locale;
 
 public record LightsaberForgeJeiRecipe(
-        ResourceLocation id,
+        Identifier id,
         List<ItemStack> inputs,
         ItemStack output,
         Component heightText
@@ -49,13 +49,13 @@ public record LightsaberForgeJeiRecipe(
         );
     }
 
-    static ResourceLocation recipeId(String category, Hilt hilt) {
+    static Identifier recipeId(String category, Hilt hilt) {
         String name = Hilt.getNameForHilt(hilt);
-        ResourceLocation hiltId = ResourceLocation.tryParse(name);
+        Identifier hiltId = Identifier.tryParse(name);
         String path = hiltId == null
                 ? Integer.toString(Hilt.getIdFromHilt(hilt))
                 : hiltId.getPath();
-        return ResourceLocation.fromNamespaceAndPath(
+        return Identifier.fromNamespaceAndPath(
                 Lightsabers.MODID,
                 "jei/" + category + "/" + path
         );

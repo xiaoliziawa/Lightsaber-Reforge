@@ -1,0 +1,11 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "lightsabers:item/lightsaber_crystal",
+    "tints": [
+      {
+        "type": "lightsabers:crystal_color"
+      }
+    ]
+  }
+}

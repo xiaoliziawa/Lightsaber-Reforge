@@ -1,9 +1,10 @@
 package com.fiskmods.lightsabers.common.entity.ai;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.gamerules.GameRules;
 
 public class EntityAIBreakBlock extends EntityAIBlockInteract {
     private static final int BREAK_TIME = 60;
@@ -18,7 +19,8 @@ public class EntityAIBreakBlock extends EntityAIBlockInteract {
     @Override
     public boolean canUse() {
         return super.canUse()
-                && entity.level().getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING);
+                && entity.level() instanceof ServerLevel level
+                && level.getGameRules().get(GameRules.MOB_GRIEFING);
     }
 
     @Override

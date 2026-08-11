@@ -5,10 +5,13 @@ import com.fiskmods.lightsabers.common.data.ALData;
 import com.fiskmods.lightsabers.common.force.Power;
 import com.fiskmods.lightsabers.common.force.PowerData;
 import com.fiskmods.lightsabers.common.force.PowerManager;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 
@@ -18,11 +21,11 @@ import java.util.Collections;
 import java.util.List;
 
 public final class GuiSelectPowers extends Screen {
-    private static final ResourceLocation BACKGROUND = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier BACKGROUND = Identifier.fromNamespaceAndPath(
             Lightsabers.MODID,
             "textures/gui/container/force_power_selector.png"
     );
-    private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier ICONS = Identifier.fromNamespaceAndPath(
             Lightsabers.MODID,
             "textures/gui/icons.png"
     );
@@ -97,17 +100,13 @@ public final class GuiSelectPowers extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        guiGraphics.blit(
-                BACKGROUND,
-                leftPos,
-                topPos,
-                0,
-                0,
-                IMAGE_WIDTH,
-                IMAGE_HEIGHT
-        );
+    public void extractRenderState(
+            GuiGraphicsExtractor guiGraphics,
+            int mouseX,
+            int mouseY,
+            float partialTick
+    ) {
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
 
         Power hoveredPower = null;
         for (PowerSlot slot : slots) {
@@ -138,24 +137,38 @@ public final class GuiSelectPowers extends Screen {
     }
 
     @Override
-    public void renderBackground(
-            GuiGraphics guiGraphics,
+    public void extractBackground(
+            GuiGraphicsExtractor guiGraphics,
             int mouseX,
             int mouseY,
             float partialTick
     ) {
-        renderTransparentBackground(guiGraphics);
+        extractTransparentBackground(guiGraphics);
+        guiGraphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                BACKGROUND,
+                leftPos,
+                topPos,
+                0,
+                0,
+                IMAGE_WIDTH,
+                IMAGE_HEIGHT,
+                256,
+                256
+        );
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button != 0) {
-            return super.mouseClicked(mouseX, mouseY, button);
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        if (event.button() != 0) {
+            return super.mouseClicked(event, doubleClick);
         }
 
         PowerSlot slot = getPowerSlot(mouseX, mouseY);
         if (slot != null && slot.power != null) {
-            if (hasShiftDown()) {
+            if (event.hasShiftDown()) {
                 assignFirstEmpty(slot.power);
             } else {
                 grabbedPower = slot.power;
@@ -165,7 +178,7 @@ public final class GuiSelectPowers extends Screen {
 
         int selectedSlot = getSelectedSlot(mouseX, mouseY);
         if (selectedSlot >= 0 && selectedPowers[selectedSlot] != null) {
-            if (hasShiftDown()) {
+            if (event.hasShiftDown()) {
                 selectedPowers[selectedSlot] = null;
             } else {
                 grabbedPower = selectedPowers[selectedSlot];
@@ -173,12 +186,14 @@ public final class GuiSelectPowers extends Screen {
             }
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (button == 0 && grabbedPower != null) {
+    public boolean mouseReleased(MouseButtonEvent event) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        if (event.button() == 0 && grabbedPower != null) {
             int selectedSlot = getSelectedSlot(mouseX, mouseY);
             if (selectedSlot >= 0) {
                 selectedPowers[selectedSlot] = grabbedPower;
@@ -186,17 +201,17 @@ public final class GuiSelectPowers extends Screen {
             grabbedPower = null;
             return true;
         }
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
         if (minecraft != null
-                && minecraft.options.keyInventory.matches(keyCode, scanCode)) {
+                && minecraft.options.keyInventory.matches(event)) {
             onClose();
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override
@@ -215,39 +230,44 @@ public final class GuiSelectPowers extends Screen {
         return false;
     }
 
-    private void drawPower(GuiGraphics guiGraphics, Power power, int x, int y) {
+    private void drawPower(GuiGraphicsExtractor guiGraphics, Power power, int x, int y) {
         if (power == null || !power.hasIcon()) {
             return;
         }
         guiGraphics.blit(
+                RenderPipelines.GUI_TEXTURED,
                 ICONS,
                 x,
                 y,
                 power.getIconX() * 16,
                 power.getIconY() * 16,
                 16,
-                16
+                16,
+                ICON_TEXTURE_SIZE,
+                ICON_TEXTURE_SIZE
         );
     }
 
-    private static void drawHighlight(GuiGraphics guiGraphics, int x, int y) {
+    private static void drawHighlight(GuiGraphicsExtractor guiGraphics, int x, int y) {
         guiGraphics.fill(x, y, x + 16, y + 16, 0x80FFFFFF);
     }
 
-    private void renderPowerDetails(GuiGraphics guiGraphics, Power power) {
+    private void renderPowerDetails(GuiGraphicsExtractor guiGraphics, Power power) {
         if (power.hasIcon()) {
             guiGraphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
                     ICONS,
                     leftPos + PREVIEW_ICON_X,
                     topPos + PREVIEW_ICON_Y,
-                    PREVIEW_ICON_SIZE,
-                    PREVIEW_ICON_SIZE,
                     power.getIconX() * 16.0F,
                     power.getIconY() * 16.0F,
+                    PREVIEW_ICON_SIZE,
+                    PREVIEW_ICON_SIZE,
                     16,
                     16,
                     ICON_TEXTURE_SIZE,
-                    ICON_TEXTURE_SIZE
+                    ICON_TEXTURE_SIZE,
+                    -1
             );
         }
 
@@ -267,7 +287,7 @@ public final class GuiSelectPowers extends Screen {
         int textY = panelTop + DETAILS_PADDING;
         int textWidth = DETAILS_WIDTH - DETAILS_PADDING * 2;
         guiGraphics.enableScissor(panelLeft, panelTop, panelRight, panelBottom);
-        guiGraphics.drawString(
+        guiGraphics.text(
                 font,
                 Component.literal(power.getLocalizedName()),
                 textX,
@@ -316,7 +336,7 @@ public final class GuiSelectPowers extends Screen {
     }
 
     private int drawWrappedDetailsLine(
-            GuiGraphics guiGraphics,
+            GuiGraphicsExtractor guiGraphics,
             Component text,
             int x,
             int y,
@@ -327,7 +347,7 @@ public final class GuiSelectPowers extends Screen {
             if (y + font.lineHeight > bottom) {
                 return bottom;
             }
-            guiGraphics.drawString(font, line, x, y, DETAILS_TEXT_COLOR, true);
+            guiGraphics.text(font, line, x, y, DETAILS_TEXT_COLOR, true);
             y += font.lineHeight + DETAILS_LINE_SPACING;
         }
         return y;

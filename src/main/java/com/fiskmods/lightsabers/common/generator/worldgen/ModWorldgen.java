@@ -6,7 +6,7 @@ import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.generator.structure.EnumStructure;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
@@ -56,7 +56,7 @@ public final class ModWorldgen {
     private static ResourceKey<Structure> structureKey(String name) {
         return ResourceKey.create(
                 Registries.STRUCTURE,
-                ResourceLocation.fromNamespaceAndPath(Lightsabers.MODID, name)
+                Identifier.fromNamespaceAndPath(Lightsabers.MODID, name)
         );
     }
 }

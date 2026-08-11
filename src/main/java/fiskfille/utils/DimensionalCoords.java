@@ -4,7 +4,7 @@ import com.fiskmods.lightsabers.common.data.ALData.DataFactory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -67,8 +67,8 @@ public class DimensionalCoords implements Comparable<DimensionalCoords> {
         return new BlockPos(posX, posY, posZ);
     }
 
-    public ResourceLocation dimensionLocation() {
-        return dimension.location();
+    public Identifier dimensionLocation() {
+        return dimension.identifier();
     }
 
     public static DimensionalCoords fromLegacyArray(int[] values) {
@@ -86,7 +86,7 @@ public class DimensionalCoords implements Comparable<DimensionalCoords> {
         };
     }
 
-    public static ResourceKey<Level> dimension(ResourceLocation location) {
+    public static ResourceKey<Level> dimension(Identifier location) {
         return ResourceKey.create(Registries.DIMENSION, location);
     }
 
@@ -120,12 +120,12 @@ public class DimensionalCoords implements Comparable<DimensionalCoords> {
     @Override
     public String toString() {
         return "Pos{x=" + posX + ", y=" + posY + ", z=" + posZ
-                + ", dimension=" + dimension.location() + '}';
+                + ", dimension=" + dimension.identifier() + '}';
     }
 
     @Override
     public int compareTo(DimensionalCoords coords) {
-        int dimensionComparison = dimension.location().compareTo(coords.dimension.location());
+        int dimensionComparison = dimension.identifier().compareTo(coords.dimension.identifier());
         if (dimensionComparison != 0) {
             return dimensionComparison;
         }

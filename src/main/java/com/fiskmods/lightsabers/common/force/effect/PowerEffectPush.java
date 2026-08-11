@@ -26,7 +26,7 @@ public class PowerEffectPush extends PowerEffect {
             return false;
         }
 
-        if (!target.level().isClientSide) {
+        if (!target.level().isClientSide()) {
             target.hurt(ALDamageSources.causeForceDamage(player), getDamage(amplifier));
             ALEntityData.getData(target).forcePushed = true;
         }

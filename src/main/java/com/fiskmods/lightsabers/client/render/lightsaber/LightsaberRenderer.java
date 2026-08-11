@@ -8,7 +8,7 @@ import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.world.item.ItemStack;
 
 public final class LightsaberRenderer {
@@ -28,17 +28,18 @@ public final class LightsaberRenderer {
             LightsaberData data,
             ItemStack stack,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay,
-            boolean inWorld
+            boolean inWorld,
+            boolean deferGlow
     ) {
         if (SpinningLightsaberObjRenderer.isSupported(data)) {
             SpinningLightsaberObjRenderer.renderHilt(
                     data,
                     stack,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay
             );
@@ -47,8 +48,9 @@ public final class LightsaberRenderer {
                         data,
                         stack,
                         poseStack,
-                        buffer,
-                        inWorld
+                        collector,
+                        inWorld,
+                        deferGlow
                 );
             }
             return;
@@ -57,7 +59,7 @@ public final class LightsaberRenderer {
             SpearLightsaberObjRenderer.renderHilt(
                     stack,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay
             );
@@ -66,8 +68,9 @@ public final class LightsaberRenderer {
                         data,
                         stack,
                         poseStack,
-                        buffer,
-                        inWorld
+                        collector,
+                        inWorld,
+                        deferGlow
                 );
             }
             return;
@@ -76,7 +79,7 @@ public final class LightsaberRenderer {
                 data,
                 stack,
                 poseStack,
-                buffer,
+                collector,
                 packedLight,
                 packedOverlay
         );
@@ -100,13 +103,14 @@ public final class LightsaberRenderer {
                 0.0F
         );
         poseStack.translate(0.0F, BLADE_BASE_OFFSET, 0.0F);
-        renderCrossguard(data, stack, poseStack, buffer, inWorld);
+        renderCrossguard(data, stack, poseStack, collector, inWorld, deferGlow);
         LightsaberBladeRenderer.render(
                 data,
                 stack,
                 poseStack,
-                buffer,
+                collector,
                 inWorld,
+                deferGlow,
                 LightsaberBladeRenderer.MAIN_BLADE_LENGTH,
                 false
         );
@@ -117,10 +121,11 @@ public final class LightsaberRenderer {
             LightsaberData[] sabers,
             ItemStack stack,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector collector,
             int packedLight,
             int packedOverlay,
-            boolean inWorld
+            boolean inWorld,
+            boolean deferGlow
     ) {
         boolean flipped = ItemDoubleLightsaber.isFlipped(stack);
         for (int index = 0; index < sabers.length; index++) {
@@ -136,10 +141,11 @@ public final class LightsaberRenderer {
                     data,
                     stack,
                     poseStack,
-                    buffer,
+                    collector,
                     packedLight,
                     packedOverlay,
-                    inWorld
+                    inWorld,
+                    deferGlow
             );
             poseStack.popPose();
         }
@@ -149,8 +155,9 @@ public final class LightsaberRenderer {
             LightsaberData data,
             ItemStack stack,
             PoseStack poseStack,
-            MultiBufferSource buffer,
-            boolean inWorld
+            SubmitNodeCollector collector,
+            boolean inWorld,
+            boolean deferGlow
     ) {
         Part emitter = data.getPart(PartType.EMITTER);
         if (!emitter.hasCrossguard()) {
@@ -173,8 +180,9 @@ public final class LightsaberRenderer {
                     data,
                     stack,
                     poseStack,
-                    buffer,
+                    collector,
                     inWorld,
+                    deferGlow,
                     LightsaberBladeRenderer.CROSSGUARD_BLADE_LENGTH,
                     true
             );

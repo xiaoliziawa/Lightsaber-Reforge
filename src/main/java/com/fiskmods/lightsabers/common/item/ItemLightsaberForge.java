@@ -12,8 +12,8 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class ItemLightsaberForge extends BlockItem {
-    public ItemLightsaberForge(BlockLightsaberForge block) {
-        super(block, new Item.Properties());
+    public ItemLightsaberForge(BlockLightsaberForge block, Item.Properties properties) {
+        super(block, properties.useBlockDescriptionPrefix());
     }
 
     @Override

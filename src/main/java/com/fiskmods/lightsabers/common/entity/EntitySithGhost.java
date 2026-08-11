@@ -9,7 +9,6 @@ import com.fiskmods.lightsabers.common.sound.ModSounds;
 import com.fiskmods.lightsabers.common.tileentity.TileEntitySithStoneCoffin;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.RandomSource;
@@ -21,7 +20,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -38,6 +37,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
@@ -62,7 +63,7 @@ public class EntitySithGhost extends Monster {
         getNavigation().setCanFloat(true);
         if (getNavigation() instanceof GroundPathNavigation navigation) {
             navigation.setCanOpenDoors(true);
-            navigation.setCanPassDoors(true);
+            navigation.getNodeEvaluator().setCanPassDoors(true);
         }
     }
 
@@ -92,11 +93,11 @@ public class EntitySithGhost extends Monster {
     }
 
     @Override
-    public boolean doHurtTarget(Entity entity) {
+    public boolean doHurtTarget(ServerLevel level, Entity entity) {
         if (entity instanceof EntitySithGhost) {
             return false;
         }
-        boolean hurt = super.doHurtTarget(entity);
+        boolean hurt = super.doHurtTarget(level, entity);
         if (hurt) {
             swingMainHand();
         }
@@ -104,11 +105,11 @@ public class EntitySithGhost extends Monster {
     }
 
     @Override
-    public boolean hurt(DamageSource damageSource, float damage) {
+    public boolean hurtServer(ServerLevel level, DamageSource damageSource, float damage) {
         if (damageSource.is(DamageTypes.IN_WALL)) {
             return false;
         }
-        return super.hurt(damageSource, Math.min(damage, 10.0F));
+        return super.hurtServer(level, damageSource, Math.min(damage, 10.0F));
     }
 
     private void swingMainHand() {
@@ -138,7 +139,7 @@ public class EntitySithGhost extends Monster {
     @Override
     public void tick() {
         super.tick();
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
 
@@ -249,7 +250,7 @@ public class EntitySithGhost extends Monster {
     public SpawnGroupData finalizeSpawn(
             ServerLevelAccessor level,
             DifficultyInstance difficulty,
-            MobSpawnType reason,
+            EntitySpawnReason reason,
             @Nullable SpawnGroupData spawnData
     ) {
         SpawnGroupData result = super.finalizeSpawn(
@@ -307,32 +308,32 @@ public class EntitySithGhost extends Monster {
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
-        hasRestingPlace = tag.getBoolean("HasRestingPlace");
+    public void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        hasRestingPlace = input.getBooleanOr("HasRestingPlace", false);
         restingPlace = new BlockPos(
-                tag.getInt("RestX"),
-                tag.getInt("RestY"),
-                tag.getInt("RestZ")
+                input.getIntOr("RestX", 0),
+                input.getIntOr("RestY", 0),
+                input.getIntOr("RestZ", 0)
         );
-        throwLightsaberCooldown = tag.getInt("ThrowCooldown");
-        swingItemCooldown = tag.getInt("SwingCooldown");
-        strafeTimer = tag.getInt("StrafeTimer");
-        strafeDirection = tag.getInt("Strafe");
-        taskFinished = tag.getInt("TaskFinished");
+        throwLightsaberCooldown = input.getIntOr("ThrowCooldown", 0);
+        swingItemCooldown = input.getIntOr("SwingCooldown", 0);
+        strafeTimer = input.getIntOr("StrafeTimer", 0);
+        strafeDirection = input.getIntOr("Strafe", 0);
+        taskFinished = input.getIntOr("TaskFinished", 0);
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        tag.putBoolean("HasRestingPlace", hasRestingPlace);
-        tag.putInt("RestX", restingPlace.getX());
-        tag.putInt("RestY", restingPlace.getY());
-        tag.putInt("RestZ", restingPlace.getZ());
-        tag.putInt("ThrowCooldown", throwLightsaberCooldown);
-        tag.putInt("SwingCooldown", swingItemCooldown);
-        tag.putInt("StrafeTimer", strafeTimer);
-        tag.putInt("Strafe", strafeDirection);
-        tag.putInt("TaskFinished", taskFinished);
+    public void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putBoolean("HasRestingPlace", hasRestingPlace);
+        output.putInt("RestX", restingPlace.getX());
+        output.putInt("RestY", restingPlace.getY());
+        output.putInt("RestZ", restingPlace.getZ());
+        output.putInt("ThrowCooldown", throwLightsaberCooldown);
+        output.putInt("SwingCooldown", swingItemCooldown);
+        output.putInt("StrafeTimer", strafeTimer);
+        output.putInt("Strafe", strafeDirection);
+        output.putInt("TaskFinished", taskFinished);
     }
 }
