@@ -234,7 +234,7 @@ public final class RenderForceLightning extends EntityRenderer<
                         0.85F
                 )
         );
-        RenderSubmissionHelper.submitGeometry(
+        RenderSubmissionHelper.submitShaderEffectGeometry(
                 collector,
                 poseStack,
                 LightsaberRenderTypes.FORCE_EFFECT_CORE,

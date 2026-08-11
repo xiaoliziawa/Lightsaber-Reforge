@@ -24,6 +24,7 @@ neoForge {
             client()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
             gameDirectory = project.file('run')
+            systemProperty("neoforge.disableGlValidation", "true")
         }
 
         server {
@@ -115,6 +116,8 @@ dependencies {
 
     runtimeOnly "curse.maven:neat-238372:${neat_file_id}"
 
+    implementation "curse.maven:sodium-394468:8396481"
+    implementation "curse.maven:irisshaders-455508:8402602"
     runtimeOnly "curse.maven:torohealth-continued-1412542:${torohealth_file_id}"
 
     implementation "curse.maven:lootr-361276:${lootr_file_id}"

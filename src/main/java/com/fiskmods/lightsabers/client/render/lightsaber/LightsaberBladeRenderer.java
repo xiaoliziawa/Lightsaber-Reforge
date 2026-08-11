@@ -113,7 +113,7 @@ public final class LightsaberBladeRenderer {
         float coreXHalf = xHalf;
         float coreZHalf = zHalf;
         float coreLength = length;
-        RenderSubmissionHelper.submitGeometry(
+        RenderSubmissionHelper.submitShaderEffectGeometry(
                 collector,
                 poseStack,
                 LightsaberRenderTypes.BLADE_CORE,

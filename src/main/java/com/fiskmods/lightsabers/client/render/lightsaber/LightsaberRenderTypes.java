@@ -1,6 +1,7 @@
 package com.fiskmods.lightsabers.client.render.lightsaber;
 
 import com.fiskmods.lightsabers.Lightsabers;
+import com.fiskmods.lightsabers.client.integration.iris.IrisCompat;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
@@ -107,6 +108,11 @@ public final class LightsaberRenderTypes {
         event.registerPipeline(CORE_PIPELINE);
         event.registerPipeline(GLOW_PIPELINE);
         event.registerPipeline(DARK_GLOW_PIPELINE);
+        IrisCompat.registerBasicPipelines(
+                CORE_PIPELINE,
+                GLOW_PIPELINE,
+                DARK_GLOW_PIPELINE
+        );
     }
 
     private static RenderPipeline createPipeline(

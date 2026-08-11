@@ -40,6 +40,13 @@ versionRange="*"
 ordering="AFTER"
 side="BOTH"
 
+[[dependencies.${mod_id}]]
+modId="iris"
+type="optional"
+versionRange="*"
+ordering="AFTER"
+side="CLIENT"
+
 # Epic Fight has no 26.1.2 release yet; re-enable together with its integration sources.
 #[[dependencies.${mod_id}]]
 #modId="epicfight"

@@ -1,5 +1,6 @@
 package com.fiskmods.lightsabers.client.render.lightsaber;
 
+import com.fiskmods.lightsabers.client.integration.iris.IrisCompat;
 import com.fiskmods.lightsabers.client.render.RenderSubmissionHelper;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
@@ -50,7 +51,7 @@ public enum DeferredGlowRenderer {
             RenderSubmissionHelper.GeometryRenderer renderer
     ) {
         if (!deferInWorld) {
-            RenderSubmissionHelper.submitGeometry(
+            RenderSubmissionHelper.submitShaderEffectGeometry(
                     collector,
                     poseStack,
                     directRenderType,
@@ -58,8 +59,8 @@ public enum DeferredGlowRenderer {
             );
             return;
         }
-        if (Minecraft.useShaderTransparency()) {
-            RenderSubmissionHelper.submitGeometry(
+        if (IrisCompat.isShaderPackInUse() || Minecraft.useShaderTransparency()) {
+            RenderSubmissionHelper.submitShaderEffectGeometry(
                     collector,
                     poseStack,
                     worldRenderType,
