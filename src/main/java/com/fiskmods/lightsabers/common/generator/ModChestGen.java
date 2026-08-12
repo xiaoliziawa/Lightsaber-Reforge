@@ -295,10 +295,13 @@ public final class ModChestGen {
     }
 
     private static final class DiscoverableEnchantments {
+        // 某些 mod 会通过 mixin 把附魔等级改成 0 来禁用（如 DragonMineZ 禁横扫之刃），
+        // 导致 getMaxLevel() < getMinLevel()，必须过滤掉，否则随机选等级时 bound 为 0 会崩溃
         private static final List<Enchantment> VALUES = ForgeRegistries.ENCHANTMENTS
                 .getValues()
                 .stream()
                 .filter(Enchantment::isDiscoverable)
+                .filter(enchantment -> enchantment.getMaxLevel() >= enchantment.getMinLevel())
                 .toList();
 
         private DiscoverableEnchantments() {
