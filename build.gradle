@@ -165,7 +165,7 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.register('exportBlockbenchModels', JavaExec) {
     group = 'model tools'
-    description = 'Exports hard-coded LegacyModelRenderer models to Blockbench .bbmodel files.'
+    description = 'Exports hard-coded LegacyModelRenderer models to Blockbench .bbmodel files and runtime-baked OBJ models.'
     dependsOn tasks.named('classes'), tasks.named('modelToolsClasses')
     classpath = sourceSets.modelTools.runtimeClasspath
     mainClass = 'com.fiskmods.lightsabers.tools.model.LegacyModelBlockbenchExporter'
@@ -180,6 +180,30 @@ tasks.register('exportBlockbenchModels', JavaExec) {
             '--block-models', file('src/main/resources/assets/lightsabers/models/block').absolutePath,
             '--block-textures', file('src/main/resources/assets/lightsabers/textures/block').absolutePath,
             '--output', file(project.findProperty('modelOutput') ?: 'model_exports/blockbench').absolutePath
+
+    var modelFilter = providers.gradleProperty('model')
+    if (modelFilter.isPresent()) {
+        args '--model', modelFilter.get()
+    }
+}
+
+tasks.register('exportObjModels', JavaExec) {
+    group = 'model tools'
+    description = 'Exports hard-coded LegacyModelRenderer lightsaber parts to runtime-baked OBJ + MTL + neoforge:obj JSON.'
+    dependsOn tasks.named('classes'), tasks.named('modelToolsClasses')
+    classpath = sourceSets.modelTools.runtimeClasspath
+    mainClass = 'com.fiskmods.lightsabers.tools.model.LegacyModelBlockbenchExporter'
+    systemProperty 'lightsabers.recordModelExportData', 'true'
+    systemProperty 'lightsabers.minecraftVersion', minecraft_version
+    systemProperty 'lightsabers.minecraftResourcesJar', providers.gradleProperty('minecraftResourcesJar')
+            .orElse(file("build/moddev/artifacts/neoforge-${neo_version}-client-extra-aka-minecraft-resources.jar").absolutePath)
+            .get()
+
+    args '--source', file('src/main/java/com/fiskmods/lightsabers/client/model').absolutePath,
+            '--textures', file('src/main/resources/assets/lightsabers/textures/models').absolutePath,
+            '--block-models', file('src/main/resources/assets/lightsabers/models/block').absolutePath,
+            '--block-textures', file('src/main/resources/assets/lightsabers/textures/block').absolutePath,
+            '--output', file(project.findProperty('modelOutput') ?: 'model_exports/obj').absolutePath
 
     var modelFilter = providers.gradleProperty('model')
     if (modelFilter.isPresent()) {

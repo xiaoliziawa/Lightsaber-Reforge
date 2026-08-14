@@ -1,6 +1,10 @@
-# 硬编码模型 Blockbench 导出工具
+# 硬编码模型 Blockbench/OBJ 导出工具
 
-该工具会实例化当前 `LegacyModelRenderer` 与现代 `LayerDefinition` 硬编码模型，并导出 Blockbench 原生 `.bbmodel`。
+该工具会实例化当前 `LegacyModelRenderer` 与现代 `LayerDefinition` 硬编码模型，并导出：
+
+- **Blockbench 原生 `.bbmodel`**（可编辑层级模型）
+- **运行时烘焙 OBJ**（`neoforge:obj` 可直接加载的游戏模型，精确还原 `render()` 中的全部 `glScaled`/平移/旋转）
+
 当前覆盖：
 
 - `client/model/lightsaber` 下的 60 个 emitter、body、switch section、pommel 模型
@@ -10,22 +14,26 @@
 - 当前资源目录中的全部 Java 方块模型 JSON 与方块纹理
 - 为导出的方块 JSON 自动补齐 Blockbench/Minecraft `display` 槽位，可编辑 GUI、第一/第三人称、地面和展示框变换
 
-导出内容包括：
+## 修复记录（26.1.2 适配）
 
-- `addBox` 的坐标、尺寸和 inflation
-- `setRotationPoint` 原点
-- X/Y/Z 旋转
-- `addChild` 父子层级
-- Box UV、镜像和纹理尺寸
-- 自动匹配并内嵌对应 PNG 纹理
-- Java 字段和 Blockbench UUID 的稳定映射
+- 修复 `PartPose` 字段在 26.1.2 中为 record(private) 导致的编译失败，改用访问器 `x()`/`yRot()` 等
+- **新增运行时烘焙 OBJ 导出**：直接调用 `LegacyModelBase.render()` 捕获最终顶点，`render()` 方法中的 `glScaled` 非等比缩放、offset 平移、镜像全部精确还原（旧导出器只读构造函数数据，完全忽略 `glScaled`，导致导出结果比例错乱）
+- 导出顶点以模型单位（×16）、Y 轴向上输出，与 `models/item/spear` 的 OBJ 约定一致
+- `.bbmodel` 导出现在解析 `render()` 方法源码，把 `glScaled` 写入 group 的 `scale` 字段（52/60 个模型包含非等比缩放）
+- 复合方块模型导出对缺失文件容错跳过，不再中断整个导出
 
 ## 使用方式
 
-导出全部硬编码光剑模型：
+导出全部硬编码光剑模型（Blockbench + OBJ）：
 
 ```powershell
 .\gradlew.bat --no-daemon exportBlockbenchModels
+```
+
+只导出 OBJ（游戏可直接加载的 `neoforge:obj` 模型）：
+
+```powershell
+.\gradlew.bat --no-daemon exportObjModels
 ```
 
 只导出一个模型：
@@ -57,11 +65,16 @@ model_exports/blockbench/
 其中：
 
 ```text
-lightsaber/   60 个光剑零件 .bbmodel
-tile/         Sith Coffin 与 Stone Sith Coffin .bbmodel
- block_json/   展示架、锻造台、拆解台等原始方块 JSON（用于核对游戏资源）
- block/        合并后的完整方块 Blockbench 工程，包含父模型展开、贴图和 Display 变换
+lightsaber/        60 个光剑零件 .bbmodel
+obj/lightsaber/    60 个光剑零件 .obj + .mtl + .json（neoforge:obj 可直接加载）
+tile/              Sith Coffin 与 Stone Sith Coffin .bbmodel
+block_json/        展示架、锻造台、拆解台等原始方块 JSON（用于核对游戏资源）
+block/             合并后的完整方块 Blockbench 工程，包含父模型展开、贴图和 Display 变换
 ```
+
+OBJ 模型使用方式：把 `obj/lightsaber/` 下的文件复制到
+`assets/lightsabers/models/lightsaber/`（与 JSON 中 `lightsabers:models/lightsaber/` 路径对应），
+即可被 `neoforge:obj` loader 加载；或复制到任意 `assets/lightsabers/models/` 子目录后修改 JSON 中的 `model` 路径。
 
 棺材等实体模型会在原有 `modded_entity` 动画格式中保留 `animations` 与 `animation_controllers`，并附带同一套 `display` 变换字段，因此可以在同一个工程里继续编辑动画，同时记录手持、GUI、掉落物和展示框姿态。
 
@@ -75,7 +88,7 @@ ModelBodyGraflex.mapping.json
 ## Blockbench 编辑约定
 
 - 直接打开 `.bbmodel`，不要转换成其他项目格式。
-- 可以修改 group 原点、旋转以及 cube 的位置、尺寸和 inflation。
+- 可以修改 group 原点、旋转、缩放以及 cube 的位置、尺寸和 inflation。
 - 尽量不要重命名 group，也不要让 Blockbench 重新生成 UUID。
 - 不要删除同名 `.mapping.json`；反向修改 Java 时需要同时提供这两个文件。
 - Vaid 模型会载入 ancient 与 modern 两张纹理，默认显示第一张，可在纹理列表切换。

@@ -8,6 +8,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
@@ -119,11 +121,15 @@ public final class LegacyModelBlockbenchExporter {
         List<String> modelClasses = findModelClasses();
         List<String> failures = new ArrayList<>();
         int exported = 0;
+        int exportedObj = 0;
 
         for (String className : modelClasses) {
             try {
                 if (exportModel(className)) {
                     exported++;
+                }
+                if (exportLegacyModelObj(className)) {
+                    exportedObj++;
                 }
             } catch (ReflectiveOperationException | RuntimeException | IOException exception) {
                 failures.add(className + ": " + exception.getMessage());
@@ -143,6 +149,7 @@ public final class LegacyModelBlockbenchExporter {
         writeBlockAssetReadme();
 
         System.out.println("Exported " + exported + " Blockbench model(s) to " + options.outputRoot());
+        System.out.println("Exported " + exportedObj + " OBJ model(s) to " + options.outputRoot());
         System.out.println(
                 "Copied " + copiedBlockModels + " block model JSON file(s) and "
                         + copiedBlockTextures + " block texture(s)"
@@ -152,7 +159,6 @@ public final class LegacyModelBlockbenchExporter {
             throw new IllegalStateException("Failed to export models:\n" + String.join("\n", failures));
         }
     }
-
     private boolean exportModel(String className) throws ReflectiveOperationException, IOException {
         Class<?> rawClass = Class.forName(className);
         if (Modifier.isAbstract(rawClass.getModifiers())) {
@@ -166,6 +172,255 @@ public final class LegacyModelBlockbenchExporter {
         return layerFactory != null && exportLayerModel(className, rawClass, layerFactory);
     }
 
+    private boolean exportLegacyModelObj(
+            String className
+    ) throws ReflectiveOperationException, IOException {
+        if (!className.startsWith(MODEL_PACKAGE + ".lightsaber.")
+                && !className.startsWith(MODEL_PACKAGE + ".tile.")) {
+            return false;
+        }
+        Class<?> rawClass = Class.forName(className);
+        if (Modifier.isAbstract(rawClass.getModifiers())
+                || !LegacyModelBase.class.isAssignableFrom(rawClass)) {
+            return false;
+        }
+
+        Constructor<?> constructor = rawClass.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        LegacyModelBase model = (LegacyModelBase) constructor.newInstance();
+
+        PoseStack poseStack = new PoseStack();
+        ObjVertexConsumer consumer = new ObjVertexConsumer();
+        model.render(poseStack, consumer, 0, 0);
+        if (consumer.vertices().isEmpty()) {
+            return false;
+        }
+
+        Path relativeDirectory = classOutputDirectory(className);
+        Path outputDirectory = options.outputRoot().resolve("obj").resolve(relativeDirectory);
+        Files.createDirectories(outputDirectory);
+        String simpleName = rawClass.getSimpleName();
+        String resourceName = toSnakeCase(simpleName.substring("Model".length()));
+        Path objFile = outputDirectory.resolve(resourceName + ".obj");
+        Path mtlFile = outputDirectory.resolve(resourceName + ".mtl");
+        List<Path> textures = resolveTextures(simpleName);
+        String textureName = textures.isEmpty()
+                ? "white"
+                : textureStem(textures.get(0));
+
+        writeObjFile(objFile, mtlFile, resourceName, textureName, consumer);
+        writeMtlFile(mtlFile, textureName, textures);
+        writeJson(objFile.resolveSibling(resourceName + ".json"), createObjModelJson(
+                resourceName,
+                relativeDirectory,
+                textureName,
+                textures
+        ));
+        System.out.println("  " + className + " -> " + objFile);
+        return true;
+    }
+
+    private void writeObjFile(
+            Path objFile,
+            Path mtlFile,
+            String modelName,
+            String textureName,
+            ObjVertexConsumer consumer
+    ) throws IOException {
+        StringBuilder builder = new StringBuilder();
+        builder.append("# Exported from ").append(modelName).append('\n');
+        builder.append("mtllib ").append(mtlFile.getFileName()).append('\n');
+        builder.append("o ").append(modelName).append('\n');
+        builder.append("usemtl ").append(textureName).append('\n');
+        builder.append("s off\n");
+
+        int index = 0;
+        for (ObjVertexConsumer.Vertex vertex : consumer.vertices()) {
+            builder.append("v ").append(format(vertex.x() * MODEL_UNITS_PER_OFFSET))
+                    .append(' ').append(format(-vertex.y() * MODEL_UNITS_PER_OFFSET))
+                    .append(' ').append(format(vertex.z() * MODEL_UNITS_PER_OFFSET)).append('\n');
+            builder.append("vt ").append(format(vertex.u()))
+                    .append(' ').append(format(vertex.v())).append('\n');
+            builder.append("vn ").append(format(vertex.nx()))
+                    .append(' ').append(format(-vertex.ny()))
+                    .append(' ').append(format(vertex.nz())).append('\n');
+            index++;
+            if (index % 4 == 0) {
+                int base = index - 3;
+                builder.append("f ")
+                        .append(base + 3).append('/').append(base + 3).append('/').append(base + 3)
+                        .append(' ')
+                        .append(base + 2).append('/').append(base + 2).append('/').append(base + 2)
+                        .append(' ')
+                        .append(base + 1).append('/').append(base + 1).append('/').append(base + 1)
+                        .append(' ')
+                        .append(base).append('/').append(base).append('/').append(base)
+                        .append('\n');
+            }
+        }
+        Files.writeString(
+                objFile,
+                builder.toString(),
+                StandardCharsets.UTF_8,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+        );
+    }
+
+    private void writeMtlFile(
+            Path mtlFile,
+            String textureName,
+            List<Path> textures
+    ) throws IOException {
+        StringBuilder builder = new StringBuilder();
+        builder.append("# Material library for ").append(textureName).append('\n');
+        builder.append("newmtl ").append(textureName).append('\n');
+        builder.append("Ka 0.5 0.5 0.5\n");
+        builder.append("Kd 1.0 1.0 1.0\n");
+        builder.append("Ks 0.0 0.0 0.0\n");
+        builder.append("Ns 10.0\n");
+        builder.append("illum 1\n");
+        builder.append("map_Kd ").append(textureName).append('\n');
+        Files.writeString(
+                mtlFile,
+                builder.toString(),
+                StandardCharsets.UTF_8,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+        );
+    }
+
+    private JsonObject createObjModelJson(
+            String simpleName,
+            Path relativeDirectory,
+            String textureName,
+            List<Path> textures
+    ) {
+        JsonObject json = new JsonObject();
+        json.addProperty("loader", "neoforge:obj");
+        json.addProperty("model", "lightsabers:models/" + relativeDirectory + "/" + simpleName + ".obj");
+        json.addProperty("automatic_culling", false);
+        json.addProperty("shade_quads", true);
+        json.addProperty("flip_v", false);
+        json.addProperty("emissive_ambient", false);
+
+        JsonObject textureMap = new JsonObject();
+        textureMap.addProperty("particle", "minecraft:block/white_concrete");
+        if (textures.isEmpty()) {
+            textureMap.addProperty(textureName, "minecraft:block/white_concrete");
+        } else {
+            Path texture = textures.get(0);
+            String namespace = "lightsabers";
+            String path = texture.toAbsolutePath().normalize()
+                    .toString()
+                    .replace('\\', '/');
+            int assetsIndex = path.indexOf("/assets/");
+            if (assetsIndex >= 0) {
+                String resourcePath = path.substring(assetsIndex + "/assets/".length());
+                int namespaceEnd = resourcePath.indexOf('/');
+                namespace = resourcePath.substring(0, namespaceEnd);
+                path = resourcePath.substring(namespaceEnd + 1);
+            }
+            textureMap.addProperty(textureName, namespace + ":" + path);
+        }
+        json.add("textures", textureMap);
+        return json;
+    }
+
+    private static String format(float value) {
+        if (value == -0.0F) {
+            value = 0.0F;
+        }
+        return Float.toString(value);
+    }
+
+    private static final class ObjVertexConsumer implements VertexConsumer {
+        private final List<Vertex> vertices = new ArrayList<>();
+        private float x;
+        private float y;
+        private float z;
+        private float u;
+        private float v;
+        private float nx;
+        private float ny;
+        private float nz;
+        private boolean pending;
+
+        List<Vertex> vertices() {
+            return vertices;
+        }
+
+        @Override
+        public VertexConsumer addVertex(float x, float y, float z) {
+            flush();
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            pending = true;
+            return this;
+        }
+
+        @Override
+        public VertexConsumer setColor(int r, int g, int b, int a) {
+            return this;
+        }
+
+        @Override
+        public VertexConsumer setColor(int color) {
+            return this;
+        }
+
+        @Override
+        public VertexConsumer setUv(float u, float v) {
+            this.u = u;
+            this.v = v;
+            return this;
+        }
+
+        @Override
+        public VertexConsumer setUv1(int u, int v) {
+            return this;
+        }
+
+        @Override
+        public VertexConsumer setUv2(int u, int v) {
+            return this;
+        }
+
+        @Override
+        public VertexConsumer setNormal(float x, float y, float z) {
+            this.nx = x;
+            this.ny = y;
+            this.nz = z;
+            flush();
+            return this;
+        }
+
+        @Override
+        public VertexConsumer setLineWidth(float width) {
+            return this;
+        }
+
+        private void flush() {
+            if (pending) {
+                vertices.add(new Vertex(x, y, z, u, v, nx, ny, nz));
+                pending = false;
+            }
+        }
+
+        private record Vertex(
+                float x,
+                float y,
+                float z,
+                float u,
+                float v,
+                float nx,
+                float ny,
+                float nz
+        ) {
+        }
+    }
+
     private boolean exportLegacyModel(
             String className,
             Class<?> rawClass
@@ -177,7 +432,6 @@ public final class LegacyModelBlockbenchExporter {
         if (rendererNames.isEmpty()) {
             return false;
         }
-
         Path relativeDirectory = classOutputDirectory(className);
         Path outputDirectory = options.outputRoot().resolve(relativeDirectory);
         Files.createDirectories(outputDirectory);
@@ -185,6 +439,7 @@ public final class LegacyModelBlockbenchExporter {
         Path modelFile = outputDirectory.resolve(simpleName + ".bbmodel");
         Path mappingFile = outputDirectory.resolve(simpleName + ".mapping.json");
         List<Path> textures = resolveTextures(simpleName);
+        Map<String, float[]> renderScales = parseRenderScales(rawClass);
 
         ExportContext context = new ExportContext(
                 className,
@@ -192,7 +447,8 @@ public final class LegacyModelBlockbenchExporter {
                 model,
                 rendererNames,
                 textures,
-                modelFile
+                modelFile,
+                renderScales
         );
         JsonObject blockbenchModel = createBlockbenchModel(context);
         JsonObject mapping = createMapping(context);
@@ -388,17 +644,17 @@ public final class LegacyModelBlockbenchExporter {
             JsonArray mappingNodes
     ) {
         PartPose pose = part.pose();
-        Vector rawOrigin = parentRawOrigin.add(pose.x, pose.y, pose.z);
+        Vector rawOrigin = parentRawOrigin.add(pose.x(), pose.y(), pose.z());
         Vector blockbenchOrigin = toBlockbenchPoint(rawOrigin);
         String groupUuid = stableUuid(context.className() + ":modern_group:" + path);
         JsonObject group = new JsonObject();
         group.addProperty("name", part.name());
         group.add("origin", blockbenchOrigin.toJson());
-        if (pose.xRot != 0.0F || pose.yRot != 0.0F || pose.zRot != 0.0F) {
+        if (pose.xRot() != 0.0F || pose.yRot() != 0.0F || pose.zRot() != 0.0F) {
             group.add("rotation", array(
-                    -pose.xRot * RADIANS_TO_DEGREES,
-                    pose.yRot * RADIANS_TO_DEGREES,
-                    -pose.zRot * RADIANS_TO_DEGREES
+                    -pose.xRot() * RADIANS_TO_DEGREES,
+                    pose.yRot() * RADIANS_TO_DEGREES,
+                    -pose.zRot() * RADIANS_TO_DEGREES
             ));
         }
         group.addProperty("uuid", groupUuid);
@@ -450,11 +706,11 @@ public final class LegacyModelBlockbenchExporter {
         } else {
             nodeMapping.addProperty("parent_path", parentPath);
         }
-        nodeMapping.add("part_pose_offset", array(pose.x, pose.y, pose.z));
+        nodeMapping.add("part_pose_offset", array(pose.x(), pose.y(), pose.z()));
         nodeMapping.add("part_pose_rotation_radians", array(
-                pose.xRot,
-                pose.yRot,
-                pose.zRot
+                pose.xRot(),
+                pose.yRot(),
+                pose.zRot()
         ));
         nodeMapping.add("cubes", mappingCubes);
         mappingNodes.add(nodeMapping);
@@ -567,6 +823,10 @@ public final class LegacyModelBlockbenchExporter {
                     renderer.rotateAngleY * RADIANS_TO_DEGREES,
                     renderer.rotateAngleZ * RADIANS_TO_DEGREES
             ));
+        }
+        float[] renderScale = context.renderScales().get(rendererName);
+        if (renderScale != null) {
+            group.add("scale", array(renderScale[0], renderScale[1], renderScale[2]));
         }
         group.addProperty("uuid", groupUuid);
         group.addProperty("export", true);
@@ -874,6 +1134,82 @@ public final class LegacyModelBlockbenchExporter {
         );
     }
 
+    private Map<String, float[]> parseRenderScales(Class<?> modelClass) {
+        Map<String, float[]> scales = new LinkedHashMap<>();
+        try {
+            String sourcePath = modelClass.getName()
+                    .substring(MODEL_PACKAGE.length() + 1)
+                    .replace('.', '/');
+            Path sourceFile = options.sourceRoot().resolve(sourcePath + ".java");
+            if (!Files.isRegularFile(sourceFile)) {
+                return scales;
+            }
+
+            List<String> lines = Files.readAllLines(sourceFile, StandardCharsets.UTF_8);
+            List<float[]> pendingScales = new ArrayList<>();
+            boolean inRenderMethod = false;
+
+            for (String line : lines) {
+                String trimmed = line.trim();
+                if (trimmed.contains("public void render(")) {
+                    inRenderMethod = true;
+                } else if (inRenderMethod && trimmed.equals("}")) {
+                    inRenderMethod = false;
+                } else if (inRenderMethod) {
+                    if (trimmed.startsWith("LegacyGlState.glScaled")) {
+                        float[] scale = parseScaleValues(trimmed);
+                        if (scale != null) {
+                            pendingScales.add(scale);
+                        }
+                    } else if (trimmed.endsWith(".render(f5);")
+                            || trimmed.endsWith(".render(f5)")) {
+                        String rendererName = trimmed.substring(0, trimmed.indexOf(".render"));
+                        if (!pendingScales.isEmpty()) {
+                            scales.put(
+                                    rendererName,
+                                    pendingScales.remove(pendingScales.size() - 1)
+                            );
+                        }
+                    }
+                }
+            }
+        } catch (IOException | RuntimeException exception) {
+            System.err.println("  Failed to parse render() scales for " + modelClass.getName()
+                    + ": " + exception.getMessage());
+        }
+        return scales;
+    }
+
+    private static float[] parseScaleValues(String line) {
+        int start = line.indexOf('(');
+        int end = line.lastIndexOf(')');
+        if (start < 0 || end <= start) {
+            return null;
+        }
+        String[] parts = line.substring(start + 1, end).split(",");
+        if (parts.length != 3) {
+            return null;
+        }
+        try {
+            return new float[]{
+                    parseNumeric(parts[0]),
+                    parseNumeric(parts[1]),
+                    parseNumeric(parts[2])
+            };
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+    }
+
+    private static float parseNumeric(String value) {
+        String cleaned = value.trim()
+                .replace("D", "")
+                .replace("d", "")
+                .replace("F", "")
+                .replace("f", "");
+        return Float.parseFloat(cleaned);
+    }
+
     private Map<LegacyModelRenderer, String> collectRendererNames(
             Class<?> modelClass,
             LegacyModelBase model
@@ -1005,7 +1341,8 @@ public final class LegacyModelBlockbenchExporter {
     private int exportCompositeBlockModels() throws IOException {
         Path outputDirectory = options.outputRoot().resolve("block");
         Files.createDirectories(outputDirectory);
-        exportCompositeBlockModel(
+        int exported = 0;
+        exported += exportCompositeBlockModelSafe(
                 "DisassemblyStation",
                 List.of(
                         new BlockPart("base", "disassembly_station_base", 0.0F, 0.0F, 0.0F),
@@ -1015,7 +1352,7 @@ public final class LegacyModelBlockbenchExporter {
                 ),
                 outputDirectory.resolve("DisassemblyStation.bbmodel")
         );
-        exportCompositeBlockModel(
+        exported += exportCompositeBlockModelSafe(
                 "LightsaberForgeLight",
                 List.of(
                         new BlockPart("base", "lightsaber_forge_light_base", 0.0F, 0.0F, 0.0F),
@@ -1023,7 +1360,7 @@ public final class LegacyModelBlockbenchExporter {
                 ),
                 outputDirectory.resolve("LightsaberForgeLight.bbmodel")
         );
-        exportCompositeBlockModel(
+        exported += exportCompositeBlockModelSafe(
                 "LightsaberForgeDark",
                 List.of(
                         new BlockPart("base", "lightsaber_forge_dark_base", 0.0F, 0.0F, 0.0F),
@@ -1031,7 +1368,22 @@ public final class LegacyModelBlockbenchExporter {
                 ),
                 outputDirectory.resolve("LightsaberForgeDark.bbmodel")
         );
-        return 3;
+        return exported;
+    }
+
+    private int exportCompositeBlockModelSafe(
+            String name,
+            List<BlockPart> parts,
+            Path modelFile
+    ) throws IOException {
+        try {
+            exportCompositeBlockModel(name, parts, modelFile);
+            return 1;
+        } catch (IOException exception) {
+            System.err.println("  Skipping composite block model " + name
+                    + ": " + exception.getMessage());
+            return 0;
+        }
     }
 
     private void exportCompositeBlockModel(
@@ -1633,6 +1985,7 @@ public final class LegacyModelBlockbenchExporter {
         private final Map<LegacyModelRenderer, String> rendererNames;
         private final List<Path> textures;
         private final Path modelFile;
+        private final Map<String, float[]> renderScales;
         private JsonArray mappingNodes;
 
         private ExportContext(
@@ -1641,7 +1994,8 @@ public final class LegacyModelBlockbenchExporter {
                 LegacyModelBase model,
                 Map<LegacyModelRenderer, String> rendererNames,
                 List<Path> textures,
-                Path modelFile
+                Path modelFile,
+                Map<String, float[]> renderScales
         ) {
             this.className = className;
             this.simpleName = simpleName;
@@ -1649,6 +2003,7 @@ public final class LegacyModelBlockbenchExporter {
             this.rendererNames = rendererNames;
             this.textures = textures;
             this.modelFile = modelFile;
+            this.renderScales = renderScales;
         }
 
         String className() {
@@ -1673,6 +2028,10 @@ public final class LegacyModelBlockbenchExporter {
 
         Path modelFile() {
             return modelFile;
+        }
+
+        Map<String, float[]> renderScales() {
+            return renderScales;
         }
 
         JsonArray mappingNodes() {
