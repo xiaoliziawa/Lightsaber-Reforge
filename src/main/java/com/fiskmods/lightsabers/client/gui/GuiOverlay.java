@@ -51,17 +51,26 @@ public final class GuiOverlay {
             return;
         }
 
+        renderActiveEffects(minecraft, player, event.getPartialTick());
+
+        if (minecraft.options.hideGui || player.isSpectator()) {
+            return;
+        }
+
         GuiGraphics graphics = event.getGuiGraphics();
         int width = event.getWindow().getGuiScaledWidth();
         int height = event.getWindow().getGuiScaledHeight();
-        renderActiveEffects(player, event.getPartialTick());
         renderForceBar(graphics, width, height, player);
         renderPowerSelector(graphics, width, height, player);
         renderStatusEffects(graphics, width, height, player);
     }
 
-    private static void renderActiveEffects(LocalPlayer player, float partialTicks) {
-        if (Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
+    private static void renderActiveEffects(
+            Minecraft minecraft,
+            LocalPlayer player,
+            float partialTicks
+    ) {
+        if (minecraft.options.getCameraType().isFirstPerson()) {
             for (StatusEffect status : StatusEffect.get(player)) {
                 Power power = status.effect.getPower(status.amplifier);
                 if (power != null && power.powerEffect instanceof PowerEffectActive active) {
