@@ -47,6 +47,10 @@ public final class LightsaberBladeRenderer {
     private static final float DAGGER_TIP_SCALE = 0.04F;
     private static final float DITHER_GOLDEN_RATIO = 0.618034F;
     private static final float WHITE_GLOW_BRIGHTNESS = 0.62F;
+    private static final int CRACKED_COPIES = 3;
+    private static final float CRACKED_JITTER = PIXEL * 0.25F;
+    private static final float CRACKED_SPARK_HALF_SIZE = PIXEL * 0.64F;
+    private static final float CRACKED_SPARK_INSET = PIXEL * 0.2F;
 
     private LightsaberBladeRenderer() {
     }
@@ -125,12 +129,13 @@ public final class LightsaberBladeRenderer {
                 coreBlue,
                 1.0F
         );
-        if (style.cracked() && !style.fineCut()) {
-            renderCrackedCopies(
+        if (style.cracked()) {
+            renderCracked(
                     core,
                     matrix,
                     style,
                     crossguard,
+                    bladeLength,
                     xHalf,
                     zHalf,
                     length,
@@ -387,11 +392,12 @@ public final class LightsaberBladeRenderer {
         return (quantized + 0.5F) / 255.0F;
     }
 
-    private static void renderCrackedCopies(
+    private static void renderCracked(
             VertexConsumer consumer,
             Matrix4f matrix,
             BladeStyle style,
             boolean crossguard,
+            int bladeLength,
             float xHalf,
             float zHalf,
             float length,
@@ -402,27 +408,83 @@ public final class LightsaberBladeRenderer {
         Minecraft minecraft = Minecraft.getInstance();
         long tick = minecraft.level == null ? 0L : minecraft.level.getGameTime();
         float partialTick = minecraft.getFrameTime();
-        for (int copy = 1; copy < 4; copy++) {
-            float currentX = randomSigned(tick, copy * 2) / 120.0F;
-            float previousX = randomSigned(tick - 1L, copy * 2) / 120.0F;
-            float currentZ = randomSigned(tick, copy * 2 + 1) / 120.0F;
-            float previousZ = randomSigned(tick - 1L, copy * 2 + 1) / 120.0F;
-            renderCoreShape(
-                    consumer,
-                    matrix,
-                    style,
-                    crossguard,
-                    Mth.lerp(partialTick, previousX, currentX),
-                    Mth.lerp(partialTick, previousZ, currentZ),
-                    xHalf,
-                    zHalf,
-                    length,
-                    red,
-                    green,
-                    blue,
-                    1.0F
-            );
+        boolean copyBlade = !style.fineCut();
+        int salt = 0;
+        for (int copy = 0; copy < CRACKED_COPIES; copy++) {
+            float offsetX = (randomInterpolated(tick, partialTick, salt++) - 0.5F) * CRACKED_JITTER;
+            float offsetZ = (randomInterpolated(tick, partialTick, salt++) - 0.5F) * CRACKED_JITTER;
+            for (int spark = 0; spark < bladeLength; spark++) {
+                float angle = randomInterpolated(tick, partialTick, salt++) * Mth.TWO_PI;
+                float inset = (randomInterpolated(tick, partialTick, salt++) - 1.0F) * CRACKED_SPARK_INSET;
+                float depth = PIXEL + randomInterpolated(tick, partialTick, salt++) * length;
+                renderSpark(
+                        consumer,
+                        matrix,
+                        offsetX,
+                        -depth,
+                        offsetZ,
+                        Mth.cos(angle),
+                        Mth.sin(angle),
+                        inset,
+                        red,
+                        green,
+                        blue,
+                        1.0F
+                );
+            }
+            if (copyBlade) {
+                renderCoreShape(
+                        consumer,
+                        matrix,
+                        style,
+                        crossguard,
+                        offsetX,
+                        offsetZ,
+                        xHalf,
+                        zHalf,
+                        length,
+                        red,
+                        green,
+                        blue,
+                        1.0F
+                );
+            }
         }
+    }
+
+    private static void renderSpark(
+            VertexConsumer consumer,
+            Matrix4f matrix,
+            float centerX,
+            float centerY,
+            float centerZ,
+            float directionX,
+            float directionZ,
+            float inset,
+            float red,
+            float green,
+            float blue,
+            float alpha
+    ) {
+        float outer = inset + CRACKED_SPARK_HALF_SIZE;
+        float inner = inset - CRACKED_SPARK_HALF_SIZE;
+        float baseX = centerX + directionX * outer;
+        float baseZ = centerZ + directionZ * outer;
+        float apexX = centerX + directionX * inner;
+        float apexZ = centerZ + directionZ * inner;
+        float spanX = -directionZ * CRACKED_SPARK_HALF_SIZE;
+        float spanZ = directionX * CRACKED_SPARK_HALF_SIZE;
+        float topY = centerY + CRACKED_SPARK_HALF_SIZE;
+        float bottomY = centerY - CRACKED_SPARK_HALF_SIZE;
+        float leftX = baseX - spanX;
+        float leftZ = baseZ - spanZ;
+        float rightX = baseX + spanX;
+        float rightZ = baseZ + spanZ;
+        quad(consumer, matrix, leftX, topY, leftZ, rightX, topY, rightZ, rightX, bottomY, rightZ, leftX, bottomY, leftZ, red, green, blue, alpha);
+        triangle(consumer, matrix, leftX, topY, leftZ, rightX, topY, rightZ, apexX, centerY, apexZ, red, green, blue, alpha);
+        triangle(consumer, matrix, rightX, topY, rightZ, rightX, bottomY, rightZ, apexX, centerY, apexZ, red, green, blue, alpha);
+        triangle(consumer, matrix, rightX, bottomY, rightZ, leftX, bottomY, leftZ, apexX, centerY, apexZ, red, green, blue, alpha);
+        triangle(consumer, matrix, leftX, bottomY, leftZ, leftX, topY, leftZ, apexX, centerY, apexZ, red, green, blue, alpha);
     }
 
     private static void renderPickaxeHead(
@@ -681,6 +743,14 @@ public final class LightsaberBladeRenderer {
         value *= 1274126177L;
         value ^= value >>> 16;
         return ((value & 0xFFFFL) / 65535.0F) - 0.5F;
+    }
+
+    private static float randomInterpolated(long tick, float partialTick, int salt) {
+        return Mth.lerp(
+                partialTick,
+                randomSigned(tick - 1L, salt),
+                randomSigned(tick, salt)
+        ) + 0.5F;
     }
 
     private static void renderBladeGeometry(
