@@ -3,9 +3,10 @@ package com.fiskmods.lightsabers.common.block;
 import com.fiskmods.lightsabers.common.item.ItemCrystal;
 import com.fiskmods.lightsabers.common.lightsaber.CrystalColor;
 import com.fiskmods.lightsabers.common.tileentity.TileEntityCrystal;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.tags.ItemTags;
@@ -32,7 +33,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockCrystal extends BaseEntityBlock {
-    public static final MapCodec<BlockCrystal> CODEC = simpleCodec(BlockCrystal::new);
     public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 
     private static final double CRYSTAL_WIDTH = 6.0D;
@@ -142,11 +142,6 @@ public class BlockCrystal extends BaseEntityBlock {
     }
 
     @Override
-    protected MapCodec<? extends BlockCrystal> codec() {
-        return CODEC;
-    }
-
-    @Override
     public void setPlacedBy(
             Level level,
             BlockPos pos,
@@ -188,8 +183,8 @@ public class BlockCrystal extends BaseEntityBlock {
 
     @Override
     public void playerDestroy(
-            Level level,
-            Player player,
+            ServerLevel level,
+            ServerPlayer player,
             BlockPos pos,
             BlockState state,
             @Nullable BlockEntity blockEntity,

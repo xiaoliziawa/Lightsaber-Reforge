@@ -5,6 +5,7 @@ import com.fiskmods.lightsabers.common.data.ALData;
 import com.fiskmods.lightsabers.common.force.Power;
 import com.fiskmods.lightsabers.common.force.PowerData;
 import com.fiskmods.lightsabers.common.force.PowerManager;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
@@ -162,7 +163,7 @@ public final class GuiSelectPowers extends Screen {
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x();
         double mouseY = event.y();
-        if (event.button() != 0) {
+        if (event.button() != InputConstants.MOUSE_BUTTON_LEFT) {
             return super.mouseClicked(event, doubleClick);
         }
 
@@ -193,7 +194,7 @@ public final class GuiSelectPowers extends Screen {
     public boolean mouseReleased(MouseButtonEvent event) {
         double mouseX = event.x();
         double mouseY = event.y();
-        if (event.button() == 0 && grabbedPower != null) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && grabbedPower != null) {
             int selectedSlot = getSelectedSlot(mouseX, mouseY);
             if (selectedSlot >= 0) {
                 selectedPowers[selectedSlot] = grabbedPower;

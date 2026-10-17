@@ -39,6 +39,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.event.RenderLivingEvent;
 import net.neoforged.neoforge.client.event.RenderPlayerEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.ExtractLevelRenderStateEvent;
 import net.neoforged.neoforge.client.renderstate.RegisterRenderStateModifiersEvent;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -88,6 +89,11 @@ public final class ClientEventHandler {
     }
 
     @SubscribeEvent
+    public void onExtractLevelRenderState(ExtractLevelRenderStateEvent event) {
+        ALRenderHelper.queuePostEffect();
+    }
+
+    @SubscribeEvent
     public void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
@@ -96,12 +102,12 @@ public final class ClientEventHandler {
                 || player.isRemoved()
                 || !ALPlayerData.hasData(player)
                 || !ALEntityData.hasData(player)) {
-            resetClientEffects(minecraft);
+            resetClientEffects();
             return;
         }
         updateStoredLightsaber(player);
         updateContinuousPower(minecraft, player);
-        updatePostEffect(minecraft, player);
+        updatePostEffect(player);
     }
 
     @SubscribeEvent
@@ -145,7 +151,7 @@ public final class ClientEventHandler {
 
     private static void updateContinuousPower(Minecraft minecraft, LocalPlayer player) {
         Power power = PowerManager.getSelectedPower(player);
-        boolean using = minecraft.screen == null
+        boolean using = minecraft.gui.screen() == null
                 && ALKeyMappings.ACTIVATE_POWER.isDown()
                 && power != null
                 && PowerManager.hasPowerUnlocked(player, power)
@@ -159,7 +165,7 @@ public final class ClientEventHandler {
         ALData.USING_POWER.set(player, using);
     }
 
-    private static void updatePostEffect(Minecraft minecraft, LocalPlayer player) {
+    private static void updatePostEffect(LocalPlayer player) {
         StatusEffect gaze = StatusEffect.get(player, Effect.GAZE);
         ALRenderHelper.setGazeAmplifier(gaze == null ? -1 : gaze.amplifier);
 
@@ -176,23 +182,12 @@ public final class ClientEventHandler {
             ALRenderHelper.startShaders(requested);
             return;
         }
-        stopPostEffect(minecraft);
+        ALRenderHelper.stopShaders();
     }
 
-    private static void resetClientEffects(Minecraft minecraft) {
+    private static void resetClientEffects() {
         ALRenderHelper.setGazeAmplifier(-1);
-        stopPostEffect(minecraft);
-    }
-
-    private static void stopPostEffect(Minecraft minecraft) {
-        Identifier active = minecraft.gameRenderer.currentPostEffect();
-        if (active != null) {
-            if (active.equals(ALRenderHelper.SHADER_BLUE)
-                    || active.equals(ALRenderHelper.SHADER_GRAY)
-                    || active.equals(ALRenderHelper.SHADER_BLUR)) {
-                ALRenderHelper.stopShaders();
-            }
-        }
+        ALRenderHelper.stopShaders();
     }
 
     @SubscribeEvent
@@ -234,16 +229,16 @@ public final class ClientEventHandler {
 
         PoseStack poseStack = event.getPoseStack();
         poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(
+        poseStack.rotate(Axis.YP.rotationDegrees(
                 180.0F - event.getRenderState().bodyRot
         ));
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         poseStack.translate(0.0F, -1.501F, 0.0F);
         event.getRenderer().getModel().body.translateAndRotate(poseStack);
-        poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
+        poseStack.rotate(Axis.XP.rotationDegrees(180.0F));
         poseStack.translate(BELT_OFFSET_X, BELT_OFFSET_Y, BELT_OFFSET_Z);
-        poseStack.mulPose(Axis.ZP.rotationDegrees(BELT_ROT_Z));
-        poseStack.mulPose(Axis.XP.rotationDegrees(BELT_ROT_X));
+        poseStack.rotate(Axis.ZP.rotationDegrees(BELT_ROT_Z));
+        poseStack.rotate(Axis.XP.rotationDegrees(BELT_ROT_X));
         poseStack.scale(BELT_SCALE, BELT_SCALE, BELT_SCALE);
         poseStack.translate(
                 0.0F,

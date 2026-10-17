@@ -6,11 +6,9 @@
     "FIF"
   ],
   "key": {
-    "S": {
-      "item": "lightsabers:light_forcestone_stairs"
-    },
+    "S": "lightsabers:light_forcestone_stairs",
     "L": {
-      "type": "neoforge:components",
+      "neoforge:ingredient_type": "neoforge:components",
       "components": {
         "minecraft:block_state": {
           "variant": "light"
@@ -19,7 +17,7 @@
       "items": "lightsabers:forcestone_slab"
     },
     "F": {
-      "type": "neoforge:components",
+      "neoforge:ingredient_type": "neoforge:components",
       "components": {
         "minecraft:block_state": {
           "variant": "default"
@@ -27,9 +25,7 @@
       },
       "items": "lightsabers:light_forcestone"
     },
-    "I": {
-      "item": "minecraft:iron_block"
-    }
+    "I": "minecraft:iron_block"
   },
   "result": {
     "id": "lightsabers:lightsaber_forge"

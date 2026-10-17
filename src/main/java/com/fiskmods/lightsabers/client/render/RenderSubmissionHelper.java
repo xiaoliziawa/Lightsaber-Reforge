@@ -11,10 +11,10 @@ import java.util.function.Function;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.client.renderer.rendertype.OutputTarget;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.resources.model.geometry.ItemQuads;
 import net.minecraft.client.resources.model.geometry.QuadCollection;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
@@ -22,7 +22,8 @@ import net.minecraft.world.item.ItemDisplayContext;
 
 public final class RenderSubmissionHelper {
     private static final int[] NO_TINTS = new int[0];
-    private static final Map<QuadCollection, List<BakedQuad>> IRIS_COMPATIBLE_QUADS =
+    private static final Map<QuadCollection, ItemQuads> ITEM_QUADS = new WeakHashMap<>();
+    private static final Map<QuadCollection, ItemQuads> IRIS_COMPATIBLE_QUADS =
             new WeakHashMap<>();
     private static final Function<Identifier, RenderType> IRIS_ITEM_CUTOUT =
             Util.memoize(texture -> createIrisItemRenderType(texture, false));
@@ -79,12 +80,12 @@ public final class RenderSubmissionHelper {
         if (model == null || model.getAll().isEmpty()) {
             return;
         }
-        List<BakedQuad> quads = IrisCompat.isShaderPackInUse()
+        ItemQuads quads = IrisCompat.isShaderPackInUse()
                 ? IRIS_COMPATIBLE_QUADS.computeIfAbsent(
                         model,
                         RenderSubmissionHelper::createIrisCompatibleQuads
                 )
-                : model.getAll();
+                : ITEM_QUADS.computeIfAbsent(model, collection -> ItemQuads.split(collection.getAll()));
         collector.submitItem(
                 poseStack,
                 ItemDisplayContext.NONE,
@@ -99,7 +100,7 @@ public final class RenderSubmissionHelper {
         );
     }
 
-    private static List<BakedQuad> createIrisCompatibleQuads(QuadCollection model) {
+    private static ItemQuads createIrisCompatibleQuads(QuadCollection model) {
         List<BakedQuad> source = model.getAll();
         List<BakedQuad> quads = new ArrayList<>(source.size());
         for (BakedQuad quad : source) {
@@ -112,8 +113,10 @@ public final class RenderSubmissionHelper {
                     material.sprite(),
                     material.layer(),
                     renderType,
+                    material.itemGlintRenderType(),
+                    material.itemGlintSpecialRenderType(),
                     material.tintIndex(),
-                    material.shade(),
+                    material.shadeDirectionOverride(),
                     material.lightEmission(),
                     material.ambientOcclusion()
             );
@@ -132,7 +135,7 @@ public final class RenderSubmissionHelper {
                     quad.bakedColors()
             ));
         }
-        return List.copyOf(quads);
+        return ItemQuads.split(quads);
     }
 
     private static RenderType createIrisItemRenderType(
@@ -150,7 +153,7 @@ public final class RenderSubmissionHelper {
                 .affectsCrumbling()
                 .setOutline(RenderSetup.OutlineProperty.AFFECTS_OUTLINE);
         if (translucent) {
-            setup.setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET).sortOnUpload();
+            setup.setOitPipelines(RenderPipelines.OIT_ITEM).sortOnUpload();
         }
         return RenderType.create(
                 translucent

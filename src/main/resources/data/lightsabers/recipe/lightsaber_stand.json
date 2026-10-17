@@ -5,12 +5,8 @@
     "IFI"
   ],
   "key": {
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "F": {
-      "item": "minecraft:item_frame"
-    }
+    "I": "minecraft:iron_ingot",
+    "F": "minecraft:item_frame"
   },
   "result": {
     "id": "lightsabers:lightsaber_stand"

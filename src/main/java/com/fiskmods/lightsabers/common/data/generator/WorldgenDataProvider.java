@@ -86,13 +86,13 @@ public final class WorldgenDataProvider implements DataProvider {
                         "minecraft:eroded_badlands",
                         "minecraft:wooded_badlands"
                 ),
-                saveCrystalCaveConfiguredFeature(output),
+                saveCrystalCaveFeature(output),
                 saveCrystalCavePlacedFeature(output),
                 saveCrystalCaveBiomeModifier(output)
         );
     }
 
-    private CompletableFuture<?> saveCrystalCaveConfiguredFeature(CachedOutput output) {
+    private CompletableFuture<?> saveCrystalCaveFeature(CachedOutput output) {
         JsonObject config = new JsonObject();
         config.addProperty("minimum_air_blocks", CRYSTAL_CAVE_MINIMUM_AIR_BLOCKS);
         config.addProperty("entrance_length", CRYSTAL_CAVE_ENTRANCE_LENGTH);
@@ -105,7 +105,7 @@ public final class WorldgenDataProvider implements DataProvider {
         return DataProvider.saveStable(
                 output,
                 json,
-                dataPath("worldgen/configured_feature/crystal_cave.json")
+                dataPath("worldgen/feature/crystal_cave.json")
         );
     }
 

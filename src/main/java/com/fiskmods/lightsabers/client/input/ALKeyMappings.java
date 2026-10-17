@@ -5,7 +5,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
-import org.lwjgl.glfw.GLFW;
 
 public final class ALKeyMappings {
     private static final KeyMapping.Category CATEGORY = new KeyMapping.Category(
@@ -14,26 +13,26 @@ public final class ALKeyMappings {
 
     public static final KeyMapping ACTIVATE_LIGHTSABER = new KeyMapping(
             "key.lightsabers.activate_lightsaber",
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_R,
+            InputConstants.Type.KEYBOARD,
+            InputConstants.KEY_R,
             CATEGORY
     );
     public static final KeyMapping ACTIVATE_POWER = new KeyMapping(
             "key.lightsabers.activate_power",
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_C,
+            InputConstants.Type.KEYBOARD,
+            InputConstants.KEY_C,
             CATEGORY
     );
     public static final KeyMapping SELECT_POWER = new KeyMapping(
             "key.lightsabers.select_power",
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_F,
+            InputConstants.Type.KEYBOARD,
+            InputConstants.KEY_F,
             CATEGORY
     );
     public static final KeyMapping FLIP_DOUBLE_LIGHTSABER = new KeyMapping(
             "key.lightsabers.flip_double_lightsaber",
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_G,
+            InputConstants.Type.KEYBOARD,
+            InputConstants.KEY_G,
             CATEGORY
     );
 

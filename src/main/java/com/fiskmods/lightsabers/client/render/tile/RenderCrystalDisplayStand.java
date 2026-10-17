@@ -87,7 +87,7 @@ public final class RenderCrystalDisplayStand implements BlockEntityRenderer<
         poseStack.translate(0.5F, DISPLAY_Y + DISPLAY_RAISE + state.bob, 0.5F);
         poseStack.scale(DISPLAY_SCALE, DISPLAY_SCALE, DISPLAY_SCALE);
         if (state.lightsaber) {
-            poseStack.mulPose(Axis.ZP.rotationDegrees(225.0F));
+            poseStack.rotate(Axis.ZP.rotationDegrees(225.0F));
         }
         state.item.submit(
                 poseStack,

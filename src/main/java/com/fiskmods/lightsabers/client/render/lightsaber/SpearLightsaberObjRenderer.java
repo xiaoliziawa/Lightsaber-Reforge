@@ -95,7 +95,7 @@ public final class SpearLightsaberObjRenderer {
             int packedOverlay
     ) {
         poseStack.pushPose();
-        poseStack.mulPose(Axis.XP.rotationDegrees(MODEL_ORIENTATION_ROTATION));
+        poseStack.rotate(Axis.XP.rotationDegrees(MODEL_ORIENTATION_ROTATION));
         poseStack.scale(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
         poseStack.translate(0.0F, -HILT_CENTER_Y, 0.0F);
         renderModel(EMITTER_MODEL, stack, poseStack, collector, packedLight, packedOverlay);
@@ -149,7 +149,7 @@ public final class SpearLightsaberObjRenderer {
             case POMMEL -> POMMEL_CENTER_Y;
         };
         poseStack.pushPose();
-        poseStack.mulPose(Axis.XP.rotationDegrees(MODEL_ORIENTATION_ROTATION));
+        poseStack.rotate(Axis.XP.rotationDegrees(MODEL_ORIENTATION_ROTATION));
         poseStack.scale(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE);
         poseStack.translate(0.0F, -centerY, 0.0F);
         renderModel(

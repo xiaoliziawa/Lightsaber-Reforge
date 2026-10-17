@@ -28,6 +28,7 @@ import net.minecraft.client.renderer.special.SpecialModelRenderer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.ItemOwner;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Matrix4f;
@@ -327,11 +328,11 @@ public class LightsaberItemRenderer
                 FIRST_PERSON_OFFSET_Y,
                 FIRST_PERSON_OFFSET_Z
         );
-        poseStack.mulPose(Axis.YP.rotationDegrees(FIRST_PERSON_ROT_Y1 * handSide));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(FIRST_PERSON_ROT_Z1 * handSide));
-        poseStack.mulPose(Axis.YP.rotationDegrees(FIRST_PERSON_ROT_Y2 * handSide));
-        poseStack.mulPose(Axis.XP.rotationDegrees(FIRST_PERSON_ROT_X));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(FIRST_PERSON_ROT_Z2 * handSide));
+        poseStack.rotate(Axis.YP.rotationDegrees(FIRST_PERSON_ROT_Y1 * handSide));
+        poseStack.rotate(Axis.ZP.rotationDegrees(FIRST_PERSON_ROT_Z1 * handSide));
+        poseStack.rotate(Axis.YP.rotationDegrees(FIRST_PERSON_ROT_Y2 * handSide));
+        poseStack.rotate(Axis.XP.rotationDegrees(FIRST_PERSON_ROT_X));
+        poseStack.rotate(Axis.ZP.rotationDegrees(FIRST_PERSON_ROT_Z2 * handSide));
         poseStack.scale(FIRST_PERSON_SCALE, FIRST_PERSON_SCALE, FIRST_PERSON_SCALE);
     }
 
@@ -341,11 +342,11 @@ public class LightsaberItemRenderer
                 DOUBLE_FIRST_PERSON_OFFSET_Y,
                 DOUBLE_FIRST_PERSON_OFFSET_Z
         );
-        poseStack.mulPose(Axis.YP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_Y1 * handSide));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_Z1 * handSide));
-        poseStack.mulPose(Axis.YP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_Y2 * handSide));
-        poseStack.mulPose(Axis.XP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_X));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_Z2 * handSide));
+        poseStack.rotate(Axis.YP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_Y1 * handSide));
+        poseStack.rotate(Axis.ZP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_Z1 * handSide));
+        poseStack.rotate(Axis.YP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_Y2 * handSide));
+        poseStack.rotate(Axis.XP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_X));
+        poseStack.rotate(Axis.ZP.rotationDegrees(DOUBLE_FIRST_PERSON_ROT_Z2 * handSide));
         applyDoubleFirstPersonAnimation(poseStack, handSide);
         poseStack.scale(FIRST_PERSON_SCALE, FIRST_PERSON_SCALE, FIRST_PERSON_SCALE);
     }
@@ -361,14 +362,14 @@ public class LightsaberItemRenderer
         float walk = player.walkAnimation.speed(partialTick);
         float swing = getHandSwingProgress(player, handSide, partialTick);
         float swingArc = (swing > 0.5F ? 1.0F - swing : swing) * 2.0F;
-        poseStack.mulPose(Axis.ZP.rotationDegrees(DOUBLE_WALK_ROLL * walk * handSide));
+        poseStack.rotate(Axis.ZP.rotationDegrees(DOUBLE_WALK_ROLL * walk * handSide));
         poseStack.translate(
                 (DOUBLE_WALK_PUSH_X * walk + DOUBLE_SWING_PUSH_X * swingArc) * handSide,
                 DOUBLE_SWING_PUSH_Y * swingArc,
                 DOUBLE_WALK_PUSH_Z * walk
         );
-        poseStack.mulPose(Axis.XP.rotationDegrees(DOUBLE_SWING_TILT * swingArc));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(DOUBLE_SWING_SPIN * swing * handSide));
+        poseStack.rotate(Axis.XP.rotationDegrees(DOUBLE_SWING_TILT * swingArc));
+        poseStack.rotate(Axis.ZP.rotationDegrees(DOUBLE_SWING_SPIN * swing * handSide));
     }
 
     private void applySpinningFirstPersonTransform(PoseStack poseStack, int handSide) {
@@ -377,18 +378,22 @@ public class LightsaberItemRenderer
                 SPINNING_FP_OFFSET_Y,
                 SPINNING_FP_OFFSET_Z
         );
-        poseStack.mulPose(Axis.ZP.rotationDegrees(SPINNING_FP_TILT * handSide));
-        poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
-        poseStack.mulPose(Axis.YP.rotationDegrees(SPINNING_FP_YAW * handSide));
+        poseStack.rotate(Axis.ZP.rotationDegrees(SPINNING_FP_TILT * handSide));
+        poseStack.rotate(Axis.XP.rotationDegrees(180.0F));
+        poseStack.rotate(Axis.YP.rotationDegrees(SPINNING_FP_YAW * handSide));
         poseStack.scale(SPINNING_FP_SCALE, SPINNING_FP_SCALE, SPINNING_FP_SCALE);
     }
 
     private float getHandSwingProgress(LocalPlayer player, int handSide, float partialTick) {
         HumanoidArm arm = handSide == 1 ? HumanoidArm.RIGHT : HumanoidArm.LEFT;
-        HumanoidArm swingingArm = player.swingingArm == InteractionHand.OFF_HAND
+        LivingEntity.SwingDescription swing = player.getCurrentSwing();
+        if (swing == null) {
+            return 0.0F;
+        }
+        HumanoidArm swingingArm = swing.hand() == InteractionHand.OFF_HAND
                 ? player.getMainArm().getOpposite()
                 : player.getMainArm();
-        return arm == swingingArm ? player.getAttackAnim(partialTick) : 0.0F;
+        return arm == swingingArm ? player.getSwingAnimation(partialTick) : 0.0F;
     }
 
     private void applyThirdPersonTransform(
@@ -410,18 +415,18 @@ public class LightsaberItemRenderer
                                 ? SPINNING_DEFENSE_FORWARD_OFFSET
                                 : 0.0F)
         );
-        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F * handSide));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(THIRD_PERSON_TILT * handSide));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(THIRD_PERSON_PITCH * handSide));
+        poseStack.rotate(Axis.YP.rotationDegrees(-90.0F * handSide));
+        poseStack.rotate(Axis.ZP.rotationDegrees(THIRD_PERSON_TILT * handSide));
+        poseStack.rotate(Axis.ZP.rotationDegrees(THIRD_PERSON_PITCH * handSide));
         if (spinningDefense) {
-            poseStack.mulPose(Axis.YP.rotationDegrees(
+            poseStack.rotate(Axis.YP.rotationDegrees(
                     SPINNING_DEFENSE_FACE_ROTATION * handSide
             ));
         }
         if (doubleLightsaber) {
-            poseStack.mulPose(Axis.XP.rotationDegrees(DOUBLE_THIRD_PERSON_ROT_X * handSide));
-            poseStack.mulPose(Axis.YP.rotationDegrees(DOUBLE_THIRD_PERSON_ROT_Y * handSide));
-            poseStack.mulPose(Axis.ZP.rotationDegrees(DOUBLE_THIRD_PERSON_ROT_Z * handSide));
+            poseStack.rotate(Axis.XP.rotationDegrees(DOUBLE_THIRD_PERSON_ROT_X * handSide));
+            poseStack.rotate(Axis.YP.rotationDegrees(DOUBLE_THIRD_PERSON_ROT_Y * handSide));
+            poseStack.rotate(Axis.ZP.rotationDegrees(DOUBLE_THIRD_PERSON_ROT_Z * handSide));
             poseStack.translate(
                     DOUBLE_THIRD_PERSON_OFFSET_X * handSide,
                     DOUBLE_THIRD_PERSON_OFFSET_Y,
@@ -458,15 +463,15 @@ public class LightsaberItemRenderer
         }
         switch (displayContext) {
             case GUI -> {
-                poseStack.mulPose(Axis.ZP.rotationDegrees(
+                poseStack.rotate(Axis.ZP.rotationDegrees(
                         rotateSpinningGui ? SPINNING_GUI_ROTATION : -45.0F
                 ));
-                poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+                poseStack.rotate(Axis.ZP.rotationDegrees(180.0F));
                 if (rotateSpinningGui) {
-                    poseStack.mulPose(Axis.YP.rotationDegrees(SPINNING_GUI_FACE_ROTATION));
-                    poseStack.mulPose(Axis.YP.rotationDegrees(SPINNING_GUI_TURN_ROTATION));
+                    poseStack.rotate(Axis.YP.rotationDegrees(SPINNING_GUI_FACE_ROTATION));
+                    poseStack.rotate(Axis.YP.rotationDegrees(SPINNING_GUI_TURN_ROTATION));
                 }
-                poseStack.mulPose(Axis.XP.rotationDegrees(25.0F));
+                poseStack.rotate(Axis.XP.rotationDegrees(25.0F));
                 poseStack.scale(GUI_SCALE, GUI_SCALE, GUI_SCALE);
                 if (spinning && !lightsaberPart) {
                     poseStack.scale(SPINNING_GUI_SCALE, SPINNING_GUI_SCALE, SPINNING_GUI_SCALE);
@@ -485,7 +490,7 @@ public class LightsaberItemRenderer
                         spinningDefense
                 );
                 if (spinning && !lightsaberPart) {
-                    poseStack.mulPose(Axis.YP.rotationDegrees(SPINNING_THIRD_PERSON_TURN_ROTATION));
+                    poseStack.rotate(Axis.YP.rotationDegrees(SPINNING_THIRD_PERSON_TURN_ROTATION));
                 }
                 if (spear && !lightsaberPart) {
                     poseStack.scale(
@@ -503,7 +508,7 @@ public class LightsaberItemRenderer
                         spinningDefense
                 );
                 if (spinning && !lightsaberPart) {
-                    poseStack.mulPose(Axis.YP.rotationDegrees(SPINNING_THIRD_PERSON_TURN_ROTATION));
+                    poseStack.rotate(Axis.YP.rotationDegrees(SPINNING_THIRD_PERSON_TURN_ROTATION));
                 }
                 if (spear && !lightsaberPart) {
                     poseStack.scale(
@@ -514,14 +519,14 @@ public class LightsaberItemRenderer
                 }
             }
             case GROUND -> {
-                poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
+                poseStack.rotate(Axis.XP.rotationDegrees(180.0F));
                 poseStack.scale(GROUND_SCALE, GROUND_SCALE, GROUND_SCALE);
                 if (spear && !lightsaberPart) {
                     poseStack.scale(SPEAR_GROUND_SCALE, SPEAR_GROUND_SCALE, SPEAR_GROUND_SCALE);
                 }
             }
             case FIXED -> {
-                poseStack.mulPose(Axis.ZP.rotationDegrees(-45.0F));
+                poseStack.rotate(Axis.ZP.rotationDegrees(-45.0F));
                 poseStack.scale(FIXED_SCALE, FIXED_SCALE, FIXED_SCALE);
                 if (spear && !lightsaberPart) {
                     poseStack.scale(SPEAR_DISPLAY_SCALE, SPEAR_DISPLAY_SCALE, SPEAR_DISPLAY_SCALE);
@@ -542,14 +547,14 @@ public class LightsaberItemRenderer
                 SPEAR_FIRST_PERSON_OFFSET_Y,
                 SPEAR_FIRST_PERSON_OFFSET_Z
         );
-        poseStack.mulPose(Axis.YP.rotationDegrees(SPEAR_FIRST_PERSON_YAW));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(SPEAR_FIRST_PERSON_ROLL));
+        poseStack.rotate(Axis.YP.rotationDegrees(SPEAR_FIRST_PERSON_YAW));
+        poseStack.rotate(Axis.ZP.rotationDegrees(SPEAR_FIRST_PERSON_ROLL));
         poseStack.scale(
                 SPEAR_FIRST_PERSON_SCALE,
                 SPEAR_FIRST_PERSON_SCALE,
                 SPEAR_FIRST_PERSON_SCALE
         );
-        poseStack.mulPose(Axis.ZP.rotationDegrees(SPEAR_ALIGN_ROLL));
+        poseStack.rotate(Axis.ZP.rotationDegrees(SPEAR_ALIGN_ROLL));
     }
 
     private boolean isSpearStack(ItemStack stack, ItemLightsaberPart partItem) {

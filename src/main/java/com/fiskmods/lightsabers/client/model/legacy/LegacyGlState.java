@@ -34,6 +34,6 @@ public final class LegacyGlState {
                         axisY,
                         axisZ
                 );
-        poseStack.mulPose(rotation);
+        poseStack.rotate(rotation);
     }
 }

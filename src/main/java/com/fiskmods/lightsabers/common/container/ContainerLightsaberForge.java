@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -181,7 +182,7 @@ public class ContainerLightsaberForge extends AbstractContainerMenu {
             for (int slot = 0; slot < craftMatrix.getContainerSize(); slot++) {
                 ItemStack stack = craftMatrix.removeItemNoUpdate(slot);
                 if (!stack.isEmpty()) {
-                    player.drop(stack, false);
+                    player.drop(stack, false, Prediction.SERVER_ONLY);
                 }
             }
         }

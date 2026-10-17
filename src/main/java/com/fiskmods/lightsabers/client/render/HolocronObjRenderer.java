@@ -85,7 +85,7 @@ public final class HolocronObjRenderer {
         RenderSubmissionHelper.submitGeometry(
                 collector,
                 poseStack,
-                RenderTypes.entityTranslucentEmissive(texture, false),
+                RenderTypes.entityTranslucentEmissive(texture),
                 (renderPose, consumer) -> renderItemIconQuad(
                         renderPose,
                         consumer,
@@ -103,7 +103,7 @@ public final class HolocronObjRenderer {
 
         for (int sideIndex = 0; sideIndex < 4; sideIndex++) {
             poseStack.pushPose();
-            poseStack.mulPose(Axis.YP.rotationDegrees(sideIndex * 90.0F));
+            poseStack.rotate(Axis.YP.rotationDegrees(sideIndex * 90.0F));
             poseStack.translate(0.0F, SITH_SIDE_CENTER_Y, SITH_SIDE_CENTER_Z);
             renderPart(SITH_SIDE_MODEL, poseStack, collector, packedOverlay);
             poseStack.popPose();
@@ -129,11 +129,11 @@ public final class HolocronObjRenderer {
         for (int verticalSide = 0; verticalSide < 2; verticalSide++) {
             for (int cornerIndex = 0; cornerIndex < 4; cornerIndex++) {
                 poseStack.pushPose();
-                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F + cornerIndex * 90.0F));
-                poseStack.mulPose(Axis.XP.rotationDegrees(JEDI_CORNER_TILT));
-                poseStack.mulPose(Axis.ZP.rotationDegrees(cornerRotation));
+                poseStack.rotate(Axis.YP.rotationDegrees(45.0F + cornerIndex * 90.0F));
+                poseStack.rotate(Axis.XP.rotationDegrees(JEDI_CORNER_TILT));
+                poseStack.rotate(Axis.ZP.rotationDegrees(cornerRotation));
                 if (verticalSide == 1) {
-                    poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
+                    poseStack.rotate(Axis.XP.rotationDegrees(180.0F));
                 }
                 poseStack.translate(0.0F, 0.0F, cornerOffset);
                 renderPart(JEDI_CORNER_MODEL, poseStack, collector, packedOverlay);
@@ -150,9 +150,9 @@ public final class HolocronObjRenderer {
         for (int faceIndex = 0; faceIndex < 6; faceIndex++) {
             poseStack.pushPose();
             if (faceIndex < 4) {
-                poseStack.mulPose(Axis.YP.rotationDegrees(faceIndex * 90.0F));
+                poseStack.rotate(Axis.YP.rotationDegrees(faceIndex * 90.0F));
             } else {
-                poseStack.mulPose(Axis.XP.rotationDegrees(
+                poseStack.rotate(Axis.XP.rotationDegrees(
                         (faceIndex - 4) * 180.0F + 90.0F
                 ));
             }
@@ -169,9 +169,9 @@ public final class HolocronObjRenderer {
         for (int verticalSide = 0; verticalSide < 2; verticalSide++) {
             for (int cornerIndex = 0; cornerIndex < 4; cornerIndex++) {
                 poseStack.pushPose();
-                poseStack.mulPose(Axis.YP.rotationDegrees(cornerIndex * 90.0F));
+                poseStack.rotate(Axis.YP.rotationDegrees(cornerIndex * 90.0F));
                 if (verticalSide == 1) {
-                    poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
+                    poseStack.rotate(Axis.XP.rotationDegrees(180.0F));
                 }
                 renderPart(JEDI_FRAME_MODEL, poseStack, collector, packedOverlay);
                 poseStack.popPose();

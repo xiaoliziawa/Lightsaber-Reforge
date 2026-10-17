@@ -3,7 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "type": "neoforge:components",
+      "neoforge:ingredient_type": "neoforge:components",
       "components": {
         "minecraft:block_state": {
           "variant": "pillar"
@@ -11,9 +11,7 @@
       },
       "items": "lightsabers:dark_forcestone"
     },
-    {
-      "item": "minecraft:redstone"
-    }
+    "minecraft:redstone"
   ],
   "result": {
     "id": "lightsabers:dark_activated_forcestone_pillar"

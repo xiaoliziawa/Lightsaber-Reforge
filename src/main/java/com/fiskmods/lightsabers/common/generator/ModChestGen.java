@@ -71,7 +71,7 @@ public final class ModChestGen {
             entry(Items.BAKED_POTATO, 2, 6, 5),
             entry(Items.NAME_TAG, 1, 2, 2),
             entry(Items.LEATHER, 1, 8, 4),
-            entry(Items.WHITE_WOOL, 1, 9, 10),
+            entry(Items.WOOL.white(), 1, 9, 10),
             entry(() -> ModItems.circuitry, 1, 2, 3),
             randomPart(PartType.EMITTER, 9),
             tagged(random -> LightsaberData.createRandom(random), 1, 1, 1, stack ->

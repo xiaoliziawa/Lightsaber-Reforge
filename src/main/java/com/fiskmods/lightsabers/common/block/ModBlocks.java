@@ -109,7 +109,7 @@ public final class ModBlocks {
                             )
                             .sound(SoundType.METAL)
                             .requiresCorrectToolForDrops()
-                            .pushReaction(PushReaction.BLOCK)
+                            .pushReaction(PushReaction.IMMOVEABLE)
                             .noOcclusion()
             );
     public static final Supplier<BlockHolocron> JEDI_HOLOCRON = BLOCKS.registerBlock(
@@ -282,7 +282,7 @@ public final class ModBlocks {
                 .mapColor(MapColor.STONE)
                 .strength(LIGHTSABER_FORGE_HARDNESS, LIGHTSABER_FORGE_EXPLOSION_RESISTANCE)
                 .sound(SoundType.METAL)
-                .pushReaction(PushReaction.BLOCK)
+                .pushReaction(PushReaction.IMMOVEABLE)
                 .noOcclusion();
     }
 
@@ -299,7 +299,7 @@ public final class ModBlocks {
                 .mapColor(mapColor)
                 .strength(SITH_COFFIN_HARDNESS, SITH_COFFIN_EXPLOSION_RESISTANCE)
                 .sound(SoundType.STONE)
-                .pushReaction(PushReaction.BLOCK)
+                .pushReaction(PushReaction.IMMOVEABLE)
                 .noOcclusion()
                 .noLootTable();
     }

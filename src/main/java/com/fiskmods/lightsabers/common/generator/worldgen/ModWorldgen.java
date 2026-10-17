@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.common.generator.structure.EnumStructure;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
@@ -23,8 +24,8 @@ public final class ModWorldgen {
             DeferredRegister.create(Registries.STRUCTURE_TYPE, Lightsabers.MODID);
     private static final DeferredRegister<StructurePieceType> STRUCTURE_PIECE_TYPES =
             DeferredRegister.create(Registries.STRUCTURE_PIECE, Lightsabers.MODID);
-    private static final DeferredRegister<Feature<?>> FEATURES =
-            DeferredRegister.create(Registries.FEATURE, Lightsabers.MODID);
+    private static final DeferredRegister<MapCodec<? extends Feature>> FEATURE_TYPES =
+            DeferredRegister.create(Registries.FEATURE_TYPE, Lightsabers.MODID);
 
     public static final Supplier<StructureType<LegacyDataStructure>> LEGACY_STRUCTURE =
             STRUCTURE_TYPES.register("legacy", () -> () -> LegacyDataStructure.CODEC);
@@ -33,8 +34,8 @@ public final class ModWorldgen {
                     "legacy",
                     () -> (StructurePieceType.ContextlessType) LegacyStructurePiece::new
             );
-    public static final Supplier<Feature<CrystalCaveConfiguration>> CRYSTAL_CAVE_FEATURE =
-            FEATURES.register("crystal_cave", CrystalCaveFeature::new);
+    public static final Supplier<MapCodec<CrystalCaveFeature>> CRYSTAL_CAVE_FEATURE =
+            FEATURE_TYPES.register("crystal_cave", () -> CrystalCaveFeature.CODEC);
 
     private ModWorldgen() {
     }
@@ -42,7 +43,7 @@ public final class ModWorldgen {
     public static void register(IEventBus modEventBus) {
         STRUCTURE_TYPES.register(modEventBus);
         STRUCTURE_PIECE_TYPES.register(modEventBus);
-        FEATURES.register(modEventBus);
+        FEATURE_TYPES.register(modEventBus);
     }
 
     public static ResourceKey<Structure> key(EnumStructure structure) {

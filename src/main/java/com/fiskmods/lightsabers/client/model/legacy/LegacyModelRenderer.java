@@ -129,7 +129,7 @@ public class LegacyModelRenderer {
                 rotationPointZ * scale
         );
         if (rotateAngleX != 0.0F || rotateAngleY != 0.0F || rotateAngleZ != 0.0F) {
-            poseStack.mulPose(getRotation());
+            poseStack.rotate(getRotation());
         }
 
         if (!cubes.isEmpty()) {

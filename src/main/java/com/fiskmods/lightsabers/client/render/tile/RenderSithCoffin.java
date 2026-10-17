@@ -89,7 +89,7 @@ public class RenderSithCoffin implements BlockEntityRenderer<
         poseStack.pushPose();
         poseStack.translate(0.5F, 1.5F, 0.5F);
         poseStack.scale(1.0F, -1.0F, -1.0F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(state.facing.toYRot() + 180.0F));
+        poseStack.rotate(Axis.YP.rotationDegrees(state.facing.toYRot() + 180.0F));
         RenderSubmissionHelper.submitGeometry(
                 collector,
                 poseStack,

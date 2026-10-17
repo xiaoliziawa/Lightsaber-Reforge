@@ -39,6 +39,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
@@ -115,7 +116,7 @@ public class EntitySithGhost extends Monster {
     private void swingMainHand() {
         if (swingItemCooldown == 0) {
             swingItemCooldown = 5;
-            swing(InteractionHand.MAIN_HAND);
+            swing(InteractionHand.MAIN_HAND, getMainHandItem().getAttackAnimation());
         }
     }
 
@@ -199,7 +200,7 @@ public class EntitySithGhost extends Monster {
     }
 
     private void tryReturnToCoffin() {
-        if (!hasRestingPlace || distanceToSqr(restingPlace.getCenter()) > 4.0D) {
+        if (!hasRestingPlace || distanceToSqr(Vec3.atCenterOf(restingPlace)) > 4.0D) {
             return;
         }
         taskFinished = 3;

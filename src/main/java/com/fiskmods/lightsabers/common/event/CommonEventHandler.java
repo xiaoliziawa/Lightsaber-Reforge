@@ -200,7 +200,7 @@ public final class CommonEventHandler {
             double speed = Math.max(projectile.getDeltaMovement().length(), SPINNING_DEFLECT_MIN_SPEED);
             projectile.setOwner(player);
             projectile.setDeltaMovement(direction.scale(speed));
-            projectile.hurtMarked = true;
+            projectile.needsSync = true;
         }
     }
 
@@ -439,13 +439,13 @@ public final class CommonEventHandler {
             if (!target.level().isClientSide() && isDamageTick(effect)) {
                 float damage = PowerEffectDrain.getAbsorbAmount(effect.amplifier)
                         * (float) STATUS_DAMAGE_INTERVAL / PowerEffectDrain.DURATION;
-                target.invulnerableTime = 0;
+                target.setInvulnerableTime(0);
                 float previousHealth = target.getHealth();
                 target.hurt(ALDamageSources.causeForceLightningDamage(player), damage);
                 player.heal(Math.max(previousHealth - target.getHealth(), 0));
             }
             target.setDeltaMovement(0, 0.05D, 0);
-            target.hurtMarked = true;
+            target.needsSync = true;
         }
     }
 
@@ -458,11 +458,11 @@ public final class CommonEventHandler {
             if (!target.level().isClientSide() && isDamageTick(effect)) {
                 float damage = PowerEffectChoke.getDamagePerSecond(effect.amplifier)
                         * STATUS_DAMAGE_INTERVAL / 20.0F;
-                target.invulnerableTime = 0;
+                target.setInvulnerableTime(0);
                 target.hurt(ALDamageSources.causeForceDamage(player), damage);
             }
             target.setDeltaMovement(0, 0.001D * effect.duration, 0);
-            target.hurtMarked = true;
+            target.needsSync = true;
         }
     }
 
@@ -532,7 +532,7 @@ public final class CommonEventHandler {
             return;
         }
         data.forcePushed = false;
-        entity.invulnerableTime = 0;
+        entity.setInvulnerableTime(0);
         Vec3 movement = new Vec3(
                 entity.xo - entity.getX(),
                 entity.yo - entity.getY(),

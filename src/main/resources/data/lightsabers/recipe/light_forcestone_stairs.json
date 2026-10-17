@@ -8,7 +8,7 @@
   ],
   "key": {
     "#": {
-      "type": "neoforge:components",
+      "neoforge:ingredient_type": "neoforge:components",
       "components": {
         "minecraft:block_state": {
           "variant": "default"

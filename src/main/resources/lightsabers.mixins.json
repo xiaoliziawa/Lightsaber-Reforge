@@ -8,8 +8,7 @@
   "client": [
     "MixinHumanoidModel",
     "MixinMinecraft",
-    "MinecraftAccessor",
-    "PostChainAccessor"
+    "GameRendererAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

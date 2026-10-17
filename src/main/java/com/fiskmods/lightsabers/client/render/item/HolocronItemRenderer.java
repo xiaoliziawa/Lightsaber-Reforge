@@ -117,8 +117,8 @@ public final class HolocronItemRenderer implements SpecialModelRenderer<
                     GROUND_SCALE
             );
             case FIXED -> {
-                poseStack.mulPose(Axis.XP.rotationDegrees(20.0F));
-                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.rotate(Axis.XP.rotationDegrees(20.0F));
+                poseStack.rotate(Axis.YP.rotationDegrees(45.0F));
                 poseStack.scale(FIXED_SCALE, FIXED_SCALE, FIXED_SCALE);
             }
             default -> poseStack.scale(

@@ -41,11 +41,11 @@ public class RenderLightsaber
 
         poseStack.pushPose();
         poseStack.translate(0.0F, VERTICAL_OFFSET, 0.0F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(state.yRot - 90.0F));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(state.xRot));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+        poseStack.rotate(Axis.YP.rotationDegrees(state.yRot - 90.0F));
+        poseStack.rotate(Axis.ZP.rotationDegrees(state.xRot));
+        poseStack.rotate(Axis.ZP.rotationDegrees(90.0F));
         if (!state.spear) {
-            poseStack.mulPose(Axis.XP.rotationDegrees(
+            poseStack.rotate(Axis.XP.rotationDegrees(
                     state.ageInTicks * SPIN_DEGREES_PER_TICK
             ));
         }

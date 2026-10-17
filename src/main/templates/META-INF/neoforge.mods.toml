@@ -47,7 +47,7 @@ versionRange="*"
 ordering="AFTER"
 side="CLIENT"
 
-# Epic Fight has no 26.1.2 release yet; re-enable together with its integration sources.
+# Re-enable together with a compatible Epic Fight dependency and its integration sources.
 #[[dependencies.${mod_id}]]
 #modId="epicfight"
 #type="optional"

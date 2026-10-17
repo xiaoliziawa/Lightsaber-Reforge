@@ -7,24 +7,12 @@
     "TDR"
   ],
   "key": {
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "B": {
-      "item": "minecraft:iron_block"
-    },
-    "S": {
-      "item": "minecraft:stone_button"
-    },
-    "T": {
-      "item": "minecraft:redstone_torch"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    }
+    "I": "minecraft:iron_ingot",
+    "D": "minecraft:diamond",
+    "B": "minecraft:iron_block",
+    "S": "minecraft:stone_button",
+    "T": "minecraft:redstone_torch",
+    "R": "minecraft:redstone"
   },
   "result": {
     "id": "lightsabers:lightsaber_circuitry"

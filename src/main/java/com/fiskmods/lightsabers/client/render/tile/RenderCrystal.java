@@ -64,7 +64,7 @@ public final class RenderCrystal
         poseStack.translate(0.5F, 1.5F, 0.5F);
         poseStack.scale(1.0F, -1.0F, -1.0F);
         applyFacing(poseStack, state.facing);
-        poseStack.mulPose(Axis.YP.rotationDegrees(state.rotation));
+        poseStack.rotate(Axis.YP.rotationDegrees(state.rotation));
         poseStack.translate(0.0F, state.offset, 0.0F);
         CrystalRenderHelper.render(
                 model,
@@ -80,7 +80,7 @@ public final class RenderCrystal
         switch (facing) {
             case DOWN -> {
                 poseStack.translate(0.0F, 2.0F, 0.0F);
-                poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+                poseStack.rotate(Axis.ZP.rotationDegrees(180.0F));
             }
             case EAST -> applyWallRotation(poseStack, 0.0F);
             case WEST -> applyWallRotation(poseStack, 180.0F);
@@ -92,9 +92,9 @@ public final class RenderCrystal
     }
 
     private static void applyWallRotation(PoseStack poseStack, float rotation) {
-        poseStack.mulPose(Axis.YP.rotationDegrees(rotation));
+        poseStack.rotate(Axis.YP.rotationDegrees(rotation));
         poseStack.translate(1.0F, 1.0F, 0.0F);
-        poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+        poseStack.rotate(Axis.ZP.rotationDegrees(90.0F));
     }
 
     public static final class RenderState extends BlockEntityRenderState {

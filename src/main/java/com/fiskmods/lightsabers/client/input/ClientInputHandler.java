@@ -45,13 +45,13 @@ public enum ClientInputHandler {
             return;
         }
 
-        if (minecraft.screen == null) {
+        if (minecraft.gui.screen() == null) {
             handleLightsaberToggle(player);
             handleDoubleLightsaberFlip(player);
             handlePowerUse(player);
             handlePowerSelection(minecraft, player);
             handleSpinningLightsaberSound(player);
-        } else if (!(minecraft.screen instanceof GuiSelectPowers)) {
+        } else if (!(minecraft.gui.screen() instanceof GuiSelectPowers)) {
             resetSelectorState();
             spinningSoundCooldown = 0;
         }
@@ -143,7 +143,7 @@ public enum ClientInputHandler {
                 && PowerManager.hasPowerUnlocked(player, Power.FORCE_SENSITIVITY)) {
             cycleSelectedPower(player, -1);
             selectorOpened = true;
-            minecraft.setScreen(new GuiSelectPowers());
+            minecraft.gui.setScreen(new GuiSelectPowers());
         }
     }
 

@@ -6,26 +6,31 @@ import com.fiskmods.lightsabers.common.block.BlockCrystal;
 import com.fiskmods.lightsabers.common.block.ModBlocks;
 import com.fiskmods.lightsabers.common.item.ItemCrystal;
 import com.fiskmods.lightsabers.common.tileentity.TileEntityCrystal;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.feature.Feature;
-import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 
-public final class CrystalCaveFeature extends Feature<CrystalCaveConfiguration> {
+public record CrystalCaveFeature(CrystalCaveConfiguration config) implements Feature {
+    public static final MapCodec<CrystalCaveFeature> CODEC = CrystalCaveConfiguration.CODEC
+            .fieldOf("config")
+            .xmap(CrystalCaveFeature::new, CrystalCaveFeature::config);
     private static final int CHUNK_SIZE = 16;
     private static final int SAFE_CHUNK_RADIUS = 1;
     private static final int SURFACE_CLEARANCE = 10;
@@ -53,21 +58,25 @@ public final class CrystalCaveFeature extends Feature<CrystalCaveConfiguration> 
             Direction.DOWN
     };
 
-    public CrystalCaveFeature() {
-        super(CrystalCaveConfiguration.CODEC);
+    @Override
+    public MapCodec<CrystalCaveFeature> codec() {
+        return CODEC;
     }
 
     @Override
-    public boolean place(FeaturePlaceContext<CrystalCaveConfiguration> context) {
-        CrystalCaveConfiguration config = context.config();
-        if (context.chunkGenerator() instanceof FlatLevelSource) {
+    public boolean place(
+            WorldGenLevel level,
+            ChunkGenerator chunkGenerator,
+            RandomSource randomSource,
+            BlockPos origin
+    ) {
+        if (chunkGenerator instanceof FlatLevelSource) {
             return false;
         }
 
-        WorldGenLevel level = context.level();
         ChunkPos chunk = new ChunkPos(
-                context.origin().getX() >> 4,
-                context.origin().getZ() >> 4
+                origin.getX() >> 4,
+                origin.getZ() >> 4
         );
         if (!hasCrystalCaveStart(level, chunk)) {
             return false;
@@ -75,14 +84,14 @@ public final class CrystalCaveFeature extends Feature<CrystalCaveConfiguration> 
 
         BlockPos biomePos = new BlockPos(
                 chunk.getMiddleBlockX(),
-                context.chunkGenerator().getSeaLevel(),
+                chunkGenerator.getSeaLevel(),
                 chunk.getMiddleBlockZ()
         );
         if (level.getBiome(biomePos).is(BiomeTags.IS_OCEAN)) {
             return false;
         }
 
-        Random random = new Random(context.random().nextLong());
+        Random random = new Random(randomSource.nextLong());
         BlockPos cavePos = findCavePosition(level, chunk, random, config.minimumAirBlocks());
         if (cavePos == null) {
             cavePos = createFallbackCavePosition(level, chunk, random, config.crystalMaxY());

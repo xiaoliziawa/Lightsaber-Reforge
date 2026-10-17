@@ -78,7 +78,7 @@ public class RenderLightsaberStand implements BlockEntityRenderer<
         poseStack.translate(0.5F, 0.5F, 0.5F);
         applyStandRotation(poseStack, state.blockState);
         poseStack.translate(0.0F, DISPLAY_NORMAL_OFFSET, 0.0F);
-        poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+        poseStack.rotate(Axis.XP.rotationDegrees(90.0F));
         poseStack.scale(DISPLAY_SCALE, DISPLAY_SCALE, DISPLAY_SCALE);
         state.item.submit(
                 poseStack,
@@ -94,14 +94,14 @@ public class RenderLightsaberStand implements BlockEntityRenderer<
         Direction facing = state.getValue(BlockLightsaberStand.FACING);
         if (facing == Direction.UP) {
             if (state.getValue(BlockLightsaberStand.AXIS) == Direction.Axis.X) {
-                poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+                poseStack.rotate(Axis.YP.rotationDegrees(90.0F));
             }
             return;
         }
 
-        poseStack.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
-        poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
-        poseStack.mulPose(Axis.YP.rotationDegrees(90.0F));
+        poseStack.rotate(Axis.YP.rotationDegrees(-facing.toYRot()));
+        poseStack.rotate(Axis.XP.rotationDegrees(90.0F));
+        poseStack.rotate(Axis.YP.rotationDegrees(90.0F));
     }
 
     public static final class RenderState extends BlockEntityRenderState {

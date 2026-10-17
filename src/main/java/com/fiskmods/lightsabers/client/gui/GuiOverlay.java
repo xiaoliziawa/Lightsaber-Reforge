@@ -48,7 +48,7 @@ public final class GuiOverlay {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
         if (player == null
-                || minecraft.options.hideGui
+                || minecraft.gui.hud.isHidden()
                 || minecraft.gameMode.getPlayerMode() == GameType.SPECTATOR) {
             return;
         }

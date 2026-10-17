@@ -77,7 +77,7 @@ public final class LightsaberBladeRenderer {
         boolean rollBlade = !crossguard && style.katana() && bladeRoll != 0.0F;
         if (rollBlade) {
             poseStack.pushPose();
-            poseStack.mulPose(Axis.YP.rotationDegrees(bladeRoll));
+            poseStack.rotate(Axis.YP.rotationDegrees(bladeRoll));
         }
 
         renderGlow(

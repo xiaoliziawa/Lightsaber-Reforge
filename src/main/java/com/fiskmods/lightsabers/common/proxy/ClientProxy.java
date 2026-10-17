@@ -20,7 +20,6 @@ import com.fiskmods.lightsabers.client.render.entity.RenderForceLightning;
 import com.fiskmods.lightsabers.client.render.entity.ClientForceEffectRenderer;
 import com.fiskmods.lightsabers.client.render.HolocronObjRenderer;
 import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
-import com.fiskmods.lightsabers.client.render.lightsaber.DeferredGlowRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberRenderTypes;
 import com.fiskmods.lightsabers.client.render.lightsaber.SpearLightsaberObjRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.SpinningLightsaberObjRenderer;
@@ -119,7 +118,6 @@ public final class ClientProxy extends CommonProxy {
         NeoForge.EVENT_BUS.register(ClientInputHandler.INSTANCE);
         NeoForge.EVENT_BUS.register(ClientSoundHandler.INSTANCE);
         NeoForge.EVENT_BUS.register(ClientForceEffectRenderer.INSTANCE);
-        NeoForge.EVENT_BUS.register(DeferredGlowRenderer.INSTANCE);
         NeoForge.EVENT_BUS.register(new GuiOverlay());
         NeoForge.EVENT_BUS.register(new ClientEventHandler());
         NeoForge.EVENT_BUS.register(new CommandExportIcon());

@@ -2,7 +2,6 @@ package com.fiskmods.lightsabers.common.block;
 
 import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import com.fiskmods.lightsabers.common.tileentity.TileEntityLightsaberStand;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -36,8 +35,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockLightsaberStand extends BaseEntityBlock {
-    public static final MapCodec<BlockLightsaberStand> CODEC =
-            simpleCodec(BlockLightsaberStand::new);
     public static final EnumProperty<Direction> FACING = EnumProperty.create(
             "facing",
             Direction.class,
@@ -79,11 +76,6 @@ public class BlockLightsaberStand extends BaseEntityBlock {
         registerDefaultState(defaultBlockState()
                 .setValue(FACING, Direction.UP)
                 .setValue(AXIS, Direction.Axis.X));
-    }
-
-    @Override
-    protected MapCodec<? extends BlockLightsaberStand> codec() {
-        return CODEC;
     }
 
     @Override

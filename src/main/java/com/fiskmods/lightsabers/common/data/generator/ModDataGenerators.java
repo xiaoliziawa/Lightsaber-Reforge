@@ -6,7 +6,7 @@ public final class ModDataGenerators {
     private ModDataGenerators() {
     }
 
-    public static void gatherData(GatherDataEvent.Server event) {
+    public static void gatherData(GatherDataEvent.Client event) {
         event.createProvider(WorldgenDataProvider::new);
     }
 }

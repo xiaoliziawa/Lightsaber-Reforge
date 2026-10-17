@@ -1,13 +1,15 @@
 package com.fiskmods.lightsabers.client.command;
 
-import com.fiskmods.lightsabers.mixin.MinecraftAccessor;
-import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.fiskmods.lightsabers.mixin.GameRendererAccessor;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.renderpearl.api.GpuFormat;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.commands.CommandEncoder;
+import com.mojang.renderpearl.api.textures.GpuTexture;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -18,7 +20,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.render.GuiRenderer;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.fog.FogRenderer;
 import net.minecraft.client.renderer.state.WindowRenderState;
 import net.minecraft.client.renderer.state.gui.GuiRenderState;
 import net.minecraft.commands.CommandSourceStack;
@@ -108,20 +109,22 @@ public final class CommandExportIcon {
                 "Lightsabers icon export",
                 size,
                 size,
-                true
+                GpuFormat.RGBA8_UNORM,
+                GpuFormat.D32_FLOAT
         );
         boolean readbackScheduled = false;
 
         try {
             WindowRenderState windowState = minecraft.gameRenderer
-                    .getGameRenderState()
+                    .gameRenderState()
                     .windowRenderState;
             int previousWidth = windowState.width;
             int previousHeight = windowState.height;
             int previousGuiScale = windowState.guiScale;
-            RenderTarget previousTarget = minecraft.getMainRenderTarget();
-            MinecraftAccessor accessor = (MinecraftAccessor) minecraft;
+            RenderTarget previousTarget = minecraft.gameRenderer.mainRenderTarget();
+            GameRendererAccessor accessor = (GameRendererAccessor) minecraft.gameRenderer;
 
+            RenderSystem.backupProjectionMatrix();
             try {
                 accessor.lightsabers$setMainRenderTarget(target);
                 int guiScale = Math.max(1, size / (int) GUI_ICON_UNITS);
@@ -141,15 +144,12 @@ public final class CommandExportIcon {
                 graphics.pose().scale(itemScale, itemScale);
                 graphics.item(stack, 0, 0);
 
-                try (FogRenderer fogRenderer = new FogRenderer();
-                        GuiRenderer guiRenderer = new GuiRenderer(
+                try (GuiRenderer guiRenderer = new GuiRenderer(
                                 guiRenderState,
-                                minecraft.renderBuffers().bufferSource(),
-                                minecraft.gameRenderer.getSubmitNodeStorage(),
-                                minecraft.gameRenderer.getFeatureRenderDispatcher(),
+                                minecraft.gameRenderer.featureRenderDispatcher(),
                                 List.of()
                         )) {
-                    guiRenderer.render(fogRenderer.getBuffer(FogRenderer.FogMode.NONE));
+                    guiRenderer.render();
                     guiRenderer.endFrame();
                 }
             } finally {
@@ -157,6 +157,7 @@ public final class CommandExportIcon {
                 windowState.width = previousWidth;
                 windowState.height = previousHeight;
                 windowState.guiScale = previousGuiScale;
+                RenderSystem.restoreProjectionMatrix();
             }
 
             File directory = new File(minecraft.gameDirectory, OUTPUT_DIR);
@@ -175,9 +176,9 @@ public final class CommandExportIcon {
     private static void clearTarget(TextureTarget target) {
         RenderSystem.getDevice().createCommandEncoder().clearColorAndDepthTextures(
                 Objects.requireNonNull(target.getColorTexture()),
-                0,
+                GuiRenderer.CLEAR_COLOR,
                 Objects.requireNonNull(target.getDepthTexture()),
-                1.0D
+                RenderSystem.DEFAULT_DEPTH_CLEAR_VALUE
         );
     }
 
@@ -191,8 +192,8 @@ public final class CommandExportIcon {
         GpuTexture sourceTexture = Objects.requireNonNull(target.getColorTexture());
         GpuBuffer buffer = RenderSystem.getDevice().createBuffer(
                 () -> "Lightsabers icon export readback",
-                9,
-                (long) width * height * sourceTexture.getFormat().pixelSize()
+                GpuBuffer.USAGE_MAP_READ | GpuBuffer.USAGE_COPY_DST,
+                (long) width * height * sourceTexture.getFormat().blockSize()
         );
         boolean submitted = false;
         try {
@@ -228,17 +229,12 @@ public final class CommandExportIcon {
             File file
     ) {
         NativeImage image = new NativeImage(width, height, false);
-        CommandEncoder commandEncoder = RenderSystem.getDevice().createCommandEncoder();
         boolean writeScheduled = false;
         try {
-            try (GpuBuffer.MappedView read = commandEncoder.mapBuffer(
-                    buffer,
-                    true,
-                    false
-            )) {
+            try (GpuBufferSlice.MappedView read = buffer.map(true, false)) {
                 int pixelSize = Objects.requireNonNull(target.getColorTexture())
                         .getFormat()
-                        .pixelSize();
+                        .blockSize();
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
                         int color = read.data().getInt((x + y * width) * pixelSize);

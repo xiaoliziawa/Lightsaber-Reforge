@@ -59,7 +59,7 @@ public class PowerEffectLightning extends PowerEffectStatus {
             }
             Vec3 movement = target.getDeltaMovement();
             target.setDeltaMovement(0, Math.min(movement.y, 0), 0);
-            target.hurtMarked = true;
+            target.needsSync = true;
         }
         return true;
     }

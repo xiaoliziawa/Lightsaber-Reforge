@@ -20,8 +20,13 @@ public record ScaledSoundInstance(SoundInstance delegate, float volumeScale)
     }
 
     @Override
-    public @Nullable WeighedSoundEvents resolve(SoundManager manager) {
-        return delegate.resolve(manager);
+    public @Nullable WeighedSoundEvents getOrResolve(SoundManager manager) {
+        return delegate.getOrResolve(manager);
+    }
+
+    @Override
+    public @Nullable WeighedSoundEvents getSoundEvent() {
+        return delegate.getSoundEvent();
     }
 
     @Override

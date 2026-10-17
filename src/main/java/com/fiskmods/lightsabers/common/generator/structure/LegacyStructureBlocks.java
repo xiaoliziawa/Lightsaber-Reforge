@@ -27,9 +27,9 @@ public final class LegacyStructureBlocks {
     public static final Block redstone_block = Blocks.REDSTONE_BLOCK;
     public static final Block redstone_torch = Blocks.REDSTONE_TORCH;
     public static final Block redstone_wire = Blocks.REDSTONE_WIRE;
-    public static final Block stained_glass = Blocks.WHITE_STAINED_GLASS;
-    public static final Block stained_glass_pane = Blocks.WHITE_STAINED_GLASS_PANE;
-    public static final Block stained_hardened_clay = Blocks.WHITE_TERRACOTTA;
+    public static final Block stained_glass = Blocks.STAINED_GLASS.white();
+    public static final Block stained_glass_pane = Blocks.STAINED_GLASS_PANE.white();
+    public static final Block stained_hardened_clay = Blocks.DYED_TERRACOTTA.white();
     public static final Block sticky_piston = Blocks.STICKY_PISTON;
     public static final Block stone = Blocks.STONE;
     public static final Block stone_slab = Blocks.STONE_SLAB;
@@ -132,25 +132,25 @@ public final class LegacyStructureBlocks {
 
     private static Block stainedGlass(int metadata) {
         return switch (metadata & 15) {
-            case 3 -> Blocks.LIGHT_BLUE_STAINED_GLASS;
-            case 14 -> Blocks.RED_STAINED_GLASS;
-            default -> Blocks.WHITE_STAINED_GLASS;
+            case 3 -> Blocks.STAINED_GLASS.lightBlue();
+            case 14 -> Blocks.STAINED_GLASS.red();
+            default -> Blocks.STAINED_GLASS.white();
         };
     }
 
     private static Block stainedGlassPane(int metadata) {
         return switch (metadata & 15) {
-            case 3 -> Blocks.LIGHT_BLUE_STAINED_GLASS_PANE;
-            case 14 -> Blocks.RED_STAINED_GLASS_PANE;
-            default -> Blocks.WHITE_STAINED_GLASS_PANE;
+            case 3 -> Blocks.STAINED_GLASS_PANE.lightBlue();
+            case 14 -> Blocks.STAINED_GLASS_PANE.red();
+            default -> Blocks.STAINED_GLASS_PANE.white();
         };
     }
 
     private static Block terracotta(int metadata) {
         return switch (metadata & 15) {
-            case 3 -> Blocks.LIGHT_BLUE_TERRACOTTA;
-            case 14 -> Blocks.RED_TERRACOTTA;
-            default -> Blocks.WHITE_TERRACOTTA;
+            case 3 -> Blocks.DYED_TERRACOTTA.lightBlue();
+            case 14 -> Blocks.DYED_TERRACOTTA.red();
+            default -> Blocks.DYED_TERRACOTTA.white();
         };
     }
 

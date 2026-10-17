@@ -7,12 +7,8 @@
     "###"
   ],
   "key": {
-    "#": {
-      "item": "minecraft:cut_sandstone"
-    },
-    "C": {
-      "item": "lightsabers:lightsaber_crystal"
-    }
+    "#": "minecraft:cut_sandstone",
+    "C": "lightsabers:lightsaber_crystal"
   },
   "result": {
     "count": 4,

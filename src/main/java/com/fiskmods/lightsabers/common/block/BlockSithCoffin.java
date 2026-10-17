@@ -3,7 +3,6 @@ package com.fiskmods.lightsabers.common.block;
 import com.fiskmods.lightsabers.common.container.ContainerSithCoffin;
 import com.fiskmods.lightsabers.common.tileentity.ModBlockEntities;
 import com.fiskmods.lightsabers.common.tileentity.TileEntitySithCoffin;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -38,7 +37,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockSithCoffin extends BaseEntityBlock {
-    public static final MapCodec<BlockSithCoffin> CODEC = simpleCodec(BlockSithCoffin::new);
     public static final EnumProperty<Part> PART = EnumProperty.create("part", Part.class);
 
     private static final double HEIGHT = 15.0D;
@@ -80,11 +78,6 @@ public class BlockSithCoffin extends BaseEntityBlock {
         registerDefaultState(defaultBlockState()
                 .setValue(HorizontalDirectionalBlock.FACING, Direction.SOUTH)
                 .setValue(PART, Part.BASE));
-    }
-
-    @Override
-    protected MapCodec<? extends BlockSithCoffin> codec() {
-        return CODEC;
     }
 
     @Nullable

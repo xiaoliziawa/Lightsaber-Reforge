@@ -97,37 +97,37 @@ public final class CrystalItemRenderer implements SpecialModelRenderer<
         switch (displayContext) {
             case GUI -> {
                 beginTransform(poseStack, GUI_VERTICAL_OFFSET);
-                poseStack.mulPose(Axis.XP.rotationDegrees(20.0F));
-                poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+                poseStack.rotate(Axis.XP.rotationDegrees(20.0F));
+                poseStack.rotate(Axis.YP.rotationDegrees(225.0F));
                 finishTransform(poseStack, GUI_SCALE);
             }
             case FIRST_PERSON_LEFT_HAND -> {
                 beginTransform(poseStack, 0.0F);
-                poseStack.mulPose(Axis.YP.rotationDegrees(35.0F));
-                poseStack.mulPose(Axis.ZP.rotationDegrees(-20.0F));
+                poseStack.rotate(Axis.YP.rotationDegrees(35.0F));
+                poseStack.rotate(Axis.ZP.rotationDegrees(-20.0F));
                 finishTransform(poseStack, FIRST_PERSON_SCALE);
             }
             case FIRST_PERSON_RIGHT_HAND -> {
                 beginTransform(poseStack, 0.0F);
-                poseStack.mulPose(Axis.YP.rotationDegrees(-35.0F));
-                poseStack.mulPose(Axis.ZP.rotationDegrees(20.0F));
+                poseStack.rotate(Axis.YP.rotationDegrees(-35.0F));
+                poseStack.rotate(Axis.ZP.rotationDegrees(20.0F));
                 finishTransform(poseStack, FIRST_PERSON_SCALE);
             }
             case THIRD_PERSON_LEFT_HAND -> {
                 beginTransform(poseStack, 0.1F);
-                poseStack.mulPose(Axis.ZP.rotationDegrees(-20.0F));
+                poseStack.rotate(Axis.ZP.rotationDegrees(-20.0F));
                 finishTransform(poseStack, THIRD_PERSON_SCALE);
             }
             case THIRD_PERSON_RIGHT_HAND -> {
                 beginTransform(poseStack, 0.1F);
-                poseStack.mulPose(Axis.ZP.rotationDegrees(20.0F));
+                poseStack.rotate(Axis.ZP.rotationDegrees(20.0F));
                 finishTransform(poseStack, THIRD_PERSON_SCALE);
             }
             case GROUND -> centerAndScale(poseStack, GROUND_SCALE, 0.0F);
             case FIXED -> {
                 beginTransform(poseStack, 0.04F);
-                poseStack.mulPose(Axis.XP.rotationDegrees(20.0F));
-                poseStack.mulPose(Axis.YP.rotationDegrees(45.0F));
+                poseStack.rotate(Axis.XP.rotationDegrees(20.0F));
+                poseStack.rotate(Axis.YP.rotationDegrees(45.0F));
                 finishTransform(poseStack, FIXED_SCALE);
             }
             default -> centerAndScale(poseStack, FIXED_SCALE, 0.0F);

@@ -2,7 +2,6 @@ package com.fiskmods.lightsabers.common.block;
 
 import com.fiskmods.lightsabers.common.tileentity.ModBlockEntities;
 import com.fiskmods.lightsabers.common.tileentity.TileEntityCrystalDisplayStand;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -27,17 +26,10 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 public class BlockCrystalDisplayStand extends BaseEntityBlock {
-    public static final MapCodec<BlockCrystalDisplayStand> CODEC =
-            simpleCodec(BlockCrystalDisplayStand::new);
     private static final VoxelShape SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
 
     public BlockCrystalDisplayStand(BlockBehaviour.Properties properties) {
         super(properties);
-    }
-
-    @Override
-    protected MapCodec<? extends BlockCrystalDisplayStand> codec() {
-        return CODEC;
     }
 
     @Override

@@ -10,6 +10,7 @@ import com.fiskmods.lightsabers.common.force.PowerManager;
 import com.fiskmods.lightsabers.common.force.PowerStats;
 import com.fiskmods.lightsabers.common.network.ALNetworkManager;
 import com.fiskmods.lightsabers.common.network.MessageUnlockPower;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -216,7 +217,7 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x();
         double mouseY = event.y();
-        if (event.button() == 0 && isInsideTree(mouseX, mouseY)) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && isInsideTree(mouseX, mouseY)) {
             draggingTree = true;
             dragMoved = false;
             pressedMouseX = mouseX;
@@ -237,7 +238,7 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
     ) {
         double mouseX = event.x();
         double mouseY = event.y();
-        if (event.button() == 0 && draggingTree) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && draggingTree) {
             double totalX = mouseX - pressedMouseX;
             double totalY = mouseY - pressedMouseY;
             if (!dragMoved
@@ -260,7 +261,7 @@ public class GuiForcePowers extends AbstractContainerScreen<ContainerHolocron> {
     public boolean mouseReleased(MouseButtonEvent event) {
         double mouseX = event.x();
         double mouseY = event.y();
-        if (event.button() == 0 && draggingTree) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && draggingTree) {
             Power releasedPower = getPowerAt(mouseX, mouseY);
             Power clickedPower = pressedPower;
             boolean shouldInvest = !dragMoved

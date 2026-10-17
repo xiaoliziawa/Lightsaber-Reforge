@@ -99,7 +99,7 @@ public final class SpinningLightsaberObjRenderer {
 
         float rotation = getRotation(Minecraft.getInstance(), stack);
         poseStack.pushPose();
-        poseStack.mulPose(Axis.XP.rotationDegrees(MODEL_ORIENTATION_ROTATION));
+        poseStack.rotate(Axis.XP.rotationDegrees(MODEL_ORIENTATION_ROTATION));
         poseStack.scale(DISPLAY_SCALE, DISPLAY_SCALE, DISPLAY_SCALE);
         poseStack.pushPose();
         poseStack.scale(OBJ_SCALE, OBJ_SCALE, OBJ_SCALE);
@@ -108,13 +108,13 @@ public final class SpinningLightsaberObjRenderer {
         poseStack.popPose();
 
         poseStack.pushPose();
-        poseStack.mulPose(Axis.XP.rotationDegrees(rotation));
+        poseStack.rotate(Axis.XP.rotationDegrees(rotation));
         poseStack.scale(OBJ_SCALE, OBJ_SCALE, OBJ_SCALE);
         renderModel(OUTER_MODEL, stack, poseStack, collector, packedLight, packedOverlay);
         poseStack.popPose();
 
         poseStack.pushPose();
-        poseStack.mulPose(Axis.XP.rotationDegrees(rotation));
+        poseStack.rotate(Axis.XP.rotationDegrees(rotation));
         poseStack.scale(OBJ_SCALE, OBJ_SCALE, OBJ_SCALE);
         renderModel(
                 UPPER_EMITTER_MODEL,
@@ -166,13 +166,13 @@ public final class SpinningLightsaberObjRenderer {
 
         float rotation = getRotation(Minecraft.getInstance(), stack);
         poseStack.pushPose();
-        poseStack.mulPose(Axis.XP.rotationDegrees(MODEL_ORIENTATION_ROTATION));
+        poseStack.rotate(Axis.XP.rotationDegrees(MODEL_ORIENTATION_ROTATION));
         poseStack.scale(DISPLAY_SCALE, DISPLAY_SCALE, DISPLAY_SCALE);
         LightsaberBladeRenderer.bladeRoll = BLADE_EDGE_ROLL;
         poseStack.pushPose();
-        poseStack.mulPose(Axis.XP.rotationDegrees(rotation));
+        poseStack.rotate(Axis.XP.rotationDegrees(rotation));
         poseStack.translate(UPPER_BLADE_BASE_X, UPPER_BLADE_BASE_Y, 0.0F);
-        poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
+        poseStack.rotate(Axis.XP.rotationDegrees(180.0F));
         poseStack.scale(BLADE_WIDTH_SCALE, 1.0F, BLADE_WIDTH_SCALE);
         LightsaberBladeRenderer.render(
                 data,
@@ -193,7 +193,7 @@ public final class SpinningLightsaberObjRenderer {
         }
 
         poseStack.pushPose();
-        poseStack.mulPose(Axis.XP.rotationDegrees(rotation));
+        poseStack.rotate(Axis.XP.rotationDegrees(rotation));
         poseStack.translate(LOWER_BLADE_BASE_X, LOWER_BLADE_BASE_Y, 0.0F);
         poseStack.scale(BLADE_WIDTH_SCALE, 1.0F, BLADE_WIDTH_SCALE);
         LightsaberBladeRenderer.render(

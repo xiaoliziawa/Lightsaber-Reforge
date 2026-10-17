@@ -3,7 +3,6 @@ package com.fiskmods.lightsabers.common.block;
 import com.fiskmods.lightsabers.common.container.ContainerDisassemblyStation;
 import com.fiskmods.lightsabers.common.tileentity.ModBlockEntities;
 import com.fiskmods.lightsabers.common.tileentity.TileEntityDisassemblyStation;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -39,8 +38,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockDisassemblyStation extends BaseEntityBlock {
-    public static final MapCodec<BlockDisassemblyStation> CODEC =
-            simpleCodec(BlockDisassemblyStation::new);
     public static final EnumProperty<Part> PART = EnumProperty.create("part", Part.class);
 
     private static final VoxelShape LOWER_SHAPE = Block.box(
@@ -69,11 +66,6 @@ public class BlockDisassemblyStation extends BaseEntityBlock {
         registerDefaultState(defaultBlockState()
                 .setValue(HorizontalDirectionalBlock.FACING, Direction.SOUTH)
                 .setValue(PART, Part.BASE));
-    }
-
-    @Override
-    protected MapCodec<? extends BlockDisassemblyStation> codec() {
-        return CODEC;
     }
 
     @Override

@@ -3,9 +3,6 @@ package com.fiskmods.lightsabers.common.block;
 import com.fiskmods.lightsabers.common.container.ContainerHolocron;
 import com.fiskmods.lightsabers.common.tileentity.ModBlockEntities;
 import com.fiskmods.lightsabers.common.tileentity.TileEntityHolocron;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,16 +28,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockHolocron extends BaseEntityBlock {
-    public static final MapCodec<BlockHolocron> CODEC = RecordCodecBuilder.mapCodec(
-            instance -> instance.group(
-                    Codec.STRING.fieldOf("holocron_type")
-                            .forGetter(block -> block.type.name()),
-                    propertiesCodec()
-            ).apply(instance, (type, properties) -> new BlockHolocron(
-                    properties,
-                    HolocronType.valueOf(type)
-            ))
-    );
     private static final int SHAPE_STEPS = 100;
     private static final VoxelShape[] SHAPES = createShapes();
 
@@ -49,11 +36,6 @@ public class BlockHolocron extends BaseEntityBlock {
     public BlockHolocron(BlockBehaviour.Properties properties, HolocronType type) {
         super(properties);
         this.type = type;
-    }
-
-    @Override
-    protected MapCodec<? extends BlockHolocron> codec() {
-        return CODEC;
     }
 
     public HolocronType getType() {

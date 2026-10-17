@@ -31,7 +31,7 @@ public class PowerEffectBladeThrow extends PowerEffect
             if (side == LogicalSide.SERVER)
             {
                 ItemLightsaberBase.throwLightsaber(player, heldItem, amplifier);
-                player.swing(InteractionHand.MAIN_HAND);
+                player.swing(InteractionHand.MAIN_HAND, player.getMainHandItem().getAttackAnimation(), false);
             }
 
             return true;

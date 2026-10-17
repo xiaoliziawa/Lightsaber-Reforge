@@ -39,7 +39,7 @@ public final class CrystalRenderHelper {
                 OverlayTexture.NO_OVERLAY,
                 null,
                 ARGB.colorFromFloat(alpha, red, green, blue),
-                null
+                0
         );
     }
 }

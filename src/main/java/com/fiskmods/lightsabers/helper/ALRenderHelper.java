@@ -1,12 +1,8 @@
 package com.fiskmods.lightsabers.helper;
 
 import com.fiskmods.lightsabers.Lightsabers;
-import com.fiskmods.lightsabers.mixin.PostChainAccessor;
-import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LevelTargetBundle;
-import net.minecraft.client.renderer.PostChain;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -29,6 +25,7 @@ public final class ALRenderHelper {
     public static boolean overrideColor;
 
     private static int gazeAmplifier = -1;
+    private static Identifier postEffect;
 
     private ALRenderHelper() {
     }
@@ -91,32 +88,17 @@ public final class ALRenderHelper {
     }
 
     public static void startShaders(Identifier location) {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (!location.equals(minecraft.gameRenderer.currentPostEffect())) {
-            if (location.equals(SHADER_BLUR)) {
-                resetPersistentTargets(minecraft, location);
-            }
-            minecraft.gameRenderer.setPostEffect(location);
-        }
+        postEffect = location;
     }
 
     public static void stopShaders() {
-        Minecraft.getInstance().gameRenderer.clearPostEffect();
+        postEffect = null;
     }
 
-    private static void resetPersistentTargets(
-            Minecraft minecraft,
-            Identifier location
-    ) {
-        PostChain postChain = minecraft.getShaderManager()
-                .getPostChain(location, LevelTargetBundle.MAIN_TARGETS);
-        if (!(postChain instanceof PostChainAccessor accessor)) {
-            return;
+    public static void queuePostEffect() {
+        if (postEffect != null) {
+            Minecraft.getInstance().gameRenderer.getRequestedPostEffects().add(postEffect);
         }
-        for (RenderTarget target : accessor.lightsabers$getPersistentTargets().values()) {
-            target.destroyBuffers();
-        }
-        accessor.lightsabers$getPersistentTargets().clear();
     }
 
     public static boolean canGazeEntity(

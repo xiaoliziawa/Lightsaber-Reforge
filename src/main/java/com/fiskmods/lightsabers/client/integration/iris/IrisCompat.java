@@ -1,6 +1,6 @@
 package com.fiskmods.lightsabers.client.integration.iris;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import net.irisshaders.iris.api.v0.IrisApi;
 import net.irisshaders.iris.api.v0.IrisProgram;
 import net.neoforged.fml.ModList;

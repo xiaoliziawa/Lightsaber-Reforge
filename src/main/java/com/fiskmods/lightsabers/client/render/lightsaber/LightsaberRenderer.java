@@ -133,8 +133,8 @@ public final class LightsaberRenderer {
             LightsaberData data = sabers[dataIndex];
             poseStack.pushPose();
             if (index == 1) {
-                poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
-                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.rotate(Axis.XP.rotationDegrees(180.0F));
+                poseStack.rotate(Axis.YP.rotationDegrees(180.0F));
             }
             poseStack.translate(0.0F, -data.getHeight() / 32.0F, 0.0F);
             render(
@@ -172,9 +172,9 @@ public final class LightsaberRenderer {
                     crossguard[1],
                     crossguard[2] * -direction
             );
-            poseStack.mulPose(Axis.XP.rotationDegrees(direction * 90.0F));
+            poseStack.rotate(Axis.XP.rotationDegrees(direction * 90.0F));
             if (direction == 1) {
-                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.rotate(Axis.YP.rotationDegrees(180.0F));
             }
             LightsaberBladeRenderer.render(
                     data,

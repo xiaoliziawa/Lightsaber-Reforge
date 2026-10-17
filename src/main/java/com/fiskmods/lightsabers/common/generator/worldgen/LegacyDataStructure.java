@@ -52,11 +52,10 @@ public final class LegacyDataStructure extends Structure {
                 context.heightAccessor(),
                 context.randomState()
         );
-        Holder<Biome> biome = context.biomeSource().getNoiseBiome(
+        Holder<Biome> biome = context.biomeSource().createUncachedResolver(context.randomState()).getNoiseBiome(
                 QuartPos.fromBlock(x),
                 QuartPos.fromBlock(y),
-                QuartPos.fromBlock(z),
-                context.randomState().sampler()
+                QuartPos.fromBlock(z)
         );
         if (!structure.biomePredicate.test(biome)) {
             return Optional.empty();

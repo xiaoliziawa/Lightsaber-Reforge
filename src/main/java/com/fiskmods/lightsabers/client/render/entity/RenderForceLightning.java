@@ -82,7 +82,7 @@ public final class RenderForceLightning extends EntityRenderer<
         state.anchor = VectorHelper.getPosition(lightning, partialTicks);
         state.camera = Minecraft.getInstance()
                 .gameRenderer
-                .getMainCamera()
+                .mainCamera()
                 .position()
                 .subtract(state.anchor);
         state.firstPerson = caster != null

@@ -7,14 +7,10 @@
     " L "
   ],
   "key": {
-    "L": {
-      "item": "minecraft:leather"
-    },
-    "S": {
-      "item": "minecraft:string"
-    },
+    "L": "minecraft:leather",
+    "S": "minecraft:string",
     "C": {
-      "type": "neoforge:components",
+      "neoforge:ingredient_type": "neoforge:components",
       "components": {
         "minecraft:custom_data": {
           "CrystalColorId": 1

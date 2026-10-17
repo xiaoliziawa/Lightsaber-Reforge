@@ -7,21 +7,11 @@
     "IAI"
   ],
   "key": {
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "B": {
-      "item": "minecraft:blaze_rod"
-    },
-    "C": {
-      "item": "lightsabers:lightsaber_circuitry"
-    },
-    "I": {
-      "item": "minecraft:iron_block"
-    },
-    "A": {
-      "item": "minecraft:anvil"
-    }
+    "R": "minecraft:redstone",
+    "B": "minecraft:blaze_rod",
+    "C": "lightsabers:lightsaber_circuitry",
+    "I": "minecraft:iron_block",
+    "A": "minecraft:anvil"
   },
   "result": {
     "id": "lightsabers:disassembly_station"

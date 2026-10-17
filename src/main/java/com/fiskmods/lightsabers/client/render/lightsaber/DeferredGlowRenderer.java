@@ -1,47 +1,11 @@
 package com.fiskmods.lightsabers.client.render.lightsaber;
 
-import com.fiskmods.lightsabers.client.integration.iris.IrisCompat;
 import com.fiskmods.lightsabers.client.render.RenderSubmissionHelper;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
-import java.util.LinkedHashMap;
-import java.util.SequencedMap;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import org.joml.Matrix4fStack;
 
-public enum DeferredGlowRenderer {
-    INSTANCE;
-
-    private static final int FALLBACK_BUFFER_SIZE = 256;
-
-    private final MultiBufferSource.BufferSource deferredBuffer =
-            MultiBufferSource.immediateWithBuffers(
-                    createFixedBuffers(),
-                    new ByteBufferBuilder(FALLBACK_BUFFER_SIZE)
-            );
-    private boolean hasDeferredGeometry;
-
-    private static SequencedMap<RenderType, ByteBufferBuilder> createFixedBuffers() {
-        SequencedMap<RenderType, ByteBufferBuilder> buffers = new LinkedHashMap<>();
-        addBuffer(buffers, LightsaberRenderTypes.BLADE_GLOW);
-        addBuffer(buffers, LightsaberRenderTypes.BLADE_DARK_GLOW);
-        addBuffer(buffers, LightsaberRenderTypes.FORCE_EFFECT_GLOW);
-        return buffers;
-    }
-
-    private static void addBuffer(
-            SequencedMap<RenderType, ByteBufferBuilder> buffers,
-            RenderType renderType
-    ) {
-        buffers.put(renderType, new ByteBufferBuilder(renderType.bufferSize()));
-    }
-
+public final class DeferredGlowRenderer {
     public static void submitGeometry(
             SubmitNodeCollector collector,
             PoseStack poseStack,
@@ -50,46 +14,11 @@ public enum DeferredGlowRenderer {
             boolean deferInWorld,
             RenderSubmissionHelper.GeometryRenderer renderer
     ) {
-        if (!deferInWorld) {
-            RenderSubmissionHelper.submitShaderEffectGeometry(
-                    collector,
-                    poseStack,
-                    directRenderType,
-                    renderer
-            );
-            return;
-        }
-        if (IrisCompat.isShaderPackInUse() || Minecraft.useShaderTransparency()) {
-            RenderSubmissionHelper.submitShaderEffectGeometry(
-                    collector,
-                    poseStack,
-                    worldRenderType,
-                    renderer
-            );
-            return;
-        }
-        PoseStack renderPose = new PoseStack();
-        renderPose.last().set(poseStack.last());
-        renderer.render(
-                renderPose,
-                INSTANCE.deferredBuffer.getBuffer(worldRenderType)
+        RenderSubmissionHelper.submitShaderEffectGeometry(
+                collector,
+                poseStack,
+                deferInWorld ? worldRenderType : directRenderType,
+                renderer
         );
-        INSTANCE.hasDeferredGeometry = true;
-    }
-
-    @SubscribeEvent
-    public void onAfterLevel(RenderLevelStageEvent.AfterLevel event) {
-        if (!hasDeferredGeometry) {
-            return;
-        }
-
-        Matrix4fStack modelViewStack = RenderSystem.getModelViewStack();
-        modelViewStack.pushMatrix().mul(event.getModelViewMatrix());
-        try {
-            deferredBuffer.endBatch();
-        } finally {
-            hasDeferredGeometry = false;
-            modelViewStack.popMatrix();
-        }
     }
 }

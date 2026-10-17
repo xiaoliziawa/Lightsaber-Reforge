@@ -39,7 +39,7 @@ public class PowerEffectPush extends PowerEffect {
                 0.5F * getKnockback(amplifier)
         );
         target.setDeltaMovement(target.getDeltaMovement().add(knockbackPoint.subtract(origin)));
-        target.hurtMarked = true;
+        target.needsSync = true;
         ALDataInterp.FORCE_PUSHING_TIMER.setWithoutNotify(player, 1.0F);
         return true;
     }

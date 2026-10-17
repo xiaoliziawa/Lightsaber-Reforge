@@ -12,7 +12,6 @@ import com.fiskmods.lightsabers.common.lightsaber.PartType;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.feature.ItemFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.world.item.ItemStack;
@@ -123,8 +122,8 @@ public final class HiltModelRenderer {
             LightsaberData data = sabers[index];
             poseStack.pushPose();
             if (index == 1) {
-                poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
-                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+                poseStack.rotate(Axis.XP.rotationDegrees(180.0F));
+                poseStack.rotate(Axis.YP.rotationDegrees(180.0F));
             }
             poseStack.translate(0.0F, -data.getHeight() / 32.0F, 0.0F);
             render(data, stack, poseStack, collector, packedLight, packedOverlay);
@@ -207,7 +206,7 @@ public final class HiltModelRenderer {
             if ((index & 1) == 0) {
                 poseStack.translate(0.0F, instruction / 16.0F, 0.0F);
             } else {
-                poseStack.mulPose(Axis.XP.rotationDegrees(instruction));
+                poseStack.rotate(Axis.XP.rotationDegrees(instruction));
             }
         }
     }
@@ -222,7 +221,9 @@ public final class HiltModelRenderer {
             int packedOverlay
     ) {
         LegacyModelBase model = renderer.getModel(type);
-        RenderType renderType = RenderTypes.entityCutout(renderer.getTexture(type));
+        RenderType renderType = stack.hasFoil()
+                ? RenderTypes.itemCutoutGlint(renderer.getTexture(type))
+                : RenderTypes.entityCutout(renderer.getTexture(type));
         submitModelGeometry(
                 collector,
                 poseStack,
@@ -231,16 +232,6 @@ public final class HiltModelRenderer {
                 packedLight,
                 packedOverlay
         );
-        if (stack.hasFoil()) {
-            submitModelGeometry(
-                    collector,
-                    poseStack,
-                    ItemFeatureRenderer.getFoilRenderType(renderType, true),
-                    model,
-                    packedLight,
-                    packedOverlay
-            );
-        }
     }
 
     private static void submitModelGeometry(
