@@ -6,7 +6,7 @@ version="${mod_version}"
 displayName="${mod_name}"
 authors="${mod_authors}"
 description='''${mod_description}'''
-logoFile="al-banner.png"
+bannerFile="al-banner.png"
 enumExtensions="META-INF/enum_extensions.json"
 
 [[mixins]]
