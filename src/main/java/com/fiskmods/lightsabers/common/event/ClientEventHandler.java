@@ -172,7 +172,7 @@ public final class ClientEventHandler {
     public void onRenderPlayerPost(RenderPlayerEvent.Post event) {
         Player player = event.getEntity();
         restoreHiddenArmor(player);
-        if (!StatusEffect.has(player, Effect.STEALTH)) {
+        if (ModConfig.renderStoredLightsaber && !StatusEffect.has(player, Effect.STEALTH)) {
             renderStoredLightsaber(event, player);
         }
         for (StatusEffect status : StatusEffect.get(player)) {
