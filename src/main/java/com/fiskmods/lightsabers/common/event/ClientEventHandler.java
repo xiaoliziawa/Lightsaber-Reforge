@@ -202,7 +202,7 @@ public final class ClientEventHandler {
         if (!(renderedEntity instanceof Player player)) {
             return;
         }
-        if (!StatusEffect.has(player, Effect.STEALTH)) {
+        if (ModConfig.renderStoredLightsaber && !StatusEffect.has(player, Effect.STEALTH)) {
             renderStoredLightsaber(event, player);
         }
         for (StatusEffect status : StatusEffect.get(player)) {
