@@ -18,6 +18,7 @@ public final class ModConfig {
     private static final ModConfigSpec.DoubleValue RENDER_OPACITY_MULTIPLIER;
     private static final ModConfigSpec.DoubleValue RENDER_SMOOTHING_MULTIPLIER;
     private static final ModConfigSpec.DoubleValue RENDER_LIGHTING_MULTIPLIER;
+    private static final ModConfigSpec.BooleanValue RENDER_STORED_LIGHTSABER;
     private static final ModConfigSpec.BooleanValue ENABLE_SHADERS;
 
     public static final ModConfigSpec SPEC;
@@ -29,6 +30,7 @@ public final class ModConfig {
     public static float renderOpacityMultiplier = 1.0F;
     public static float renderSmoothingMultiplier = 1.0F;
     public static float renderLightingMultiplier = 1.0F;
+    public static boolean renderStoredLightsaber;
     public static boolean enableShaders = true;
 
     static {
@@ -50,6 +52,7 @@ public final class ModConfig {
         RENDER_OPACITY_MULTIPLIER = defineMultiplier(builder, "opacityMultiplier");
         RENDER_SMOOTHING_MULTIPLIER = defineMultiplier(builder, "smoothingMultiplier");
         RENDER_LIGHTING_MULTIPLIER = defineMultiplier(builder, "lightingMultiplier");
+        RENDER_STORED_LIGHTSABER = builder.define("renderStoredLightsaber", false);
         ENABLE_SHADERS = builder.define("enableShaders", true);
         builder.pop();
 
@@ -88,6 +91,7 @@ public final class ModConfig {
         renderOpacityMultiplier = RENDER_OPACITY_MULTIPLIER.get().floatValue();
         renderSmoothingMultiplier = RENDER_SMOOTHING_MULTIPLIER.get().floatValue();
         renderLightingMultiplier = RENDER_LIGHTING_MULTIPLIER.get().floatValue();
+        renderStoredLightsaber = RENDER_STORED_LIGHTSABER.get();
         enableShaders = ENABLE_SHADERS.get();
     }
 }
