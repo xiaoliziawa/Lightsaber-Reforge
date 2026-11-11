@@ -1,6 +1,7 @@
 package com.fiskmods.lightsabers.client.render.item;
 
 import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
+import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberBladeAnimation;
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberBladeRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.SpearLightsaberObjRenderer;
@@ -28,6 +29,7 @@ import net.minecraft.client.renderer.special.SpecialModelRenderer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.ItemOwner;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Matrix4f;
@@ -226,7 +228,8 @@ public class LightsaberItemRenderer
                     packedLight,
                     packedOverlay,
                     inWorld,
-                    deferGlow
+                    deferGlow,
+                    argument.extension()
             );
         } else {
             LightsaberRenderer.render(
@@ -237,7 +240,8 @@ public class LightsaberItemRenderer
                     packedLight,
                     packedOverlay,
                     inWorld,
-                    deferGlow
+                    deferGlow,
+                    argument.extension()
             );
         }
         LightsaberBladeRenderer.bladeRoll = 0.0F;
@@ -584,17 +588,40 @@ public class LightsaberItemRenderer
 
     @Override
     public RenderArgument extractArgument(ItemStack stack) {
+        float extension = getBladeExtension(stack, ItemDisplayContext.NONE, null);
         return new RenderArgument(
                 stack.copy(),
                 ItemDisplayContext.NONE,
-                guiBladePreview
+                guiBladePreview,
+                extension
         );
+    }
+
+    private static float getBladeExtension(
+            ItemStack stack,
+            ItemDisplayContext displayContext,
+            @Nullable ItemOwner owner
+    ) {
+        if (!(stack.getItem() instanceof ItemLightsaberBase)) {
+            return 0.0F;
+        }
+        if (displayContext == ItemDisplayContext.GUI) {
+            return ItemLightsaberBase.isActive(stack) ? 1.0F : 0.0F;
+        }
+
+        float partialTick = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true);
+        LivingEntity entity = owner == null ? null : owner.asLivingEntity();
+        if (entity != null) {
+            LightsaberBladeAnimation.track(entity, partialTick);
+        }
+        return LightsaberBladeAnimation.getExtension(stack, partialTick);
     }
 
     public record RenderArgument(
             ItemStack stack,
             ItemDisplayContext displayContext,
-            boolean bladePreview
+            boolean bladePreview,
+            float extension
     ) {
     }
 
@@ -644,6 +671,7 @@ public class LightsaberItemRenderer
                     displayContext,
                     EXTENTS_SUPPLIER
             ));
+            float extension = getBladeExtension(item, displayContext, owner);
             layer.setupSpecialModel(
                     INSTANCE,
                     new RenderArgument(
@@ -651,7 +679,8 @@ public class LightsaberItemRenderer
                                     ? item.copy()
                                     : item,
                             displayContext,
-                            bladePreview
+                            bladePreview,
+                            extension
                     )
             );
             if (item.hasFoil()) {

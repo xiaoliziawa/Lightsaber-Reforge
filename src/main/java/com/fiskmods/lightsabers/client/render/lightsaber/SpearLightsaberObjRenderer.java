@@ -111,7 +111,8 @@ public final class SpearLightsaberObjRenderer {
             PoseStack poseStack,
             SubmitNodeCollector collector,
             boolean inWorld,
-            boolean deferGlow
+            boolean deferGlow,
+            float extension
     ) {
         poseStack.pushPose();
         poseStack.translate(0.0F, -getSocketOffset(), 0.0F);
@@ -124,7 +125,8 @@ public final class SpearLightsaberObjRenderer {
                 inWorld,
                 deferGlow,
                 BLADE_LENGTH,
-                false
+                false,
+                extension
         );
         poseStack.popPose();
     }

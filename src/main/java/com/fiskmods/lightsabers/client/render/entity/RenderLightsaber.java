@@ -1,5 +1,6 @@
 package com.fiskmods.lightsabers.client.render.entity;
 
+import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberBladeAnimation;
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberBladeRenderer;
 import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberRenderer;
 import com.fiskmods.lightsabers.common.entity.EntityLightsaber;
@@ -64,7 +65,8 @@ public class RenderLightsaber
                     state.lightCoords,
                     OverlayTexture.NO_OVERLAY,
                     true,
-                    true
+                    true,
+                    state.extension
             );
         } else {
             LightsaberRenderer.render(
@@ -75,7 +77,8 @@ public class RenderLightsaber
                     state.lightCoords,
                     OverlayTexture.NO_OVERLAY,
                     true,
-                    true
+                    true,
+                    state.extension
             );
         }
         LightsaberBladeRenderer.bladeRoll = 0.0F;
@@ -95,7 +98,9 @@ public class RenderLightsaber
             float partialTicks
     ) {
         super.extractRenderState(entity, state, partialTicks);
-        state.stack = entity.getItem().copy();
+        ItemStack stack = entity.getItem();
+        state.extension = LightsaberBladeAnimation.getExtension(stack, partialTicks);
+        state.stack = stack.copy();
         state.yRot = entity.getYRot(partialTicks);
         state.xRot = entity.getXRot(partialTicks);
         state.spear = ItemLightsaberBase.isSpearLightsaber(state.stack);
@@ -103,6 +108,7 @@ public class RenderLightsaber
 
     public static final class RenderState extends EntityRenderState {
         private ItemStack stack = ItemStack.EMPTY;
+        private float extension;
         private float yRot;
         private float xRot;
         private boolean spear;

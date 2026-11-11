@@ -158,7 +158,8 @@ public final class SpinningLightsaberObjRenderer {
             PoseStack poseStack,
             SubmitNodeCollector collector,
             boolean inWorld,
-            boolean deferGlow
+            boolean deferGlow,
+            float extension
     ) {
         if (!isSupported(data)) {
             return;
@@ -182,7 +183,8 @@ public final class SpinningLightsaberObjRenderer {
                 inWorld,
                 deferGlow,
                 BLADE_LENGTH,
-                false
+                false,
+                extension
         );
         poseStack.popPose();
 
@@ -204,7 +206,8 @@ public final class SpinningLightsaberObjRenderer {
                 inWorld,
                 deferGlow,
                 BLADE_LENGTH,
-                false
+                false,
+                extension
         );
         poseStack.popPose();
         LightsaberBladeRenderer.bladeRoll = 0.0F;
