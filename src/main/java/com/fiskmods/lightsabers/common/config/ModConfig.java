@@ -19,6 +19,7 @@ public final class ModConfig {
     private static final ForgeConfigSpec.DoubleValue RENDER_SMOOTHING_MULTIPLIER;
     private static final ForgeConfigSpec.DoubleValue RENDER_LIGHTING_MULTIPLIER;
     private static final ForgeConfigSpec.BooleanValue RENDER_STORED_LIGHTSABER;
+    private static final ForgeConfigSpec.IntValue BLADE_ANIMATION_DURATION_TICKS;
     private static final ForgeConfigSpec.BooleanValue ENABLE_SHADERS;
 
     public static final ForgeConfigSpec SPEC;
@@ -31,6 +32,7 @@ public final class ModConfig {
     public static float renderSmoothingMultiplier = 1.0F;
     public static float renderLightingMultiplier = 1.0F;
     public static boolean renderStoredLightsaber;
+    public static int bladeAnimationDurationTicks = 6;
     public static boolean enableShaders = true;
 
     static {
@@ -53,6 +55,7 @@ public final class ModConfig {
         RENDER_SMOOTHING_MULTIPLIER = defineMultiplier(builder, "smoothingMultiplier");
         RENDER_LIGHTING_MULTIPLIER = defineMultiplier(builder, "lightingMultiplier");
         RENDER_STORED_LIGHTSABER = builder.define("renderStoredLightsaber", false);
+        BLADE_ANIMATION_DURATION_TICKS = builder.defineInRange("bladeAnimationDurationTicks", 6, 0, 100);
         ENABLE_SHADERS = builder.define("enableShaders", true);
         builder.pop();
 
@@ -92,6 +95,7 @@ public final class ModConfig {
         renderSmoothingMultiplier = RENDER_SMOOTHING_MULTIPLIER.get().floatValue();
         renderLightingMultiplier = RENDER_LIGHTING_MULTIPLIER.get().floatValue();
         renderStoredLightsaber = RENDER_STORED_LIGHTSABER.get();
+        bladeAnimationDurationTicks = BLADE_ANIMATION_DURATION_TICKS.get();
         enableShaders = ENABLE_SHADERS.get();
     }
 }

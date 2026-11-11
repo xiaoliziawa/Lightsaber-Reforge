@@ -2,6 +2,7 @@ package com.fiskmods.lightsabers.client.input;
 
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.client.gui.GuiSelectPowers;
+import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberBladeAnimation;
 import com.fiskmods.lightsabers.client.sound.ALSounds;
 import com.fiskmods.lightsabers.common.data.ALData;
 import com.fiskmods.lightsabers.common.force.Power;
@@ -96,6 +97,7 @@ public enum ClientInputHandler {
             ItemStack stack = player.getMainHandItem();
             if (stack.getItem() instanceof ItemLightsaberBase) {
                 boolean active = !ItemLightsaberBase.isActive(stack);
+                LightsaberBladeAnimation.track(player);
                 ItemLightsaberBase.ignite(player, active);
                 ALNetworkManager.sendToServer(new MessageToggleLightsaber(active));
             }

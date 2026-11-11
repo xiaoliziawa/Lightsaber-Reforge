@@ -185,7 +185,8 @@ public final class SpinningLightsaberObjRenderer {
             ItemStack stack,
             PoseStack poseStack,
             MultiBufferSource buffer,
-            boolean inWorld
+            boolean inWorld,
+            float extension
     ) {
         if (!isSupported(data)) {
             return;
@@ -208,7 +209,8 @@ public final class SpinningLightsaberObjRenderer {
                 buffer,
                 inWorld,
                 BLADE_LENGTH,
-                false
+                false,
+                extension
         );
         poseStack.popPose();
 
@@ -229,7 +231,8 @@ public final class SpinningLightsaberObjRenderer {
                 buffer,
                 inWorld,
                 BLADE_LENGTH,
-                false
+                false,
+                extension
         );
         poseStack.popPose();
         LightsaberBladeRenderer.bladeRoll = 0.0F;

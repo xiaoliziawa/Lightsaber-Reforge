@@ -189,6 +189,24 @@ public abstract class ItemLightsaberBase extends SwordItem implements IForgeItem
         return true;
     }
 
+    @Override
+    public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+        return slotChanged || !matchesIgnoringActive(oldStack, newStack);
+    }
+
+    public static boolean matchesIgnoringActive(ItemStack first, ItemStack second) {
+        if (first == second || ItemStack.isSameItemSameTags(first, second)) {
+            return true;
+        }
+        if (!ItemStack.isSameItem(first, second)) {
+            return false;
+        }
+        return ItemStack.isSameItemSameTags(
+                setActive(first.copy(), false),
+                setActive(second.copy(), false)
+        );
+    }
+
     public static boolean isActive(ItemStack stack) {
         return !stack.isEmpty() && stack.hasTag() && stack.getTag().getBoolean(ACTIVE_TAG);
     }
