@@ -3,7 +3,6 @@ package com.fiskmods.lightsabers.client.render.lightsaber;
 import com.fiskmods.lightsabers.client.render.hilt.HiltModelRenderer;
 import com.fiskmods.lightsabers.common.hilt.Hilt.Part;
 import com.fiskmods.lightsabers.common.item.ItemDoubleLightsaber;
-import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
 import com.fiskmods.lightsabers.common.lightsaber.PartType;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -32,7 +31,8 @@ public final class LightsaberRenderer {
             int packedLight,
             int packedOverlay,
             boolean inWorld,
-            boolean deferGlow
+            boolean deferGlow,
+            float extension
     ) {
         if (SpinningLightsaberObjRenderer.isSupported(data)) {
             SpinningLightsaberObjRenderer.renderHilt(
@@ -43,14 +43,15 @@ public final class LightsaberRenderer {
                     packedLight,
                     packedOverlay
             );
-            if (ItemLightsaberBase.isActive(stack)) {
+            if (extension > 0.0F) {
                 SpinningLightsaberObjRenderer.renderBlades(
                         data,
                         stack,
                         poseStack,
                         collector,
                         inWorld,
-                        deferGlow
+                        deferGlow,
+                        extension
                 );
             }
             return;
@@ -63,14 +64,15 @@ public final class LightsaberRenderer {
                     packedLight,
                     packedOverlay
             );
-            if (ItemLightsaberBase.isActive(stack)) {
+            if (extension > 0.0F) {
                 SpearLightsaberObjRenderer.renderBlade(
                         data,
                         stack,
                         poseStack,
                         collector,
                         inWorld,
-                        deferGlow
+                        deferGlow,
+                        extension
                 );
             }
             return;
@@ -83,7 +85,7 @@ public final class LightsaberRenderer {
                 packedLight,
                 packedOverlay
         );
-        if (!ItemLightsaberBase.isActive(stack)) {
+        if (extension <= 0.0F) {
             return;
         }
 
@@ -103,7 +105,7 @@ public final class LightsaberRenderer {
                 0.0F
         );
         poseStack.translate(0.0F, BLADE_BASE_OFFSET, 0.0F);
-        renderCrossguard(data, stack, poseStack, collector, inWorld, deferGlow);
+        renderCrossguard(data, stack, poseStack, collector, inWorld, deferGlow, extension);
         LightsaberBladeRenderer.render(
                 data,
                 stack,
@@ -112,7 +114,8 @@ public final class LightsaberRenderer {
                 inWorld,
                 deferGlow,
                 LightsaberBladeRenderer.MAIN_BLADE_LENGTH,
-                false
+                false,
+                extension
         );
         poseStack.popPose();
     }
@@ -125,7 +128,8 @@ public final class LightsaberRenderer {
             int packedLight,
             int packedOverlay,
             boolean inWorld,
-            boolean deferGlow
+            boolean deferGlow,
+            float extension
     ) {
         boolean flipped = ItemDoubleLightsaber.isFlipped(stack);
         for (int index = 0; index < sabers.length; index++) {
@@ -145,7 +149,8 @@ public final class LightsaberRenderer {
                     packedLight,
                     packedOverlay,
                     inWorld,
-                    deferGlow
+                    deferGlow,
+                    extension
             );
             poseStack.popPose();
         }
@@ -157,7 +162,8 @@ public final class LightsaberRenderer {
             PoseStack poseStack,
             SubmitNodeCollector collector,
             boolean inWorld,
-            boolean deferGlow
+            boolean deferGlow,
+            float extension
     ) {
         Part emitter = data.getPart(PartType.EMITTER);
         if (!emitter.hasCrossguard()) {
@@ -184,7 +190,8 @@ public final class LightsaberRenderer {
                     inWorld,
                     deferGlow,
                     LightsaberBladeRenderer.CROSSGUARD_BLADE_LENGTH,
-                    true
+                    true,
+                    extension
             );
             poseStack.popPose();
         }
