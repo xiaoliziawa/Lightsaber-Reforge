@@ -190,6 +190,24 @@ public abstract class ItemLightsaberBase extends SwordItem {
         return true;
     }
 
+    @Override
+    public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+        return slotChanged || !matchesIgnoringActive(oldStack, newStack);
+    }
+
+    public static boolean matchesIgnoringActive(ItemStack first, ItemStack second) {
+        if (first == second || ItemStack.isSameItemSameComponents(first, second)) {
+            return true;
+        }
+        if (!ItemStack.isSameItem(first, second)) {
+            return false;
+        }
+        return ItemStack.isSameItemSameComponents(
+                setActive(first.copy(), false),
+                setActive(second.copy(), false)
+        );
+    }
+
     public static boolean isActive(ItemStack stack) {
         CompoundTag tag = ItemDataHelper.getCustomData(stack);
         return !stack.isEmpty() && tag != null && tag.getBoolean(ACTIVE_TAG);

@@ -33,6 +33,28 @@ public final class LightsaberRenderer {
             int packedOverlay,
             boolean inWorld
     ) {
+        render(
+                data,
+                stack,
+                poseStack,
+                buffer,
+                packedLight,
+                packedOverlay,
+                inWorld,
+                getBladeExtension(stack, inWorld)
+        );
+    }
+
+    private static void render(
+            LightsaberData data,
+            ItemStack stack,
+            PoseStack poseStack,
+            MultiBufferSource buffer,
+            int packedLight,
+            int packedOverlay,
+            boolean inWorld,
+            float extension
+    ) {
         if (SpinningLightsaberObjRenderer.isSupported(data)) {
             SpinningLightsaberObjRenderer.renderHilt(
                     data,
@@ -42,13 +64,14 @@ public final class LightsaberRenderer {
                     packedLight,
                     packedOverlay
             );
-            if (ItemLightsaberBase.isActive(stack)) {
+            if (extension > 0.0F) {
                 SpinningLightsaberObjRenderer.renderBlades(
                         data,
                         stack,
                         poseStack,
                         buffer,
-                        inWorld
+                        inWorld,
+                        extension
                 );
             }
             return;
@@ -61,13 +84,14 @@ public final class LightsaberRenderer {
                     packedLight,
                     packedOverlay
             );
-            if (ItemLightsaberBase.isActive(stack)) {
+            if (extension > 0.0F) {
                 SpearLightsaberObjRenderer.renderBlade(
                         data,
                         stack,
                         poseStack,
                         buffer,
-                        inWorld
+                        inWorld,
+                        extension
                 );
             }
             return;
@@ -80,7 +104,7 @@ public final class LightsaberRenderer {
                 packedLight,
                 packedOverlay
         );
-        if (!ItemLightsaberBase.isActive(stack)) {
+        if (extension <= 0.0F) {
             return;
         }
 
@@ -100,7 +124,7 @@ public final class LightsaberRenderer {
                 0.0F
         );
         poseStack.translate(0.0F, BLADE_BASE_OFFSET, 0.0F);
-        renderCrossguard(data, stack, poseStack, buffer, inWorld);
+        renderCrossguard(data, stack, poseStack, buffer, inWorld, extension);
         LightsaberBladeRenderer.render(
                 data,
                 stack,
@@ -108,7 +132,8 @@ public final class LightsaberRenderer {
                 buffer,
                 inWorld,
                 LightsaberBladeRenderer.MAIN_BLADE_LENGTH,
-                false
+                false,
+                extension
         );
         poseStack.popPose();
     }
@@ -122,6 +147,7 @@ public final class LightsaberRenderer {
             int packedOverlay,
             boolean inWorld
     ) {
+        float extension = getBladeExtension(stack, inWorld);
         boolean flipped = ItemDoubleLightsaber.isFlipped(stack);
         for (int index = 0; index < sabers.length; index++) {
             int dataIndex = flipped ? sabers.length - index - 1 : index;
@@ -139,10 +165,17 @@ public final class LightsaberRenderer {
                     buffer,
                     packedLight,
                     packedOverlay,
-                    inWorld
+                    inWorld,
+                    extension
             );
             poseStack.popPose();
         }
+    }
+
+    private static float getBladeExtension(ItemStack stack, boolean inWorld) {
+        return inWorld
+                ? LightsaberBladeAnimation.getExtension(stack)
+                : ItemLightsaberBase.isActive(stack) ? 1.0F : 0.0F;
     }
 
     private static void renderCrossguard(
@@ -150,7 +183,8 @@ public final class LightsaberRenderer {
             ItemStack stack,
             PoseStack poseStack,
             MultiBufferSource buffer,
-            boolean inWorld
+            boolean inWorld,
+            float extension
     ) {
         Part emitter = data.getPart(PartType.EMITTER);
         if (!emitter.hasCrossguard()) {
@@ -176,7 +210,8 @@ public final class LightsaberRenderer {
                     buffer,
                     inWorld,
                     LightsaberBladeRenderer.CROSSGUARD_BLADE_LENGTH,
-                    true
+                    true,
+                    extension
             );
             poseStack.popPose();
         }

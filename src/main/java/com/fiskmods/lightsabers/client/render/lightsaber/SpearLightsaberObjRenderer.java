@@ -52,8 +52,12 @@ public final class SpearLightsaberObjRenderer {
     }
 
     public static float getBladeModelLength() {
+        return getBladeModelLength(1.0F);
+    }
+
+    public static float getBladeModelLength(float extension) {
         return getSocketOffset()
-                + LightsaberBladeRenderer.getBladeLength(BLADE_LENGTH) * BLADE_MODEL_SCALE;
+                + LightsaberBladeRenderer.getBladeLength(BLADE_LENGTH) * BLADE_MODEL_SCALE * extension;
     }
 
     private static float getSocketOffset() {
@@ -145,7 +149,8 @@ public final class SpearLightsaberObjRenderer {
             ItemStack stack,
             PoseStack poseStack,
             MultiBufferSource buffer,
-            boolean inWorld
+            boolean inWorld,
+            float extension
     ) {
         poseStack.pushPose();
         poseStack.translate(0.0F, -getSocketOffset(), 0.0F);
@@ -157,7 +162,8 @@ public final class SpearLightsaberObjRenderer {
                 buffer,
                 inWorld,
                 BLADE_LENGTH,
-                false
+                false,
+                extension
         );
         poseStack.popPose();
     }

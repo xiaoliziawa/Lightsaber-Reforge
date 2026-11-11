@@ -2,6 +2,7 @@ package com.fiskmods.lightsabers.client.integration.epicfight;
 
 import com.fiskmods.lightsabers.Lightsabers;
 import com.fiskmods.lightsabers.client.render.item.LightsaberItemRenderer;
+import com.fiskmods.lightsabers.client.render.lightsaber.LightsaberBladeAnimation;
 import com.fiskmods.lightsabers.common.item.ItemDoubleLightsaber;
 import com.fiskmods.lightsabers.common.item.ItemLightsaberBase;
 import com.fiskmods.lightsabers.common.lightsaber.LightsaberData;
@@ -128,8 +129,9 @@ public final class EpicFightClientIntegration {
             return trailInfo;
         }
 
+        float extension = LightsaberBladeAnimation.getExtension(stack);
         TrailInfo.Builder builder = trailInfo.unpackAsBuilder();
-        if (!ItemLightsaberBase.isActive(stack)) {
+        if (extension <= 0.0F) {
             return builder.endPos(trailInfo.start()).create();
         }
 
@@ -137,7 +139,7 @@ public final class EpicFightClientIntegration {
         float[] color = data.getRGB(stack);
         Vec3 direction = trailInfo.end().subtract(trailInfo.start()).normalize();
         Vec3 end = trailInfo.start().add(
-                direction.scale(LightsaberItemRenderer.getThirdPersonBladeLength(stack))
+                direction.scale(LightsaberItemRenderer.getThirdPersonBladeLength(stack, extension))
         );
         return builder
                 .endPos(end)

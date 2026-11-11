@@ -66,14 +66,26 @@ public final class LightsaberBladeRenderer {
             MultiBufferSource buffer,
             boolean inWorld,
             int bladeLength,
-            boolean crossguard
+            boolean crossguard,
+            float extension
     ) {
+        if (extension <= 0.0F) {
+            return;
+        }
+
         float[] rgb = data.getRGB(stack);
         BladeStyle style = BladeStyle.of(data);
         boolean rollBlade = !crossguard && style.katana() && bladeRoll != 0.0F;
-        if (rollBlade) {
+        boolean scaleBlade = extension < 1.0F;
+        boolean transformBlade = rollBlade || scaleBlade;
+        if (transformBlade) {
             poseStack.pushPose();
-            poseStack.mulPose(Axis.YP.rotationDegrees(bladeRoll));
+            if (rollBlade) {
+                poseStack.mulPose(Axis.YP.rotationDegrees(bladeRoll));
+            }
+            if (scaleBlade) {
+                poseStack.scale(1.0F, extension, 1.0F);
+            }
         }
 
         renderGlow(
@@ -157,7 +169,7 @@ public final class LightsaberBladeRenderer {
                     1.0F
             );
         }
-        if (rollBlade) {
+        if (transformBlade) {
             poseStack.popPose();
         }
     }
